@@ -1,0 +1,7 @@
+<resources>
+
+    <string-array name="sources">
+        <item>Facebook</item>
+    </string-array>
+    
+</resources>

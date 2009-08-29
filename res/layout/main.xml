@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+	<TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:text="Source:"
+    />
+
+    <Spinner 
+        android:id="@+id/source"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="true"
+        android:prompt="@string/source_prompt"
+    />
+
+	<CheckBox 
+		android:text="@string/skipIfExists" 
+		android:id="@+id/skipIfExists" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+	<CheckBox 
+		android:text="@string/skipIfConflict" 
+		android:id="@+id/skipIfConflict" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+	<TextView android:text="@string/loginStatus.notloggedin" 
+		android:id="@+id/loginStatus" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+
+</LinearLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="source_prompt">Select a source</string>
+    <string name="skipIfExists">Skip if non-SyncMyPix picture exists</string>
+    <string name="skipIfConflict">Skip if multiple phone contacts found</string>
+    <string name="loginStatus.notloggedin">Not logged in</string>
+    <string name="loginStatus.loggedin">Logged in</string>
+    <string name="loginButton">Login</string>
+    <string name="startButton">Start</string>
+    <string name="app_name">SyncMyPix</string>
+    <string name="syncresults">Sync Results</string>
+    <string name="facebooklogin">Login to Facebook</string>
+    <string name="facebooklogin.urlError">Error parsing URL</string>
+    <string name="facebookdownloadservice.started">SyncMyPix syncing started</string>
+    <string name="facebookdownloadservice.stopped">SyncMyPix finished syncing</string>
+    <string name="facebookdownloadservice.downloaderror">Error downloading or operation cancelled by user</string>
+    <string name="facebookdownloadservice.sessionerror">Session invalid. Please login.</string>
+</resources>
