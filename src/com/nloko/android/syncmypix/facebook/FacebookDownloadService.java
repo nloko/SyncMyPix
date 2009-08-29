@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix.facebook;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.nloko.android.Log;
@@ -61,7 +62,14 @@ public class FacebookDownloadService extends Service {
 	// Handlers to run showErrorAndStop on UI thread
 	private final Handler mainHandler = new Handler ();
 	private final Runnable showDownloadError = new Runnable () {
+		
+		@SuppressWarnings("unchecked")
 		public void run() {
+			
+			if (!resultsList.isEmpty()) {
+				new updateResultsTable().execute(resultsList);
+			}
+			
 			if (listener != null) {
 				listener.error(0);
 			}
@@ -101,6 +109,35 @@ public class FacebookDownloadService extends Service {
     	listener = null;
     }
 
+    private class updateResultsTable extends AsyncTask <List <ContentValues>, Integer, Long>
+    {
+		@Override
+		protected Long doInBackground(List <ContentValues>... params) {
+			
+			List <ContentValues> list = params[0];
+			
+			Log.d(TAG, "Started" + Long.toString(System.currentTimeMillis()));
+			for (ContentValues values : list) {
+				if (values != null) {
+					createResult(values);
+				}
+			}
+			
+			Log.d(TAG, "Ended" + Long.toString(System.currentTimeMillis()));
+			
+			return (long) list.size();
+		}
+
+		@Override
+		protected void onPostExecute(Long result) {
+
+			super.onPostExecute(result);
+			resultsList.clear();
+		}
+    	
+		
+    }
+    
     private class Download extends AsyncTask <FacebookRestClient, Integer, Long>
     {
 		@Override
@@ -127,7 +164,24 @@ public class FacebookDownloadService extends Service {
 					
 					index = 1;
 					for (FacebookUser user : userList) {
-						processUser(user, sync);
+						String name = user.firstName + " " + user.lastName;
+						
+						// keep going if exception during sync
+						try {
+							processUser(user, sync);
+						}
+						catch (Exception processException) {
+							ContentValues values = new ContentValues();
+							
+							String syncId = sync.getPathSegments().get(1);
+							values.put(Results.SYNC_ID, syncId);
+							values.put(Results.NAME, name);
+							values.put(Results.PIC_URL, user.picUrl);
+							values.put(Results.DESCRIPTION, "Exception caught during sync");
+
+							resultsList.add(values);
+						}
+						
 						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
 						
 						if (cancel) {
@@ -166,6 +220,7 @@ public class FacebookDownloadService extends Service {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void onPostExecute(Long result) {
 			if (result > 0 && !cancel) {
@@ -174,6 +229,10 @@ public class FacebookDownloadService extends Service {
 			}
 			else {
 				cancelNotification(R.string.facebookdownloadservice_started);
+			}
+			
+			if (!resultsList.isEmpty()) {
+				new updateResultsTable().execute(resultsList);
 			}
 		}
     }
@@ -206,6 +265,16 @@ public class FacebookDownloadService extends Service {
     	return started;
     }
     
+    private void createResult (ContentValues values)
+    {
+    	if (values == null) {
+    		throw new IllegalArgumentException("values");
+    	}
+
+    	ContentResolver resolver = getContentResolver();
+    	resolver.insert(Results.CONTENT_URI, values);
+    }
+    
     // Download class runs this method on a worker thread
     private void processUser(FacebookUser user, Uri sync) 
     {
@@ -223,14 +292,16 @@ public class FacebookDownloadService extends Service {
 		String syncId = sync.getPathSegments().get(1);
 		
 		ContentValues values = new ContentValues();
+		String name = user.firstName + " " + user.lastName;
+		
 		values.put(Results.SYNC_ID, syncId);
-		values.put(Results.NAME, user.firstName + " " + user.lastName);
+		values.put(Results.NAME, name);
 		values.put(Results.PIC_URL, user.picUrl);
 		values.put(Results.DESCRIPTION, "Picture Updated");
 		
 		if (user.picUrl == null || user.picUrl.equals("null") || user.picUrl == "") {
 			values.put(Results.DESCRIPTION, "Picture not found");
-			resolver.insert(Results.CONTENT_URI, values);
+			resultsList.add(values);
 			return;
 		}
 		
@@ -276,7 +347,7 @@ public class FacebookDownloadService extends Service {
 						}
 	
 						if (image != null) {
-							People.setPhotoData(this.getContentResolver(), contact , image);
+							People.setPhotoData(this.getContentResolver(), contact, image);
 							updateSyncContact(id, hash);
 						}
 						else {
@@ -284,12 +355,15 @@ public class FacebookDownloadService extends Service {
 							break;
 						}
 					}
+					else if (cur.getCount() == 1) {
+						values.put(Results.DESCRIPTION, "Skipped: non-SyncMyPix picture exists");
+					}
 
 				} while (cur.moveToNext());
 			}
 		}
 
-    	resolver.insert(Results.CONTENT_URI, values);
+		resultsList.add(values);
 		cur.close();
 	}
 
@@ -358,23 +432,31 @@ public class FacebookDownloadService extends Service {
     	ContentResolver resolver = getContentResolver();
     	Uri uri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
     	
+		ContentValues values = new ContentValues();
+		values.put(SyncMyPix.Contacts._ID, id);
+		values.put(SyncMyPix.Contacts.PHOTO_HASH, hash);
+		
     	Cursor cur = resolver.query(uri, new String[] { SyncMyPix.Contacts._ID }, null, null, null);
 		if (cur.getCount() == 0) {
-			ContentValues values = new ContentValues();
-			values.put(SyncMyPix.Contacts._ID, id);
-			values.put(SyncMyPix.Contacts.PHOTO_HASH, hash);
 			resolver.insert(SyncMyPix.Contacts.CONTENT_URI, values);
+		}
+		else {
+			resolver.update(uri, values, null, null);
 		}
 		
 		cur.close();
     }
     
 	private NotificationManager notifyManager;
-    
+	
+    private updateResultsTable updateDbAsync;
+    private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
+	
     @Override
 	public void onStart(Intent intent, int startId) {
 
 		super.onStart(intent, startId);
+		
 		started = true;
 		cancel = false;
 		

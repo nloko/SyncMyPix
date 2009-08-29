@@ -76,7 +76,16 @@ public class FacebookLoginWebView extends Activity {
     
     private class FacebookWebViewClient extends WebViewClient {
     	
+    	
         @Override
+		public void onLoadResource(WebView view, String url) {
+	
+			super.onLoadResource(view, url);
+			
+			showDialog(PROGRESS_KEY);
+		}
+
+		@Override
 		public void onPageFinished(WebView view, String url) {
 			super.onPageFinished(view, url);
 			
@@ -89,6 +98,11 @@ public class FacebookLoginWebView extends Activity {
 		public void onPageStarted(WebView view, String url, Bitmap favicon) {
 			// TODO Auto-generated method stub
 			super.onPageStarted(view, url, favicon);
+			
+			if (progress != null) {
+				dismissDialog(PROGRESS_KEY);
+			}
+			
 			try	{
             	Log.d(TAG, url);
             	Log.d(TAG, login.getNextUrl().getPath());

@@ -121,7 +121,7 @@ public final class Utils {
 	    	InputStream stream = (InputStream) fetchUrl.getContent();
 	    	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	    	
-	    	Bitmap bitmap = BitmapFactory.decodeStream(new BufferedInputStream(stream));
+	    	Bitmap bitmap = BitmapFactory.decodeStream(stream);
 	    	bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
 	    	return bytes.toByteArray();
     	}
