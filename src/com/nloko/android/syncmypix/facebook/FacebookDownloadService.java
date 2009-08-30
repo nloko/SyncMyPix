@@ -31,25 +31,34 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.ContactServices;
 import com.nloko.android.syncmypix.DownloadListener;
 import com.nloko.android.syncmypix.GlobalConfig;
+import com.nloko.android.syncmypix.HashUpdateService;
 import com.nloko.android.syncmypix.SyncMyPix;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.R;
 import com.nloko.simplyfacebook.net.FacebookRestClient;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
+import android.provider.Contacts;
 import android.provider.Contacts.People;
 import android.widget.Toast;
 
@@ -133,6 +142,14 @@ public class FacebookDownloadService extends Service {
 
 			super.onPostExecute(result);
 			resultsList.clear();
+			
+			long time = SystemClock.elapsedRealtime() + 120 * 1000;
+			
+            // Schedule the alarm!
+            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+            am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            time, alarmSender);
+
 		}
     	
 		
@@ -384,7 +401,7 @@ public class FacebookDownloadService extends Service {
     	boolean ok = true;
 
     	Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
-
+    	    	
     	if (skipIfExists) {
     		Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
     		Cursor syncC = resolver.query(syncUri, 
@@ -396,6 +413,7 @@ public class FacebookDownloadService extends Service {
     		
     		String hash = null;
     		InputStream is = People.openContactPhotoInputStream(resolver, contact);
+    		
     		if (is != null) {
     			hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     		}
@@ -414,7 +432,7 @@ public class FacebookDownloadService extends Service {
 
     		syncC.close();
     	}
-
+    	
     	return ok;
     }
     
@@ -451,6 +469,7 @@ public class FacebookDownloadService extends Service {
 	
     private updateResultsTable updateDbAsync;
     private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
+    private PendingIntent alarmSender;
 	
     @Override
 	public void onStart(Intent intent, int startId) {
@@ -466,6 +485,11 @@ public class FacebookDownloadService extends Service {
 		
 		notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		showNotification(R.string.facebookdownloadservice_started, android.R.drawable.stat_sys_download);
+	
+		alarmSender = PendingIntent.getService(FacebookDownloadService.this,
+                0, new Intent(FacebookDownloadService.this, HashUpdateService.class), 0);
+
+		handleHashUpdateService();
 	}
 
     @Override
@@ -483,6 +507,19 @@ public class FacebookDownloadService extends Service {
         return binder;
     }
 
+    private void handleHashUpdateService()
+    {
+    	Intent i = new Intent(FacebookDownloadService.this, HashUpdateService.class);
+    	if (bindService(i, serviceConn, 0)) {
+    		if (boundService != null && boundService.isExecuting()) {
+    			boundService.cancelUpdate();
+    		}
+    	}
+
+    	AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+    	am.cancel(alarmSender);
+    }
+    
     private void showErrorAndStop (int msg)
     {
     	cancelNotification(R.string.facebookdownloadservice_started, msg);
@@ -532,4 +569,21 @@ public class FacebookDownloadService extends Service {
 
         notifyManager.notify(msg, notification);
     }
+    
+	private HashUpdateService boundService;
+	private boolean serviceConnected = false;
+    private ServiceConnection serviceConn = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+        	
+        	serviceConnected = true;
+        	
+        	boundService = ((HashUpdateService.LocalBinder)service).getService();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            
+        	serviceConnected = false;
+        	
+        }
+    };
 }

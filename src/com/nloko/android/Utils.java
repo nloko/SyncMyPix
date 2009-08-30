@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 
 import com.nloko.android.Log;
 
@@ -92,7 +94,7 @@ public final class Utils {
 			throw new IllegalArgumentException("is");
 		}
 		
-		int size = 1024;
+		int size = 8192;
 		int read = 0;
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream(size);
 		byte[] buffer = new byte[size];
@@ -118,11 +120,24 @@ public final class Utils {
     	byte[] image = null;
     	try {
 	    	URL fetchUrl = new URL(url);
-	    	InputStream stream = (InputStream) fetchUrl.getContent();
+	    	HttpURLConnection conn = (HttpURLConnection) fetchUrl.openConnection();
+	    	InputStream stream = conn.getInputStream();
+	    	//InputStream stream = (InputStream) fetchUrl.getContent();
 	    	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	    	
 	    	Bitmap bitmap = BitmapFactory.decodeStream(stream);
-	    	bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+	    	/*	    	int width = bitmap.getWidth();
+	    	int height = bitmap.getHeight(); 
+	    	int newWidth = 96; int newHeight = 96; 
+	    	float scaleWidth = ((float) newWidth) / width; 
+	    	float scaleHeight = ((float) newHeight) / height; 
+	    	Matrix matrix = new Matrix(); 
+	    	matrix.postScale(scaleWidth, scaleHeight); 
+	    	bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true); */
+	    	
+	    	//Log.d(null, String.format("Size is %d by %d", bitmap.getHeight(), bitmap.getWidth()));
+	    	
+	    	bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
 	    	return bytes.toByteArray();
     	}
     	catch (IOException ex) {

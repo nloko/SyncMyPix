@@ -77,19 +77,11 @@ public class FacebookLoginWebView extends Activity {
     private class FacebookWebViewClient extends WebViewClient {
     	
     	
-        @Override
-		public void onLoadResource(WebView view, String url) {
-	
-			super.onLoadResource(view, url);
-			
-			showDialog(PROGRESS_KEY);
-		}
-
 		@Override
 		public void onPageFinished(WebView view, String url) {
 			super.onPageFinished(view, url);
 			
-			if (progress != null) {
+			if (progress != null && progress.isShowing()) {
 				dismissDialog(PROGRESS_KEY);
 			}
 		}
@@ -98,10 +90,12 @@ public class FacebookLoginWebView extends Activity {
 		public void onPageStarted(WebView view, String url, Bitmap favicon) {
 			// TODO Auto-generated method stub
 			super.onPageStarted(view, url, favicon);
-			
-			if (progress != null) {
-				dismissDialog(PROGRESS_KEY);
+	
+			// TODO this seems like an SDK bug. Is activity running? crapo exception
+			try {
+				showDialog(PROGRESS_KEY);
 			}
+			catch (Exception crapo) {}
 			
 			try	{
             	Log.d(TAG, url);
@@ -141,7 +135,7 @@ public class FacebookLoginWebView extends Activity {
 			case PROGRESS_KEY:
 				progress = new ProgressDialog(FacebookLoginWebView.this);
 				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				progress.setMessage("Please wait while login page loads...");
+				progress.setMessage("Please wait while page loads...");
 				progress.setCancelable(true);
 				return progress;
 		}

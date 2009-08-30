@@ -72,6 +72,7 @@ public class GlobalConfig extends Activity {
 
         final CheckBox skipIfExists = (CheckBox) findViewById(R.id.skipIfExists);
         skipIfExists.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("skipIfExists", true));
+        //skipIfExists.setChecked(false);
         
         skipIfExists.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -88,7 +89,7 @@ public class GlobalConfig extends Activity {
             }
         });
         
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
     }
