@@ -37,8 +37,12 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -53,10 +57,10 @@ public class SyncResults extends Activity {
 	Cursor cur;
 	ListView listview;
 	ImageView contactImage;
-	Handler handleBitmap;
-	DownloadImageThread downloadThread;
 	
-	boolean runThread = true;
+	Looper downloadLooper;
+	Handler handleBitmap;
+	DownloadImageHandler downloadHandler;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,9 +103,7 @@ public class SyncResults extends Activity {
         listview.setAdapter(adapter);      
         
         TextView header = (TextView) findViewById(R.id.resultsListHeader);
-        header.setBackgroundColor(Color.DKGRAY);
-                
-
+        header.setBackgroundColor(Color.GRAY);
         
         contactImage = (ImageView) findViewById(R.id.contactImage);
         contactImage.setImageResource(android.R.drawable.gallery_thumb);
@@ -115,7 +117,12 @@ public class SyncResults extends Activity {
 				String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
 
 				if (url != null && !url.equals("null") && !url.equals("")) {
-					downloadThread.add(url);
+					contactImage.setImageResource(android.R.drawable.gallery_thumb);
+					
+					Message msg = downloadHandler.obtainMessage();
+					msg.obj = url;
+					downloadHandler.sendMessage(msg);
+					
 					String name = cur.getString(cur.getColumnIndex(Results.NAME));
 					TextView selectedName = (TextView) findViewById(R.id.selectedName);
 					selectedName.setText(name);
@@ -135,59 +142,65 @@ public class SyncResults extends Activity {
 			}
         };
         
-        downloadThread = new DownloadImageThread(handleBitmap);
+        HandlerThread downloadThread = new HandlerThread("ImageDownload");
         downloadThread.start();
+        
+        downloadLooper = downloadThread.getLooper();
+        downloadHandler = new DownloadImageHandler(downloadLooper, handleBitmap);
 	}
 
 	
 	@Override
 	protected void onDestroy() {
+		
+		downloadLooper.quit();
+		
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		runThread = false;
+
 	}
 
 
-	private class DownloadImageThread extends Thread
+	protected void setImageAnimation()
 	{
-		private List<String> list;
-		private Handler handler;
+		if (contactImage != null) {
+			Animation a=new RotateAnimation(0, 360);
+
+			a.setRepeatCount(Animation.INFINITE);
+			a.setDuration(10000);
+			// maybe other configuration as needed
+
+			contactImage.startAnimation(a);
+
+		}
+	}
+	
+	private class DownloadImageHandler extends Handler
+	{
+		private Handler mainHandler;
 		
-		@SuppressWarnings("unused")
-		private DownloadImageThread() {}
-		DownloadImageThread(Handler handler)
+		DownloadImageHandler(Looper looper, Handler handler)
 		{
-			list = new ArrayList<String> ();
-			this.handler = handler;
+			super(looper);
+			mainHandler = handler;
 		}
 		
-		public void add(String url)
+		@Override
+		public void handleMessage(Message msg)
 		{
-			list.add(url);
-		}
-		
-		public void run()
-		{
-			while (runThread) {
-				while (!list.isEmpty()) {
-					String url = list.get(0);
-					if (url != null) {
-						try {
-							Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
-							if (bitmap != null) {
-								Message msg = handler.obtainMessage();
-								msg.obj = bitmap;
-								handler.sendMessage(msg);
-							}
-						}
-						catch (Exception e) {}
-						finally {
-							list.remove(0);
-						}
+			String url = (String) msg.obj;
+			if (url != null) {
+				try {
+					Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
+					if (bitmap != null) {
+						Message mainMsg = mainHandler.obtainMessage();
+						mainMsg.obj = bitmap;
+						mainHandler.sendMessage(mainMsg);
 					}
 				}
+				catch (Exception e) {}
 			}
-		}
-		
+		}	
+
 	}
 }
