@@ -110,40 +110,39 @@ public final class Utils {
 		
 		return bytes.toByteArray();
 	}
-	
-	public static byte[] downloadPicture (String url)
-    {
-    	if (url == null) {
+
+	public static Bitmap downloadPictureAsBitmap (String url)
+	{
+		if (url == null) {
     		throw new IllegalArgumentException ("url");
     	}
     	
-    	byte[] image = null;
+    	Bitmap image = null;
     	try {
 	    	URL fetchUrl = new URL(url);
 	    	HttpURLConnection conn = (HttpURLConnection) fetchUrl.openConnection();
 	    	InputStream stream = conn.getInputStream();
-	    	//InputStream stream = (InputStream) fetchUrl.getContent();
-	    	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	    	
-	    	Bitmap bitmap = BitmapFactory.decodeStream(stream);
-	    	/*	    	int width = bitmap.getWidth();
-	    	int height = bitmap.getHeight(); 
-	    	int newWidth = 96; int newHeight = 96; 
-	    	float scaleWidth = ((float) newWidth) / width; 
-	    	float scaleHeight = ((float) newHeight) / height; 
-	    	Matrix matrix = new Matrix(); 
-	    	matrix.postScale(scaleWidth, scaleHeight); 
-	    	bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true); */
-	    	
-	    	//Log.d(null, String.format("Size is %d by %d", bitmap.getHeight(), bitmap.getWidth()));
-	    	
-	    	bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
-	    	return bytes.toByteArray();
+	    	image = BitmapFactory.decodeStream(stream);
     	}
-    	catch (IOException ex) {
-    		Log.e(null, android.util.Log.getStackTraceString(ex));
-    	}
-    	
+	    catch (IOException ex) {
+	    	Log.e(null, android.util.Log.getStackTraceString(ex));
+	    }
+	    
+	    return image;
+	}
+	
+	public static byte[] downloadPicture (String url)
+    {
+		byte[] image = null;
+		Bitmap bitmap = downloadPictureAsBitmap(url);
+		
+		if (bitmap != null) {
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
+			image =  bytes.toByteArray();
+		}
+
     	return image;
     }
     

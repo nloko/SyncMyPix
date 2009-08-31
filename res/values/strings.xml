@@ -15,4 +15,6 @@
     <string name="facebookdownloadservice.stopped">SyncMyPix finished syncing</string>
     <string name="facebookdownloadservice.downloaderror">Error downloading or operation cancelled by user</string>
     <string name="facebookdownloadservice.sessionerror">Session invalid. Please login.</string>
+    <string name="selectedName">Select a friend to view their picture</string>
+    <string name="resultsList">Social Network Friends</string>
 </resources>

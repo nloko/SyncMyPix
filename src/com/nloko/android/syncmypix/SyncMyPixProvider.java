@@ -61,6 +61,7 @@ public class SyncMyPixProvider extends ContentProvider {
     private static final int CONTACTS_ID = 2;
     private static final int RESULTS = 3;
     private static final int SYNC = 4;
+    private static final int SYNC_ID = 5;
 
     private static final UriMatcher uriMatcher;
 
@@ -70,6 +71,7 @@ public class SyncMyPixProvider extends ContentProvider {
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "contacts/#", CONTACTS_ID);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "results", RESULTS);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "sync", SYNC);
+        uriMatcher.addURI(SyncMyPix.AUTHORITY, "sync/#", SYNC_ID);
 
         // Map columns to resolve ambiguity
         contactsProjection = new HashMap<String, String>();
@@ -119,12 +121,12 @@ public class SyncMyPixProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-/*            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
+            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
             db.execSQL("DROP TABLE IF EXISTS contacts");
             db.execSQL("DROP TABLE IF EXISTS results");
             db.execSQL("DROP TABLE IF EXISTS sync");
-            onCreate(db);*/
+            onCreate(db);
         }
     }
 
@@ -297,6 +299,7 @@ public class SyncMyPixProvider extends ContentProvider {
 			String[] selectionArgs) {
 	
 		SQLiteDatabase db = openHelper.getWritableDatabase();
+		String Id;
         int count;
         
         switch (uriMatcher.match(uri)) {
@@ -305,7 +308,7 @@ public class SyncMyPixProvider extends ContentProvider {
             break;
 
         case CONTACTS_ID:
-            String Id = uri.getPathSegments().get(1);
+            Id = uri.getPathSegments().get(1);
             count = db.update(CONTACTS_TABLE_NAME, values, Contacts._ID + "=" + Id
                     + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
             break;
@@ -316,6 +319,12 @@ public class SyncMyPixProvider extends ContentProvider {
             
         case SYNC:
             count = db.update(SYNC_TABLE_NAME, values, selection, selectionArgs);
+            break;
+            
+        case SYNC_ID:
+            Id = uri.getPathSegments().get(1);
+            count = db.update(SYNC_TABLE_NAME, values, Sync._ID + "=" + Id
+                    + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
             break;
 
         default:

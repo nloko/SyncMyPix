@@ -206,6 +206,10 @@ public class FacebookDownloadService extends Service {
 							break;
 						}
 					}
+					
+					ContentValues syncValues = new ContentValues();
+					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
+					cr.update(sync, syncValues, null, null);
 				}
 				else {
 					mainHandler.post(showDownloadError);

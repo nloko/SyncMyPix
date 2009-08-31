@@ -17,15 +17,25 @@ public final class R {
         public static final int icon=0x7f020000;
     }
     public static final class id {
+        public static final int LinearLayout01=0x7f060005;
+        public static final int completed=0x7f060009;
+        public static final int contactImage=0x7f06000a;
+        public static final int label1=0x7f060006;
+        public static final int label2=0x7f060008;
         public static final int loginStatus=0x7f060004;
+        public static final int resultList=0x7f06000d;
+        public static final int resultsListHeader=0x7f06000c;
+        public static final int selectedName=0x7f06000b;
         public static final int skipIfConflict=0x7f060003;
         public static final int skipIfExists=0x7f060002;
         public static final int source=0x7f060001;
+        public static final int started=0x7f060007;
         public static final int webview=0x7f060000;
     }
     public static final class layout {
         public static final int facebookloginwebview=0x7f030000;
         public static final int main=0x7f030001;
+        public static final int results=0x7f030002;
     }
     public static final class string {
         public static final int app_name=0x7f050007;
@@ -38,6 +48,8 @@ public final class R {
         public static final int loginButton=0x7f050005;
         public static final int loginStatus_loggedin=0x7f050004;
         public static final int loginStatus_notloggedin=0x7f050003;
+        public static final int resultsList=0x7f050010;
+        public static final int selectedName=0x7f05000f;
         public static final int skipIfConflict=0x7f050002;
         public static final int skipIfExists=0x7f050001;
         public static final int source_prompt=0x7f050000;

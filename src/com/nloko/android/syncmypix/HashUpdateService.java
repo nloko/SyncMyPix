@@ -102,16 +102,19 @@ public class HashUpdateService extends Service {
 				Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
 				
 				InputStream is = People.openContactPhotoInputStream(resolver, uri);
-				String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
-				
-				Uri contacts = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
-				ContentValues values = new ContentValues();
-				values.put(Contacts._ID, id);
-				values.put(Contacts.PHOTO_HASH, hash);
-				resolver.update(contacts, values, null, null);
+				if (is != null) {
+					String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+					
+					Uri contacts = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+					ContentValues values = new ContentValues();
+					values.put(Contacts._ID, id);
+					values.put(Contacts.PHOTO_HASH, hash);
+					resolver.update(contacts, values, null, null);
+				}
 			}
 			
 			Log.d(TAG, "Finished updating hashes after sync");
+			
 			executing = false;
 			cancel = false;
 			
