@@ -196,5 +196,22 @@ public final class Utils {
         // Don't forget to commit your edits!!!
         editor.commit();
     }
+	
+	public static void setLong (SharedPreferences settings, String key, long value)
+    {
+    	if (settings == null) {
+    		throw new IllegalArgumentException ("settings");
+    	}
+    	
+    	if (key == null) {
+    		throw new IllegalArgumentException ("key");
+    	}
+    	
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putLong(key, value);
+
+        // Don't forget to commit your edits!!!
+        editor.commit();
+    }
 
 }

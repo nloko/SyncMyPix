@@ -108,34 +108,19 @@ public class GlobalConfig extends Activity {
 					return;
 				}
 				
+				long firstTriggerTime;
+				long interval;
+				
 				Utils.setInt(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_freq", position);
 				
-				AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-				PendingIntent alarmSender = PendingIntent.getService(GlobalConfig.this,
-		                0, new Intent(GlobalConfig.this, FacebookDownloadService.class), 0);
-				
-				
-				long firstTriggerTime = 0;
-				long interval = 0;
-				
-				switch (position) {
-					case 0:
-						am.cancel(alarmSender);
-						return;
-					case 1:
-						firstTriggerTime = SystemClock.elapsedRealtime() + 60 * 1000;
-						interval = 60 * 1000;
-						break;
-					case 2:
-						firstTriggerTime = SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY * 7;
-						interval = AlarmManager.INTERVAL_DAY * 7;
-						break;
-					case 3:
-						firstTriggerTime = SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY * 30;
-						interval = AlarmManager.INTERVAL_DAY * 30;
+				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
+					firstTriggerTime = SystemClock.elapsedRealtime() + interval;
+					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
+					FacebookDownloadService.updateSchedule(GlobalConfig.this, firstTriggerTime, interval);
 				}
-				
-				am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTriggerTime, interval, alarmSender);
+				else {
+					FacebookDownloadService.cancelSchedule(GlobalConfig.this);
+				}
 			}
 
 			public void onNothingSelected(AdapterView<?> parent) {
@@ -170,6 +155,27 @@ public class GlobalConfig extends Activity {
         setLoginStatus();
     }
 
+    public static long getScheduleInterval(int spinnerPos)
+    {
+    	long interval;
+    	switch (spinnerPos) {
+    	
+    		case 1:
+				interval = AlarmManager.INTERVAL_DAY;
+				break;
+			case 2:
+				interval = AlarmManager.INTERVAL_DAY * 7;
+				break;
+			case 3:
+				interval = AlarmManager.INTERVAL_DAY * 30;
+				break;
+			default:
+				interval = -1;
+    	}
+    	
+    	return interval;
+    }
+    
     private boolean manualScheduleSelection = false;
     private void setScheduleSelection(Spinner s, int pos)
     {

@@ -534,6 +534,28 @@ public class FacebookDownloadService extends Service {
         return binder;
     }
 
+    public static void cancelSchedule(Context context)
+    {
+    	PendingIntent alarmSender = PendingIntent.getService(context,
+                0, new Intent(context, FacebookDownloadService.class), 0);
+    	
+    	AlarmManager am = (AlarmManager)context.getSystemService(ALARM_SERVICE);
+    	am.cancel(alarmSender);
+    }
+    
+    public static void updateSchedule(Context context, long startTime, long interval)
+    {
+    	if (context == null) {
+    		throw new IllegalArgumentException("context");
+    	}
+    	
+    	PendingIntent alarmSender = PendingIntent.getService(context,
+                0, new Intent(context, FacebookDownloadService.class), 0);
+    	
+    	AlarmManager am = (AlarmManager)context.getSystemService(ALARM_SERVICE);
+    	am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime, interval, alarmSender);
+    }
+    
     private void launchProgress()
     {
     	Intent i = new Intent(this, GlobalConfig.class);
