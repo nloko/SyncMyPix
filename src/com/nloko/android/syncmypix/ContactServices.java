@@ -78,13 +78,14 @@ public class ContactServices {
 	{
 		return false;
 	}
-	
+
 	public static Cursor getPhoto (ContentResolver cr, String selection)
 	{
 		// Form an array specifying which columns to return. 
 		String[] projection = new String[] {
 			    Photos._ID,
-			    Photos.LOCAL_VERSION
+			    Photos.LOCAL_VERSION,
+			    Photos.PERSON_ID
 			    };
 
 		return getPhoto(cr, projection, selection);

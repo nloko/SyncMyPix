@@ -27,7 +27,10 @@ import java.io.InputStream;
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
+import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -36,6 +39,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.provider.Contacts.People;
 
 // TODO this is a dirty hack because after a sync, the phone syncs the pics with Google
@@ -43,15 +47,30 @@ import android.provider.Contacts.People;
 public class HashUpdateService extends Service {
 
 	private final static String TAG = "HashUpdateService";
+	private final static int maxRuns = 14;
+	
+	private int count = 0;
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
 		// TODO Auto-generated method stub
 		super.onStart(intent, startId);
+	
+		cancel = false;
 		
 		hashThread = new HashThread();
 		hashThread.start();
 	}
+
+	
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		
+		count = 0;
+	}
+
 
 	// just access directly. No IPC crap to deal with.
     private final IBinder binder = new LocalBinder();
@@ -70,6 +89,7 @@ public class HashUpdateService extends Service {
 	private boolean cancel = false;
 	public void cancelUpdate()
 	{
+		count = 0;
 		cancel = true;
 	}
 	
@@ -97,7 +117,9 @@ public class HashUpdateService extends Service {
 					null, 
 					null);
 			
+			
 			while (cur.moveToNext() && !cancel) {
+				
 				String id = cur.getString(cur.getColumnIndex(Contacts._ID));
 				Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
 				
@@ -113,12 +135,25 @@ public class HashUpdateService extends Service {
 				}
 			}
 			
-			Log.d(TAG, "Finished updating hashes after sync");
+			cur.close();
+			Log.d(TAG, String.format("Finished updating hashes after sync %d", count));
 			
 			executing = false;
-			cancel = false;
 			
-			stopSelf();
+			if (cancel || count++ == maxRuns) {
+				count = 0;
+				stopSelf();
+			}
+			else {
+				AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+				PendingIntent alarmSender = PendingIntent.getService(HashUpdateService.this,
+		                0, new Intent(HashUpdateService.this, HashUpdateService.class), 0);
+				
+				long time = SystemClock.elapsedRealtime() + 15 * 1000;
+				am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        time, alarmSender);
+			}
+			
 		}
 		
 	}

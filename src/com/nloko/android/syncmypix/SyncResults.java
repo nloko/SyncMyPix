@@ -22,9 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Results;

@@ -19,6 +19,21 @@
         android:drawSelectorOnTop="true"
         android:prompt="@string/source_prompt"
     />
+    
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:text="Schedule:"
+    />
+
+    <Spinner 
+        android:id="@+id/schedule"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="true"
+        android:prompt="@string/schedule_prompt"
+    />
 
 	<CheckBox 
 		android:text="@string/skipIfExists" 

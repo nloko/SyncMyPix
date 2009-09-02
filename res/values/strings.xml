@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="source_prompt">Select a source</string>
+	<string name="schedule_prompt">Select a frequency</string>
     <string name="skipIfExists">Skip if non-SyncMyPix picture exists</string>
     <string name="skipIfConflict">Skip if multiple phone contacts found</string>
     <string name="loginStatus.notloggedin">Not logged in</string>

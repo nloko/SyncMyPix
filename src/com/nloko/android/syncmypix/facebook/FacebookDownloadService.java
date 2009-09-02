@@ -60,6 +60,7 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.Contacts;
 import android.provider.Contacts.People;
+import android.provider.Contacts.Photos;
 import android.widget.Toast;
 
 // TODO this class should be refactored into something more general, so 
@@ -143,13 +144,14 @@ public class FacebookDownloadService extends Service {
 			super.onPostExecute(result);
 			resultsList.clear();
 			
-			long time = SystemClock.elapsedRealtime() + 120 * 1000;
+			long time = SystemClock.elapsedRealtime() + 90 * 1000;
 			
             // Schedule the alarm!
             AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
             am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                             time, alarmSender);
 
+            stopSelf();
 		}
     	
 		
@@ -188,6 +190,9 @@ public class FacebookDownloadService extends Service {
 							processUser(user, sync);
 						}
 						catch (Exception processException) {
+							
+							Log.e(TAG, android.util.Log.getStackTraceString(processException));
+							
 							ContentValues values = new ContentValues();
 							
 							String syncId = sync.getPathSegments().get(1);
@@ -370,6 +375,12 @@ public class FacebookDownloadService extends Service {
 						if (image != null) {
 							People.setPhotoData(this.getContentResolver(), contact, image);
 							updateSyncContact(id, hash);
+							
+							/*Cursor photo = ContactServices.getPhoto(resolver, Photos.PERSON_ID + "='" + id + "'");
+							if (photo.moveToFirst()) 
+								Log.d(TAG, photo.getString(photo.getColumnIndex(Photos.LOCAL_VERSION)));
+							
+							photo.close();*/
 						}
 						else {
 							values.put(Results.DESCRIPTION, "Picture download failed");
@@ -418,18 +429,24 @@ public class FacebookDownloadService extends Service {
     		String hash = null;
     		InputStream is = People.openContactPhotoInputStream(resolver, contact);
     		
+    		// photo is set, so let's get its hash
     		if (is != null) {
     			hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     		}
 
+    		// not tracking any hashes for contact and photo is set for contact
     		if (!syncC.moveToFirst() && hash != null) {
     			ok = false;
     		}
+    		
+    		// we are tracking a hash and there is a photo for this contact
     		else if (hash != null) {
     			String dbHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.PHOTO_HASH));
-    			
     			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, hash));
-    			if (!dbHash.equals(hash)) {
+
+    			// hashes do not match, so we don't need to track this hash anymore
+    			if (!hash.equals(dbHash)) {
+   					resolver.delete(syncUri, null, null);
     				ok = false;
     			}
     		}
@@ -445,10 +462,6 @@ public class FacebookDownloadService extends Service {
     {
     	if (id == null) {
     		throw new IllegalArgumentException("id");
-    	}
-    	
-    	if (hash == null) {
-    		throw new IllegalArgumentException("hash");
     	}
     	
     	ContentResolver resolver = getContentResolver();
@@ -477,7 +490,11 @@ public class FacebookDownloadService extends Service {
 	
     @Override
 	public void onStart(Intent intent, int startId) {
-
+    	
+    	if (isExecuting()) {
+    		return;
+    	}
+    	
 		super.onStart(intent, startId);
 		
 		started = true;
@@ -488,8 +505,11 @@ public class FacebookDownloadService extends Service {
 		new Download ().execute(client);
 		
 		notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		notifyManager.cancel(R.string.facebookdownloadservice_stopped);
+		
 		showNotification(R.string.facebookdownloadservice_started, android.R.drawable.stat_sys_download);
-	
+		launchProgress();
+		
 		alarmSender = PendingIntent.getService(FacebookDownloadService.this,
                 0, new Intent(FacebookDownloadService.this, HashUpdateService.class), 0);
 
@@ -498,11 +518,14 @@ public class FacebookDownloadService extends Service {
 
     @Override
     public void onDestroy() {
-    	started = false;
+
+    	unbindService(serviceConn);
     	
     	cancelNotification(R.string.facebookdownloadservice_started);
         unsetListener();
-        
+
+        started = false;
+    	
         super.onDestroy();
     }
 
@@ -511,23 +534,30 @@ public class FacebookDownloadService extends Service {
         return binder;
     }
 
+    private void launchProgress()
+    {
+    	Intent i = new Intent(this, GlobalConfig.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        
+        
+    }
+    
     private void handleHashUpdateService()
     {
+    	AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+    	am.cancel(alarmSender);
+    	
     	Intent i = new Intent(FacebookDownloadService.this, HashUpdateService.class);
     	if (bindService(i, serviceConn, 0)) {
-    		if (boundService != null && boundService.isExecuting()) {
+    		if (boundService != null) {
     			boundService.cancelUpdate();
     		}
     	}
-
-    	AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-    	am.cancel(alarmSender);
     }
     
     private void showErrorAndStop (int msg)
     {
     	cancelNotification(R.string.facebookdownloadservice_started, msg);
-    	stopSelf();
     }
     
     private void cancelNotification (int msg)
@@ -563,7 +593,8 @@ public class FacebookDownloadService extends Service {
 
         // The PendingIntent to launch our activity if the user selects this notification
         Intent i = new Intent(this, GlobalConfig.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 i, 0);
 
@@ -587,7 +618,7 @@ public class FacebookDownloadService extends Service {
         public void onServiceDisconnected(ComponentName className) {
             
         	serviceConnected = false;
-        	
+        	boundService = null;
         }
     };
 }

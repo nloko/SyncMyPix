@@ -4,4 +4,11 @@
         <item>Facebook</item>
     </string-array>
     
+    <string-array name="scheduleFreq">
+    	<item>Never</item>
+        <item>Daily</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+    </string-array>
+    
 </resources>

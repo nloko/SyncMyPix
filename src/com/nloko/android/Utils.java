@@ -179,5 +179,22 @@ public final class Utils {
         // Don't forget to commit your edits!!!
         editor.commit();
     }
+	
+	public static void setInt (SharedPreferences settings, String key, int value)
+    {
+    	if (settings == null) {
+    		throw new IllegalArgumentException ("settings");
+    	}
+    	
+    	if (key == null) {
+    		throw new IllegalArgumentException ("key");
+    	}
+    	
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(key, value);
+
+        // Don't forget to commit your edits!!!
+        editor.commit();
+    }
 
 }

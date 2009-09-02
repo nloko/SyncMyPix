@@ -22,15 +22,18 @@
 
 package com.nloko.android.syncmypix;
 
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.R;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -38,17 +41,21 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 public class GlobalConfig extends Activity {
 	
@@ -62,17 +69,84 @@ public class GlobalConfig extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setupViews(savedInstanceState);
+    }
+    
+    @Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		
+		setupViews(null);
+	}
+
+    private void setupViews(Bundle savedInstanceState)
+    {
         setContentView(R.layout.main);	
         
-        Spinner s = (Spinner) findViewById(R.id.source);
-        ArrayAdapter adapter = ArrayAdapter.createFromResource(
+        Spinner sources = (Spinner) findViewById(R.id.source);
+        ArrayAdapter sourcesAdapter = ArrayAdapter.createFromResource(
                 this, R.array.sources, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        s.setAdapter(adapter);
+        sourcesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sources.setAdapter(sourcesAdapter);
+        
+        Spinner schedule = (Spinner) findViewById(R.id.schedule);
+        ArrayAdapter scheduleAdapter = ArrayAdapter.createFromResource(
+                this, R.array.scheduleFreq, android.R.layout.simple_spinner_item);
+        scheduleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        schedule.setAdapter(scheduleAdapter);
+        
+    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		int schedPos = settings.getInt("sched_freq", 0);
+		setScheduleSelection(schedule, schedPos);
+		
+        schedule.setOnItemSelectedListener(new OnItemSelectedListener () {
 
+			public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+			
+				if (manualScheduleSelection) {
+					manualScheduleSelection = false;
+					return;
+				}
+				
+				Utils.setInt(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_freq", position);
+				
+				AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+				PendingIntent alarmSender = PendingIntent.getService(GlobalConfig.this,
+		                0, new Intent(GlobalConfig.this, FacebookDownloadService.class), 0);
+				
+				
+				long firstTriggerTime = 0;
+				long interval = 0;
+				
+				switch (position) {
+					case 0:
+						am.cancel(alarmSender);
+						return;
+					case 1:
+						firstTriggerTime = SystemClock.elapsedRealtime() + 60 * 1000;
+						interval = 60 * 1000;
+						break;
+					case 2:
+						firstTriggerTime = SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY * 7;
+						interval = AlarmManager.INTERVAL_DAY * 7;
+						break;
+					case 3:
+						firstTriggerTime = SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY * 30;
+						interval = AlarmManager.INTERVAL_DAY * 30;
+				}
+				
+				am.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTriggerTime, interval, alarmSender);
+			}
+
+			public void onNothingSelected(AdapterView<?> parent) {
+			}
+        	
+        });
+
+	
+		
         final CheckBox skipIfExists = (CheckBox) findViewById(R.id.skipIfExists);
         skipIfExists.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("skipIfExists", true));
-        //skipIfExists.setChecked(false);
         
         skipIfExists.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -92,9 +166,22 @@ public class GlobalConfig extends Activity {
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
+    
+        setLoginStatus();
+    }
+
+    private boolean manualScheduleSelection = false;
+    private void setScheduleSelection(Spinner s, int pos)
+    {
+    	if (s == null) {
+    		throw new IllegalArgumentException("s");
+    	}
+    	
+    	manualScheduleSelection = true;
+    	s.setSelection(pos);
     }
     
-    private void login()
+	private void login()
     {
     	Intent i = new Intent(GlobalConfig.this, FacebookLoginWebView.class);
 		startActivity(i);
@@ -120,14 +207,20 @@ public class GlobalConfig extends Activity {
    		startService(i);
     	bindService(i, serviceConn, Context.BIND_AUTO_CREATE);
     	
-    	NotificationManager notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-    	notifyManager.cancel(R.string.facebookdownloadservice_stopped);
     }
     
     private void showResults()
     {
     	Intent i = new Intent(this, SyncResults.class);
     	startActivity(i);
+    }
+    
+    private void setLoginStatus()
+    {
+    	if (isLoggedIn ()) {
+			TextView textview = (TextView) findViewById(R.id.loginStatus);
+			textview.setText(R.string.loginStatus_loggedin);
+		}
     }
     
 	private boolean isLoggedIn ()
@@ -167,10 +260,7 @@ public class GlobalConfig extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
-		if (isLoggedIn ()) {
-			TextView textview = (TextView) findViewById(R.id.loginStatus);
-			textview.setText(R.string.loginStatus_loggedin);
-		}
+		setLoginStatus();
 		
 		if (!serviceConnected) {
 			Intent i = new Intent(GlobalConfig.this, FacebookDownloadService.class);
@@ -287,8 +377,9 @@ public class GlobalConfig extends Activity {
 	
 					if (friendsProgress != null && friendsProgress.isShowing()) {
 						hideDialogs(true);
-						showDialog(SYNC_PROGRESS);
 					}
+					
+					showDialog(SYNC_PROGRESS);
 					
 					if (progress != null) {
 						if (percentage < 100) {
@@ -312,6 +403,7 @@ public class GlobalConfig extends Activity {
             
         	serviceConnected = false;
         	boundService.unsetListener();
+        	boundService = null;
         	
         	hideDialogs(true);
         }
