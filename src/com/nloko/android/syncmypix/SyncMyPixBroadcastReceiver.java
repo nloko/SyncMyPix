@@ -39,20 +39,28 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		
 		Log.d(TAG, "RECEIVED INTENT");
+
 		String action = intent.getAction();
-		if (action.equals("android.intent.action.BOOT_COMPLETED")) {
+		if (action.equals(Intent.ACTION_BOOT_COMPLETED) ) {
+			rescheduleAlarm(context);
+		}
 		
-			Log.d(TAG, "RECEIVED BOOT INTENT");
-			
-			SharedPreferences settings = context.getSharedPreferences(GlobalConfig.PREFS_NAME, 0);
-			int freq = settings.getInt("sched_freq", 0);
-			long time = settings.getLong("sched_time", 0);
-			
-			long interval = GlobalConfig.getScheduleInterval(freq);
-			if (interval > 0 && freq > 0 && time > 0) {
-				Log.d(TAG, "SCHEDULING SERVICE AFTER BOOT");
-				FacebookDownloadService.updateSchedule(context, time, interval);
-			}
+		else if (action.equals(Intent.ACTION_PACKAGE_REPLACED)) {
+			rescheduleAlarm(context);
+		}
+	}
+	
+	private void rescheduleAlarm(Context context)
+	{
+		
+		SharedPreferences settings = context.getSharedPreferences(GlobalConfig.PREFS_NAME, 0);
+		int freq = settings.getInt("sched_freq", 0);
+		long time = settings.getLong("sched_time", 0);
+		
+		long interval = GlobalConfig.getScheduleInterval(freq);
+		if (interval > 0 && freq > 0 && time > 0) {
+			Log.d(TAG, "SCHEDULING SERVICE");
+			FacebookDownloadService.updateSchedule(context, time, interval);
 		}
 	}
 

@@ -139,7 +139,7 @@ public final class Utils {
 		
 		if (bitmap != null) {
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 			image =  bytes.toByteArray();
 		}
 
