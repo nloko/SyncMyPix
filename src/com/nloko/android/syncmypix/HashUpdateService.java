@@ -27,6 +27,8 @@ import java.io.InputStream;
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
+import com.nloko.android.syncmypix.SyncMyPix.Results;
+import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
 
 import android.app.AlarmManager;
@@ -47,7 +49,7 @@ import android.provider.Contacts.People;
 public class HashUpdateService extends Service {
 
 	private final static String TAG = "HashUpdateService";
-	private final static int maxRuns = 14;
+	private final static int maxRuns = 3;
 	
 	private int count = 0;
 	
@@ -58,8 +60,11 @@ public class HashUpdateService extends Service {
 	
 		cancel = false;
 		
-		hashThread = new HashThread();
-		hashThread.start();
+		if (!isExecuting() && hasDownloadServiceRun(1000*300)) {
+			executing = true;
+			hashThread = new HashThread();
+			hashThread.start();
+		}
 	}
 
 	
@@ -86,6 +91,28 @@ public class HashUpdateService extends Service {
 		return binder;
 	}
 	
+	private boolean hasDownloadServiceRun(long time)
+	{
+		Cursor cur = getContentResolver().query(Results.CONTENT_URI, 
+				new String[] { Results._ID, Sync.DATE_COMPLETED }, 
+				null, 
+				null, 
+				null);
+		
+		long now = System.currentTimeMillis();
+		long completed = 0;
+		
+		if (cur.moveToFirst()) {
+			completed = cur.getLong(cur.getColumnIndex(Sync.DATE_COMPLETED));
+		}
+		
+		cur.close();
+		
+		Log.d(TAG, String.format("Time is %d and last sync at %d", now, completed));
+		
+		return (now - completed) <= time; 
+	}
+	
 	private boolean cancel = false;
 	public void cancelUpdate()
 	{
@@ -108,52 +135,64 @@ public class HashUpdateService extends Service {
 		public void run()
 		{
 			Log.d(TAG, "Updating hashes after sync");
-			executing = true;
-			
-			ContentResolver resolver = getContentResolver();
-			Cursor cur = resolver.query(Contacts.CONTENT_URI, 
-					new String[] { Contacts._ID, Contacts.PHOTO_HASH }, 
-					null, 
-					null, 
-					null);
-			
-			
-			while (cur.moveToNext() && !cancel) {
+
+			Cursor cur = null;
+			try {
+				ContentResolver resolver = getContentResolver();
+				cur = resolver.query(Contacts.CONTENT_URI, 
+						new String[] { Contacts._ID, Contacts.PHOTO_HASH }, 
+						null, 
+						null, 
+						null);
 				
-				String id = cur.getString(cur.getColumnIndex(Contacts._ID));
-				Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
 				
-				InputStream is = People.openContactPhotoInputStream(resolver, uri);
-				if (is != null) {
-					String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+				while (cur.moveToNext() && !cancel) {
 					
-					Uri contacts = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
-					ContentValues values = new ContentValues();
-					values.put(Contacts._ID, id);
-					values.put(Contacts.PHOTO_HASH, hash);
-					resolver.update(contacts, values, null, null);
+					String id = cur.getString(cur.getColumnIndex(Contacts._ID));
+					Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
+					
+					InputStream is = People.openContactPhotoInputStream(resolver, uri);
+					if (is != null) {
+						String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+						
+						Uri contacts = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+						ContentValues values = new ContentValues();
+						values.put(Contacts._ID, id);
+						values.put(Contacts.PHOTO_HASH, hash);
+						resolver.update(contacts, values, null, null);
+					}
+				}
+			}
+			finally {
+				if (cur != null) {
+					cur.close();
+				}
+				
+				Log.d(TAG, String.format("Finished updating hashes after sync %d", count));
+				
+				executing = false;
+				
+				if (cancel || count++ == maxRuns) {
+					count = 0;
+					stopSelf();
+				}
+				else {
+					rescheduleService();
 				}
 			}
 			
-			cur.close();
-			Log.d(TAG, String.format("Finished updating hashes after sync %d", count));
+		}
+		
+		private void rescheduleService()
+		{
+			AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+			PendingIntent alarmSender = PendingIntent.getService(HashUpdateService.this,
+	                0, new Intent(HashUpdateService.this, HashUpdateService.class), 0);
 			
-			executing = false;
-			
-			if (cancel || count++ == maxRuns) {
-				count = 0;
-				stopSelf();
-			}
-			else {
-				AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-				PendingIntent alarmSender = PendingIntent.getService(HashUpdateService.this,
-		                0, new Intent(HashUpdateService.this, HashUpdateService.class), 0);
-				
-				long time = SystemClock.elapsedRealtime() + 15 * 1000;
-				am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                        time, alarmSender);
-			}
-			
+			long time = SystemClock.elapsedRealtime() + 15 * 1000;
+			am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    time, alarmSender);
+	
 		}
 		
 	}

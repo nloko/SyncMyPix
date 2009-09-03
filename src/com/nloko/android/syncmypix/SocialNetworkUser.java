@@ -1,5 +1,5 @@
 //
-//    FacebookUser.java is part of SyncMyPix
+//    SocialNetworkUser.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -20,9 +20,9 @@
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-package com.nloko.android.syncmypix.facebook;
+package com.nloko.android.syncmypix;
 
-public final class FacebookUser {
+public final class SocialNetworkUser {
 
 	public String uid;
 	public String lastName;

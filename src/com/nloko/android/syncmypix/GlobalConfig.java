@@ -29,6 +29,7 @@ import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.R;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -114,7 +115,7 @@ public class GlobalConfig extends Activity {
 				Utils.setInt(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_freq", position);
 				
 				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
-					firstTriggerTime = SystemClock.elapsedRealtime() + interval;
+					firstTriggerTime = System.currentTimeMillis() + interval;
 					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
 					FacebookDownloadService.updateSchedule(GlobalConfig.this, firstTriggerTime, interval);
 				}
@@ -161,7 +162,7 @@ public class GlobalConfig extends Activity {
     	switch (spinnerPos) {
     	
     		case 1:
-				interval = AlarmManager.INTERVAL_DAY;
+				interval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
 				break;
 			case 2:
 				interval = AlarmManager.INTERVAL_DAY * 7;
@@ -385,7 +386,11 @@ public class GlobalConfig extends Activity {
 						hideDialogs(true);
 					}
 					
-					showDialog(SYNC_PROGRESS);
+					// catch and ignore stupid "Is activity running?" exception
+					try {
+						showDialog(SYNC_PROGRESS);
+					}
+					catch (Exception ex) {}
 					
 					if (progress != null) {
 						if (percentage < 100) {

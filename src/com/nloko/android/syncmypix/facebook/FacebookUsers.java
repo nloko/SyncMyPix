@@ -34,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.nloko.android.Log;
+import com.nloko.android.syncmypix.SocialNetworkUser;
 
 import com.nloko.simplyfacebook.net.FacebookJSONResponse;
 import com.nloko.simplyfacebook.net.FacebookRestClient;
@@ -75,7 +76,7 @@ public class FacebookUsers {
 		return null;
 	}
 	
-	public List<FacebookUser> getUserInfo (String uids) throws JSONException, ClientProtocolException, IOException
+	public List<SocialNetworkUser> getUserInfo (String uids) throws JSONException, ClientProtocolException, IOException
 	{
 		if (uids == null) {
 			throw new IllegalArgumentException ("uids");
@@ -92,10 +93,10 @@ public class FacebookUsers {
 		
 		JSONArray users = new JSONArray(response.data);
         
-        List<FacebookUser> list = new ArrayList<FacebookUser>();
+        List<SocialNetworkUser> list = new ArrayList<SocialNetworkUser>();
         for (int i = 0; i < users.length(); i++) {
             JSONObject user = users.getJSONObject(i);
-            FacebookUser fbUser = new FacebookUser();
+            SocialNetworkUser fbUser = new SocialNetworkUser();
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
             fbUser.picUrl = user.getString("pic");

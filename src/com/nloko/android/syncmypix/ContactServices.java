@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Contacts;
@@ -110,5 +111,19 @@ public class ContactServices {
 		                selection,       // Which rows to return (all rows)
 		                null,       // Selection arguments (none)
 		                null);
+	}
+	
+	public static void updateContactPhoto (ContentResolver cr, byte[] image, String id)
+	{
+		ContentValues values = new ContentValues();
+        // we have to include this here otherwise the provider will set it to 1
+        values.put("_sync_dirty", 0);
+        values.put(Photos.DATA, image);
+        //values.put(Photos.LOCAL_VERSION, "SyncMyPix");
+        //values.put("_sync_version", "SyncMyPix");
+        Uri photoUri = Uri.withAppendedPath(People.CONTENT_URI,
+                "" + id + "/" + Photos.CONTENT_DIRECTORY);
+        cr.update(photoUri, values, null, null);
+        	
 	}
 }

@@ -12,10 +12,12 @@
     <string name="syncresults">Sync Results</string>
     <string name="facebooklogin">Login to Facebook</string>
     <string name="facebooklogin.urlError">Error parsing URL</string>
-    <string name="facebookdownloadservice.started">SyncMyPix syncing started</string>
-    <string name="facebookdownloadservice.stopped">SyncMyPix finished syncing</string>
-    <string name="facebookdownloadservice.downloaderror">Error downloading or operation cancelled by user</string>
-    <string name="facebookdownloadservice.sessionerror">Session invalid. Please login.</string>
+    <string name="downloadservice.started">SyncMyPix syncing started</string>
+    <string name="downloadservice.stopped">SyncMyPix finished syncing</string>
+    <string name="downloadservice.downloaderror">Error downloading from social network</string>
+    <string name="downloadservice.canceled">Sync cancelled by user</string>
+    <string name="downloadservice.sessionerror">Session invalid. Please login</string>
+    <string name="downloadservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
     <string name="selectedName">Select a friend to view their picture</string>
     <string name="resultsList">Social Network Friends</string>
 </resources>
