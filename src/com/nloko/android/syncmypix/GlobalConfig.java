@@ -162,7 +162,7 @@ public class GlobalConfig extends Activity {
     	switch (spinnerPos) {
     	
     		case 1:
-				interval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+				interval = AlarmManager.INTERVAL_DAY;
 				break;
 			case 2:
 				interval = AlarmManager.INTERVAL_DAY * 7;
