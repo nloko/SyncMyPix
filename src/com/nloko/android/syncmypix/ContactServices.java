@@ -117,13 +117,10 @@ public class ContactServices {
 	{
 		ContentValues values = new ContentValues();
         // we have to include this here otherwise the provider will set it to 1
-        //values.put("_sync_dirty", 0);
+        values.put("_sync_dirty", 0);
         values.put(Photos.DATA, image);
         
-        // this preserves the SyncMyPix version and uploads to Google
-        // in addition, if a contact's photo is changed in Gmail, it will
-        // get downloaded by Android AWESOME HACK!
-        values.put("_sync_version", "SyncMyPix");
+//        values.put("_sync_version", "SyncMyPix");
         
         Uri photoUri = Uri.withAppendedPath(People.CONTENT_URI,
                 "" + id + "/" + Photos.CONTENT_DIRECTORY);

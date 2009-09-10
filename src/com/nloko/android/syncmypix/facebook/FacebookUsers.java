@@ -84,7 +84,7 @@ public class FacebookUsers {
 		
 		Map <String, String> params = new HashMap <String, String> ();
 		params.put ("uids", uids);
-		params.put ("fields", "first_name,last_name,pic");
+		params.put ("fields", "first_name,last_name,pic_big");
 		FacebookJSONResponse response = (FacebookJSONResponse) client.getData ("Users.getInfo", params);
 		//Log.d(null, response.data);
 		if (response == null || response.isError()) {
@@ -99,7 +99,7 @@ public class FacebookUsers {
             SocialNetworkUser fbUser = new SocialNetworkUser();
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
-            fbUser.picUrl = user.getString("pic");
+            fbUser.picUrl = user.getString("pic_big");
             list.add(fbUser);
         }
         
