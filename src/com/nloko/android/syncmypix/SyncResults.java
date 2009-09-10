@@ -1,5 +1,5 @@
 //
-//    ResultsList.java is part of SyncMyPix
+//    SyncResults.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
+import java.net.UnknownHostException;
 import java.util.Date;
 
 import com.nloko.android.Utils;
@@ -29,6 +30,8 @@ import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -38,6 +41,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.MessageQueue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
@@ -47,7 +51,9 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
+
 
 // TODO add sync start and finish times
 public class SyncResults extends Activity {
@@ -60,12 +66,18 @@ public class SyncResults extends Activity {
 	Handler handleBitmap;
 	DownloadImageHandler downloadHandler;
 	
+	private final int LOADING_DIALOG = 0;
+	
+	private final int UNKNOWN_HOST_ERROR = 0;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.results);	
+
+		showDialog(LOADING_DIALOG);
 		
-        ContentResolver resolver = getContentResolver();
+        final ContentResolver resolver = getContentResolver();
         String[] projection = { 
         		Results._ID, 
         		Results.NAME, 
@@ -75,22 +87,10 @@ public class SyncResults extends Activity {
         		Sync.DATE_COMPLETED };
         
         cur = resolver.query(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
-        
         startManagingCursor(cur);
         
         listview = (ListView) findViewById(R.id.resultList);
-                
-        if (cur.moveToFirst()) {
-	        long started = cur.getLong(cur.getColumnIndex(Sync.DATE_STARTED));
-	        long completed = cur.getLong(cur.getColumnIndex(Sync.DATE_COMPLETED));
-	        
-	        TextView text1 = (TextView) (findViewById(R.id.started));
-	        text1.setText(new Date(started).toString());
-	        
-	        TextView text2 = (TextView) (findViewById(R.id.completed));
-	        text2.setText(new Date(completed).toString());
-        }
-		
+        
 		ListAdapter adapter = new SimpleCursorAdapter(
                 this, 
                 android.R.layout.two_line_list_item,  
@@ -99,9 +99,6 @@ public class SyncResults extends Activity {
                 new int[] { android.R.id.text1, android.R.id.text2 } );    
 
         listview.setAdapter(adapter);      
-        
-        TextView header = (TextView) findViewById(R.id.resultsListHeader);
-        header.setBackgroundColor(Color.GRAY);
         
         contactImage = (ImageView) findViewById(R.id.contactImage);
         contactImage.setImageResource(android.R.drawable.gallery_thumb);
@@ -137,6 +134,17 @@ public class SyncResults extends Activity {
 				if (bitmap != null) {
 					contactImage.setImageBitmap(bitmap);
 				}
+				else {
+					handleWhat(msg.what);
+				}
+			}
+			
+			private void handleWhat(int what) {
+				switch (what) {
+					case UNKNOWN_HOST_ERROR:
+						Toast.makeText(SyncResults.this, "Unable to resolve host. Do you have network connectivity?", Toast.LENGTH_LONG).show();
+						break;
+				}
 			}
         };
         
@@ -145,9 +153,26 @@ public class SyncResults extends Activity {
         
         downloadLooper = downloadThread.getLooper();
         downloadHandler = new DownloadImageHandler(downloadLooper, handleBitmap);
+        
+        new InitializeResultsThread(Looper.myQueue(), cur).start();
 	}
 
 	
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+			case LOADING_DIALOG:
+				ProgressDialog progress = new ProgressDialog(this);
+				progress.setCancelable(true);
+				progress.setMessage("Loading...");
+				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				return progress;
+		}
+		
+		return super.onCreateDialog(id);
+	}
+
+
 	@Override
 	protected void onDestroy() {
 		
@@ -173,6 +198,54 @@ public class SyncResults extends Activity {
 		}
 	}
 	
+	private class InitializeResultsThread extends Thread
+	{
+		private MessageQueue queue;
+		private Cursor cur;
+		InitializeResultsThread (MessageQueue queue, Cursor cur)
+		{
+			this.queue = queue;
+			this.cur = cur;
+		}
+		
+		public void run()
+		{
+			if (cur.moveToFirst()) {
+				long started = cur.getLong(cur.getColumnIndex(Sync.DATE_STARTED));
+				long completed = cur.getLong(cur.getColumnIndex(Sync.DATE_COMPLETED));
+				
+				final String dateStarted = new Date(started).toString();
+				final String dateCompleted = new Date(completed).toString();
+				
+				final TextView text1 = (TextView) (findViewById(R.id.started));
+				final TextView text2 = (TextView) (findViewById(R.id.completed));
+				
+				final TextView label1 = (TextView) findViewById(R.id.startedLabel);
+				final TextView label2 = (TextView) findViewById(R.id.completedLabel);
+
+				queue.addIdleHandler(new MessageQueue.IdleHandler () {
+
+					public boolean queueIdle() {
+						
+						text1.setText(dateStarted);
+						text2.setText(dateCompleted);
+						
+						label1.setVisibility(View.VISIBLE);
+						label2.setVisibility(View.VISIBLE);
+				
+				        removeDialog(LOADING_DIALOG);
+						return false;
+					}
+		        	
+		        });
+			}
+			else {
+				removeDialog(LOADING_DIALOG);
+			}
+		}
+	}
+	
+	
 	private class DownloadImageHandler extends Handler
 	{
 		private Handler mainHandler;
@@ -195,6 +268,9 @@ public class SyncResults extends Activity {
 						mainMsg.obj = bitmap;
 						mainHandler.sendMessage(mainMsg);
 					}
+				}
+				catch (UnknownHostException ex) {
+					mainHandler.sendEmptyMessage(UNKNOWN_HOST_ERROR);
 				}
 				catch (Exception e) {}
 			}

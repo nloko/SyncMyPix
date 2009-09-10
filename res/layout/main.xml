@@ -23,7 +23,6 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dip"
         android:text="Schedule:"
     />
 
@@ -35,6 +34,15 @@
         android:prompt="@string/schedule_prompt"
     />
 
+	<TextView android:text="@string/skipHeader" 
+		android:id="@+id/skipHeader" 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:textColor="#DDDDDD"
+		android:gravity="center_horizontal"
+		android:background="#666666" 
+		android:textStyle="bold" android:layout_marginTop="20dip" android:layout_marginBottom="6dip"/>
+		
 	<CheckBox 
 		android:text="@string/skipIfExists" 
 		android:id="@+id/skipIfExists" 
@@ -45,6 +53,22 @@
 		android:id="@+id/skipIfConflict" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" />
+		
+	<TextView android:text="@string/matchingHeader" 
+		android:id="@+id/matchingHeader" 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:textColor="#DDDDDD"
+		android:background="#666666" 
+		android:gravity="center_horizontal"
+		android:textStyle="bold" android:layout_marginTop="8dip" android:layout_marginBottom="6dip"/>
+		
+	<CheckBox 
+		android:text="@string/reverseNames" 
+		android:id="@+id/reverseNames" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+				
 	<TextView android:text="@string/loginStatus.notloggedin" 
 		android:id="@+id/loginStatus" 
 		android:layout_width="wrap_content" 

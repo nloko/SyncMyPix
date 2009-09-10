@@ -112,7 +112,41 @@ public final class Utils {
 		return bytes.toByteArray();
 	}
 
-	public static Bitmap downloadPictureAsBitmap (String url)
+	// TODO test this method. Probably buggy
+	public static Bitmap resize(Bitmap bitmap, int maxHeight, int maxWidth)
+	{
+		if (bitmap == null) {
+			throw new IllegalArgumentException("bitmap");
+		}
+		
+		int height = bitmap.getHeight();
+		int width  = bitmap.getWidth();
+
+		if (height <= maxHeight && width <= maxWidth) {
+			return bitmap;
+		}
+		
+		int newHeight = maxHeight;
+		int newWidth  = maxWidth;
+		
+		float ratio = (height > width) ? (float)width / (float)height : (float)height / (float)width;
+		
+		if (height > width) {
+			newWidth  = Math.round((float)maxWidth * ratio);
+		}
+		else {
+			newHeight = Math.round((float)maxHeight * ratio);
+		}
+		
+		float scaleWidth = ((float) newWidth) / width; 
+		float scaleHeight = ((float) newHeight) / height;
+		Matrix matrix = new Matrix();  
+		matrix.postScale(scaleWidth, scaleHeight);
+
+		return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true); 
+	}
+	
+	public static Bitmap downloadPictureAsBitmap (String url) throws IOException
 	{
 		if (url == null) {
     		throw new IllegalArgumentException ("url");
@@ -128,18 +162,21 @@ public final class Utils {
     	}
 	    catch (IOException ex) {
 	    	Log.e(null, android.util.Log.getStackTraceString(ex));
+	    	throw ex;
 	    }
 	    
 	    return image;
 	}
 	
-	public static byte[] downloadPicture (String url)
+	public static byte[] downloadPicture (String url) throws IOException
     {
 		byte[] image = null;
 		Bitmap bitmap = downloadPictureAsBitmap(url);
 		
 		if (bitmap != null) {
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			//bitmap = resize(bitmap, 96, 96);
+			//Log.d(null, String.format("Width %d Height %d", bitmap.getWidth(), bitmap.getHeight()));
 			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 			image =  bytes.toByteArray();
 		}

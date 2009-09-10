@@ -24,7 +24,7 @@ package com.nloko.android.syncmypix;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
+import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.R;
 
@@ -56,6 +56,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class GlobalConfig extends Activity {
@@ -66,6 +67,17 @@ public class GlobalConfig extends Activity {
 	
 	// TODO move this elsewhere if we're going to add more social networks
 	public static final String API_KEY = "d03f3dcb1ebb264e1ea701bd16f44e5a";
+	
+	private static boolean googleSyncing = false;
+	public static boolean isGoogleSyncing()
+	{
+		return googleSyncing;
+	}
+	
+	public static void setGoogleSyncing(boolean value)
+	{
+		googleSyncing = value;
+	}
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,10 +129,10 @@ public class GlobalConfig extends Activity {
 				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
 					firstTriggerTime = System.currentTimeMillis() + interval;
 					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
-					FacebookDownloadService.updateSchedule(GlobalConfig.this, firstTriggerTime, interval);
+					FacebookSyncService.updateSchedule(GlobalConfig.this, firstTriggerTime, interval);
 				}
 				else {
-					FacebookDownloadService.cancelSchedule(GlobalConfig.this);
+					FacebookSyncService.cancelSchedule(GlobalConfig.this);
 				}
 			}
 
@@ -146,6 +158,15 @@ public class GlobalConfig extends Activity {
         skipIfConflict.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
             	Utils.setBoolean (getSharedPreferences(PREFS_NAME, 0), "skipIfConflict", skipIfConflict.isChecked());
+            }
+        });
+        
+        final CheckBox reverseNames = (CheckBox) findViewById(R.id.reverseNames);
+        reverseNames.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("reverseNames", false));
+        
+        reverseNames.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+            	Utils.setBoolean (getSharedPreferences(PREFS_NAME, 0), "reverseNames", reverseNames.isChecked());
             }
         });
         
@@ -177,6 +198,7 @@ public class GlobalConfig extends Activity {
     	return interval;
     }
     
+    // use this bool to prevent OnItemSelected event handling
     private boolean manualScheduleSelection = false;
     private void setScheduleSelection(Spinner s, int pos)
     {
@@ -190,8 +212,7 @@ public class GlobalConfig extends Activity {
     
 	private void login()
     {
-    	Intent i = new Intent(GlobalConfig.this, FacebookLoginWebView.class);
-		startActivity(i);
+		startActivity(new Intent(GlobalConfig.this, FacebookLoginWebView.class));
     }
     
     // TODO Should probably kill social network API session too
@@ -203,17 +224,29 @@ public class GlobalConfig extends Activity {
     	
 		TextView textview = (TextView) findViewById(R.id.loginStatus);
 		textview.setText(R.string.loginStatus_notloggedin);
-    }
+    }  
     
     private void sync()
     {
+    	if (!hashServiceConnected) {
+    		//bindService(new Intent(GlobalConfig.this, HashUpdateService.class), hashServiceConn, 0);
+    	}
+    	
+    	boolean hashServiceExecuting = hashService != null && hashService.isExecuting();
+    	
+    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		boolean skipIfExists = settings.getBoolean("skipIfExists", false);
+		
+    	if (skipIfExists && (isGoogleSyncing() || hashServiceExecuting)) {
+    		Toast.makeText(this, "SyncMyPix disabled while Android is performing Google synchronization. Please try again momentarily.", Toast.LENGTH_LONG).show();
+    		return;
+    	}
+    	
    		showDialog(FRIENDS_PROGRESS);
     	
-    	Intent i = new Intent(GlobalConfig.this, FacebookDownloadService.class);
-
+    	Intent i = new Intent(GlobalConfig.this, FacebookSyncService.class);
    		startService(i);
-    	bindService(i, serviceConn, Context.BIND_AUTO_CREATE);
-    	
+    	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
     }
     
     private void showResults()
@@ -269,12 +302,12 @@ public class GlobalConfig extends Activity {
 		
 		setLoginStatus();
 		
-		if (!serviceConnected) {
-			Intent i = new Intent(GlobalConfig.this, FacebookDownloadService.class);
-			bindService(i, serviceConn, 0);
+		if (!syncServiceConnected) {
+			Intent i = new Intent(GlobalConfig.this, FacebookSyncService.class);
+			bindService(i, syncServiceConn, 0);
 		}
 		
-		if (boundService != null && !boundService.isExecuting()) {
+		if (syncService != null && !syncService.isExecuting()) {
 			hideDialogs(true);
 		}
 	}
@@ -283,7 +316,8 @@ public class GlobalConfig extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		
-		unbindService(serviceConn);
+		unbindService(syncServiceConn);
+		//unbindService(hashServiceConn);
 	}
     
     
@@ -346,8 +380,8 @@ public class GlobalConfig extends Activity {
 					
 					public void onClick(DialogInterface dialog, int which) {
 						
-						if (boundService != null && boundService.isExecuting()) {
-							boundService.cancelOperation();
+						if (syncService != null && syncService.isExecuting()) {
+							syncService.cancelOperation();
 						}
 					}
 				});
@@ -364,21 +398,37 @@ public class GlobalConfig extends Activity {
 		return super.onCreateDialog(id);
 	}
 
-	private FacebookDownloadService boundService;
-	private boolean serviceConnected = false;
+	private HashUpdateService hashService;
+	private boolean hashServiceConnected = false;
+	private ServiceConnection hashServiceConn = new ServiceConnection() {
+
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			hashService = ((HashUpdateService.LocalBinder) service).getService();
+			hashServiceConnected = true;
+		}
+
+		public void onServiceDisconnected(ComponentName name) {
+			hashServiceConnected = false;
+			hashService = null;
+		}
+		
+	};
+	
+	private FacebookSyncService syncService;
+	private boolean syncServiceConnected = false;
 	
 	private final int SYNC_PROGRESS = 0;
 	private final int FRIENDS_PROGRESS = 1;
 	private ProgressDialog progress;
 	private ProgressDialog friendsProgress;
 	
-    private ServiceConnection serviceConn = new ServiceConnection() {
+    private ServiceConnection syncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	
-        	serviceConnected = true;
+        	syncServiceConnected = true;
         	
-        	boundService = ((FacebookDownloadService.LocalBinder)service).getService();
-        	boundService.setListener(new DownloadListener () {
+        	syncService = ((FacebookSyncService.LocalBinder)service).getService();
+        	syncService.setListener(new SyncServiceListener () {
 
 				public void updateUI(int percentage, int index, int total) {
 	
@@ -412,9 +462,9 @@ public class GlobalConfig extends Activity {
 
         public void onServiceDisconnected(ComponentName className) {
             
-        	serviceConnected = false;
-        	boundService.unsetListener();
-        	boundService = null;
+        	syncServiceConnected = false;
+        	syncService.unsetListener();
+        	syncService = null;
         	
         	hideDialogs(true);
         }

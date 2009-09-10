@@ -5,7 +5,8 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
 	<TextView android:text="Started" 
-		android:id="@+id/label1" 
+		android:id="@+id/startedLabel" 
+		android:visibility="invisible"
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" android:textSize="18dip" android:textColor="#FFFFFF"/>
 		
@@ -15,7 +16,8 @@
 		android:layout_width="fill_parent" />
 
 	<TextView android:text="Completed" 
-		android:id="@+id/label2" 
+		android:id="@+id/completedLabel"
+		android:visibility="invisible" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" android:textSize="18dip" android:textColor="#FFFFFF"/>
 		
@@ -38,7 +40,9 @@
 		android:id="@+id/resultsListHeader" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" 
-		android:textSize="18dip" android:textColor="#FFFFFF" />
+		android:textStyle="bold" 
+		android:textColor="#DDDDDD" 
+		android:background="#666666" />
 		
 	<ListView android:id="@+id/resultList" 
 		android:layout_width="fill_parent" 

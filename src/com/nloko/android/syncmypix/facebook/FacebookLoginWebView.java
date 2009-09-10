@@ -76,7 +76,23 @@ public class FacebookLoginWebView extends Activity {
     
     private class FacebookWebViewClient extends WebViewClient {
     	
-    	
+		@Override
+		public void onReceivedError(WebView view, int errorCode,
+				String description, String failingUrl) {
+			// TODO Auto-generated method stub
+			super.onReceivedError(view, errorCode, description, failingUrl);
+			
+			String msg = String.format("URL %s failed to load with error %d %s", failingUrl, errorCode, description);
+			android.util.Log.e(TAG, msg);
+			Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+			
+			if (progress != null && progress.isShowing()) {
+				removeDialog(PROGRESS_KEY);
+			}
+			
+			finish();
+		}
+
 		@Override
 		public void onPageFinished(WebView view, String url) {
 			super.onPageFinished(view, url);

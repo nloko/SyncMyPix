@@ -25,16 +25,18 @@ package com.nloko.android.syncmypix;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
+import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.provider.Contacts;
 
 
 public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
@@ -49,6 +51,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 
 		String action = intent.getAction();
 		if (action.equals(Intent.ACTION_BOOT_COMPLETED) ) {
+			//beginGoogleSync(context);
 			rescheduleAlarm(context);
 		}
 		
@@ -59,14 +62,25 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		// this is undocumented stuff from android.content.SyncManager
 		else if (action.equals(SYNC_STATE_CHANGED)) {
 			
-			Bundle extras = intent.getExtras();
+/*			Bundle extras = intent.getExtras();
 			boolean active = extras.getBoolean("active");
 			Log.d(TAG, String.format("ACTION SYNC DETECTED %b", active));
 			
 			if (!active) {
 				startHashUpdateService(context);
 			}
+			
+			GlobalConfig.setGoogleSyncing(active);*/
 		}
+	}
+	
+	private void beginGoogleSync(Context context)
+	{
+		Bundle extras = new Bundle();
+		extras.putBoolean(ContentResolver.SYNC_EXTRAS_FORCE, true);
+		extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+		
+		context.getContentResolver().startSync(Contacts.CONTENT_URI, extras);
 	}
 	
 	private void startHashUpdateService(Context context)
@@ -101,7 +115,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		
 		if (interval > 0) {
 			Log.d(TAG, "SCHEDULING SERVICE");
-			FacebookDownloadService.updateSchedule(context, time, interval);
+			FacebookSyncService.updateSchedule(context, time, interval);
 		}
 	}
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.nloko.android.syncmypix"
-      android:versionCode="12"
-      android:versionName="0.3">
+      android:versionCode="14"
+      android:versionName="0.4">
     <application 
     	android:icon="@drawable/icon" 
     	android:label="@string/app_name"
@@ -38,7 +38,7 @@
                   android:label="@string/syncresults" 
                   android:screenOrientation="portrait">
         </activity>
-        <service android:name="com.nloko.android.syncmypix.facebook.FacebookDownloadService"></service>
+        <service android:name="com.nloko.android.syncmypix.facebook.FacebookSyncService"></service>
         <service android:name="com.nloko.android.syncmypix.HashUpdateService"></service>
         <provider android:name="com.nloko.android.syncmypix.SyncMyPixProvider"
           android:authorities="com.nloko.provider.SyncMyPix">

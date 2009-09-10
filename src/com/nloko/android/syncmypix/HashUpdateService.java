@@ -29,7 +29,7 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
-import com.nloko.android.syncmypix.facebook.FacebookDownloadService;
+import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -40,34 +40,52 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.Contacts.People;
 
 // TODO this is a dirty hack because after a sync, the phone syncs the pics with Google
 // which changes the pic, and thus, changes the pic hash
+
+// v0.4 uses the _sync_version field to avoid the need for this
+// will remove after awhile if all is well
 public class HashUpdateService extends Service {
 
-	private final static String TAG = "HashUpdateService";
-	private final static int maxRuns = 3;
+	public final static String TAG = "HashUpdateService";
+	
+	public final static int maxRuns = 3;
 	
 	private int count = 0;
+
+	private Handler mainHandler;
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
 		// TODO Auto-generated method stub
-		super.onStart(intent, startId);
-	
+		
+		/*super.onStart(intent, startId);
+		
 		cancel = false;
 		
 		if (!isExecuting() && hasDownloadServiceRun(1000*300)) {
+			
 			executing = true;
 			hashThread = new HashThread();
 			hashThread.start();
 		}
+	
+		mainHandler = new Handler();*/
 	}
 
 	
+	private Runnable resetExecuting = new Runnable() {
+
+		public void run() {
+			executing = false;					
+		}
+	};
+
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
@@ -164,13 +182,14 @@ public class HashUpdateService extends Service {
 				}
 			}
 			finally {
+				
 				if (cur != null) {
 					cur.close();
 				}
 				
 				Log.d(TAG, String.format("Finished updating hashes after sync %d", count));
-				
-				executing = false;
+	
+				mainHandler.post(resetExecuting);
 				
 				if (cancel || count++ == maxRuns) {
 					count = 0;
