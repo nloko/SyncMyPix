@@ -341,10 +341,19 @@ public class GlobalConfig extends Activity {
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-    	menu.add(0, MENU_LOGIN, 0, "Login");
-    	menu.add(0, MENU_SYNC, 0, "Sync");
-    	menu.add(0, MENU_RESULTS, 0, "Results");
-    	menu.add(0, MENU_LOGOUT, 0, "Logout");
+    	MenuItem item;
+    	item = menu.add(0, MENU_LOGIN, 0, "Login");
+    	item.setIcon(android.R.drawable.ic_menu_myplaces);
+    	
+    	item = menu.add(0, MENU_SYNC, 0, "Sync");
+    	item.setIcon(android.R.drawable.ic_menu_rotate);
+    	
+    	item = menu.add(0, MENU_RESULTS, 0, "Results");
+    	item.setIcon(android.R.drawable.ic_menu_info_details);
+    	
+    	item = menu.add(0, MENU_LOGOUT, 0, "Logout");
+    	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+    	
     	return true;
 	}
 

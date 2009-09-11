@@ -21,6 +21,6 @@
     <string name="syncservice.canceled">Sync cancelled by user</string>
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
-    <string name="selectedName">Select a friend to view their picture</string>
+    <string name="selectedName">Select a friend to view their picture and tap picture to zoom</string>
     <string name="resultsList">Social Network Friends</string>
 </resources>

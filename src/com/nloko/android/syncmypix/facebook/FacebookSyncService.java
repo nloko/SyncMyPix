@@ -584,8 +584,8 @@ public class FacebookSyncService extends Service {
 		showNotification(R.string.syncservice_started, android.R.drawable.stat_sys_download);
 		launchProgress();
 		
-		alarmSender = PendingIntent.getService(FacebookSyncService.this,
-                0, new Intent(FacebookSyncService.this, HashUpdateService.class), 0);
+		alarmSender = PendingIntent.getService(getBaseContext(),
+                0, new Intent(getBaseContext(), HashUpdateService.class), 0);
 
 		handleHashUpdateService();
 	}
@@ -641,7 +641,7 @@ public class FacebookSyncService extends Service {
     	AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
     	am.cancel(alarmSender);
     	
-    	Intent i = new Intent(FacebookSyncService.this, HashUpdateService.class);
+    	Intent i = new Intent(getBaseContext(), HashUpdateService.class);
     	if (bindService(i, serviceConn, 0)) {
     		if (boundService != null) {
     			boundService.cancelUpdate();

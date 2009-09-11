@@ -33,9 +33,12 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -43,6 +46,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.view.View;
+import android.view.Window;
+import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
@@ -67,6 +72,7 @@ public class SyncResults extends Activity {
 	DownloadImageHandler downloadHandler;
 	
 	private final int LOADING_DIALOG = 0;
+	private final int ZOOM_PIC = 1;
 	
 	private final int UNKNOWN_HOST_ERROR = 0;
 	
@@ -102,6 +108,17 @@ public class SyncResults extends Activity {
         
         contactImage = (ImageView) findViewById(R.id.contactImage);
         contactImage.setImageResource(android.R.drawable.gallery_thumb);
+        contactImage.setEnabled(false);
+  
+        contactImage.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				
+				showDialog(ZOOM_PIC);
+			}
+        	
+        });
+        
         
         listview.setOnItemClickListener(new OnItemClickListener () {
 
@@ -112,6 +129,8 @@ public class SyncResults extends Activity {
 				String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
 
 				if (url != null && !url.equals("null") && !url.equals("")) {
+					
+					contactImage.setEnabled(false);
 					contactImage.setImageResource(android.R.drawable.gallery_thumb);
 					
 					Message msg = downloadHandler.obtainMessage();
@@ -133,6 +152,7 @@ public class SyncResults extends Activity {
 				Bitmap bitmap = (Bitmap) msg.obj;
 				if (bitmap != null) {
 					contactImage.setImageBitmap(bitmap);
+					contactImage.setEnabled(true);
 				}
 				else {
 					handleWhat(msg.what);
@@ -157,6 +177,49 @@ public class SyncResults extends Activity {
         new InitializeResultsThread(Looper.myQueue(), cur).start();
 	}
 
+	private Dialog showZoomDialog()
+	{
+		if (!contactImage.isEnabled()) {
+			return null;
+		}
+		
+		Dialog zoomedDialog = new Dialog(SyncResults.this);
+		zoomedDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		zoomedDialog.setContentView(R.layout.zoomedpic);
+		zoomedDialog.setCancelable(true);
+		
+		ImageView image = (ImageView)zoomedDialog.findViewById(R.id.image);
+
+		Drawable d = contactImage.getDrawable();
+		image.setImageDrawable(d);
+		
+		int width  = d.getMinimumWidth();
+		int height = d.getMinimumHeight();
+		
+		/*if (width > height) {
+			Matrix m = new Matrix();
+			m.postRotate(90);
+			m.preTranslate(-width/2, -height/2);
+			m.postTranslate(width/2, height/2);
+			
+			image.setImageMatrix(m);
+			image.invalidate();
+			
+			
+		}*/
+		
+		//zoomedDialog.getWindow().setLayout(width, height);
+		
+		zoomedDialog.setOnCancelListener(new OnCancelListener() {
+
+			public void onCancel(DialogInterface dialog) {
+				removeDialog(ZOOM_PIC);
+			}
+			
+		});
+		
+		return zoomedDialog;
+	}
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -167,6 +230,8 @@ public class SyncResults extends Activity {
 				progress.setMessage("Loading...");
 				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return progress;
+			case ZOOM_PIC:
+				return showZoomDialog();
 		}
 		
 		return super.onCreateDialog(id);
