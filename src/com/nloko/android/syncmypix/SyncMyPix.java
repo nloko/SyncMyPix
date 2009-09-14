@@ -62,6 +62,8 @@ public final class SyncMyPix {
 
         public static final String DESCRIPTION = "description";
         
+        public static final String CONTACT_ID = "contact_id";
+        
         public static final String SYNC_ID = "sync_id";
     }
 	

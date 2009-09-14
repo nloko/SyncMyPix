@@ -8,41 +8,41 @@
 		android:id="@+id/startedLabel" 
 		android:visibility="invisible"
 		android:layout_width="wrap_content" 
-		android:layout_height="wrap_content" android:textSize="18dip" android:textColor="#FFFFFF"/>
+		android:layout_height="wrap_content" 
+		android:layout_marginTop="4dip"
+		android:textSize="18dip" 
+		android:textColor="#FFFFFF"/>
 		
 	<TextView android:text="" 
-		android:id="@+id/started" 
+		android:id="@+id/started"
+		android:textSize="14dip" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" />
 
 	<TextView android:text="Completed" 
 		android:id="@+id/completedLabel"
-		android:visibility="invisible" 
+		android:visibility="invisible"
+		android:layout_marginTop="4dip"
 		android:layout_width="wrap_content" 
-		android:layout_height="wrap_content" android:textSize="18dip" android:textColor="#FFFFFF"/>
+		android:layout_height="wrap_content" 
+		android:textSize="18dip" 
+		android:textColor="#FFFFFF"/>
 		
 	<TextView android:text="" 
-		android:id="@+id/completed" 
+		android:id="@+id/completed"
+		android:textSize="14dip"
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" />
 
-	<ImageView android:id="@+id/contactImage"
-		android:layout_height="125dip"
-		android:layout_width="fill_parent" android:padding="10dip"/>
-		 	
-	<TextView android:text="@string/selectedName" 
-		android:id="@+id/selectedName" 
-		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" 
-		android:gravity="center_horizontal" android:paddingBottom="4dip"/>
-		
 	<TextView android:text="@string/resultsList" 
 		android:id="@+id/resultsListHeader" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" 
 		android:textStyle="bold" 
 		android:textColor="#DDDDDD" 
-		android:background="#666666" />
+		android:background="#666666" 
+		android:padding="4dip" 
+		android:layout_marginTop="6dip" />
 		
 	<ListView android:id="@+id/resultList" 
 		android:layout_width="fill_parent" 

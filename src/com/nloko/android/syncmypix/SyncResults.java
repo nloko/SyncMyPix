@@ -33,23 +33,22 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.graphics.Matrix;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
+import android.provider.Contacts.People;
 import android.view.View;
 import android.view.Window;
-import android.view.View.OnClickListener;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -59,17 +58,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-
-// TODO add sync start and finish times
 public class SyncResults extends Activity {
 
 	Cursor cur;
 	ListView listview;
-	ImageView contactImage;
 	
 	Looper downloadLooper;
 	Handler handleBitmap;
 	DownloadImageHandler downloadHandler;
+
+	Bitmap contactImage;
 	
 	private final int LOADING_DIALOG = 0;
 	private final int ZOOM_PIC = 1;
@@ -79,6 +77,8 @@ public class SyncResults extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
 
 		showDialog(LOADING_DIALOG);
@@ -89,6 +89,7 @@ public class SyncResults extends Activity {
         		Results.NAME, 
         		Results.DESCRIPTION, 
         		Results.PIC_URL,
+        		Results.CONTACT_ID,
         		Sync.DATE_STARTED, 
         		Sync.DATE_COMPLETED };
         
@@ -97,28 +98,14 @@ public class SyncResults extends Activity {
         
         listview = (ListView) findViewById(R.id.resultList);
         
-		ListAdapter adapter = new SimpleCursorAdapter(
+		ListAdapter adapter = new ResultsListAdapter(
                 this, 
-                android.R.layout.two_line_list_item,  
+                R.layout.resultslistitem,  
                 cur,                                    
                 new String[] {Results.NAME, Results.DESCRIPTION },
-                new int[] { android.R.id.text1, android.R.id.text2 } );    
+                new int[] { R.id.text1, R.id.text2 } );    
 
         listview.setAdapter(adapter);      
-        
-        contactImage = (ImageView) findViewById(R.id.contactImage);
-        contactImage.setImageResource(android.R.drawable.gallery_thumb);
-        contactImage.setEnabled(false);
-  
-        contactImage.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View v) {
-				
-				showDialog(ZOOM_PIC);
-			}
-        	
-        });
-        
         
         listview.setOnItemClickListener(new OnItemClickListener () {
 
@@ -128,18 +115,13 @@ public class SyncResults extends Activity {
 				cur.moveToPosition(position);
 				String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
 
-				if (url != null && !url.equals("null") && !url.equals("")) {
-					
-					contactImage.setEnabled(false);
-					contactImage.setImageResource(android.R.drawable.gallery_thumb);
+				if (url != null) {
+			
+					setProgressBarIndeterminateVisibility(true);
 					
 					Message msg = downloadHandler.obtainMessage();
 					msg.obj = url;
 					downloadHandler.sendMessage(msg);
-					
-					String name = cur.getString(cur.getColumnIndex(Results.NAME));
-					TextView selectedName = (TextView) findViewById(R.id.selectedName);
-					selectedName.setText(name);
 				}
 			}
         	
@@ -151,8 +133,12 @@ public class SyncResults extends Activity {
 			public void handleMessage(Message msg) {
 				Bitmap bitmap = (Bitmap) msg.obj;
 				if (bitmap != null) {
-					contactImage.setImageBitmap(bitmap);
-					contactImage.setEnabled(true);
+					((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+					
+					contactImage = bitmap;
+					showDialog(ZOOM_PIC);
+					
+					setProgressBarIndeterminateVisibility(false);
 				}
 				else {
 					handleWhat(msg.what);
@@ -179,36 +165,56 @@ public class SyncResults extends Activity {
 
 	private Dialog showZoomDialog()
 	{
-		if (!contactImage.isEnabled()) {
-			return null;
-		}
 		
 		Dialog zoomedDialog = new Dialog(SyncResults.this);
 		zoomedDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		zoomedDialog.setContentView(R.layout.zoomedpic);
 		zoomedDialog.setCancelable(true);
 		
-		ImageView image = (ImageView)zoomedDialog.findViewById(R.id.image);
+		final ImageView image = (ImageView)zoomedDialog.findViewById(R.id.image);
 
-		Drawable d = contactImage.getDrawable();
-		image.setImageDrawable(d);
+		//final Drawable d = contactImage.getDrawable();
 		
-		int width  = d.getMinimumWidth();
-		int height = d.getMinimumHeight();
+		final int padding = 15;
 		
-		/*if (width > height) {
-			Matrix m = new Matrix();
-			m.postRotate(90);
-			m.preTranslate(-width/2, -height/2);
-			m.postTranslate(width/2, height/2);
+		final int width  = contactImage.getWidth();
+		final int height = contactImage.getHeight();
+
+		int newWidth  = width;
+		int newHeight = height;
+		
+		final int windowHeight = getWindowManager().getDefaultDisplay().getHeight();
+		final int windowWidth  = getWindowManager().getDefaultDisplay().getWidth();
+
+		boolean scale = false;
+		float ratio;
+		
+		if (newHeight >= windowHeight) {
+			ratio  =  (float)newWidth / (float)newHeight;
+			newHeight = windowHeight - padding;
+			newWidth  = Math.round(ratio * (float)newHeight);
 			
+			scale = true;
+		}
+		
+		if (newWidth >= windowWidth) {
+			ratio  = (float)newHeight / (float)newWidth;
+			newWidth   = windowWidth - padding;
+			newHeight  = Math.round(ratio * (float)newWidth);
+			
+			scale = true;
+		}
+		
+		image.setImageBitmap(contactImage);
+		
+		if (scale) {
+			Matrix m = new Matrix();
+			m.postScale((float)newWidth / (float)width, (float)newHeight / (float)height);
 			image.setImageMatrix(m);
 			image.invalidate();
-			
-			
-		}*/
-		
-		//zoomedDialog.getWindow().setLayout(width, height);
+		}
+
+		zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		
 		zoomedDialog.setOnCancelListener(new OnCancelListener() {
 
@@ -248,21 +254,6 @@ public class SyncResults extends Activity {
 
 	}
 
-
-	protected void setImageAnimation()
-	{
-		if (contactImage != null) {
-			Animation a=new RotateAnimation(0, 360);
-
-			a.setRepeatCount(Animation.INFINITE);
-			a.setDuration(10000);
-			// maybe other configuration as needed
-
-			contactImage.startAnimation(a);
-
-		}
-	}
-	
 	private class InitializeResultsThread extends Thread
 	{
 		private MessageQueue queue;
@@ -332,6 +323,8 @@ public class SyncResults extends Activity {
 						Message mainMsg = mainHandler.obtainMessage();
 						mainMsg.obj = bitmap;
 						mainHandler.sendMessage(mainMsg);
+						
+						ThumbnailCache.add(url, bitmap);
 					}
 				}
 				catch (UnknownHostException ex) {
@@ -341,5 +334,43 @@ public class SyncResults extends Activity {
 			}
 		}	
 
+	}
+	
+	private class ResultsListAdapter extends SimpleCursorAdapter
+	{
+
+		public ResultsListAdapter(Context context, int layout, Cursor c,
+				String[] from, int[] to) {
+			super(context, layout, c, from, to);
+		}
+
+		@Override
+		public void bindView(View view, Context context, Cursor cursor) {
+			super.bindView(view, context, cursor);
+			
+			ImageView image = (ImageView) view.findViewById(R.id.contactImage);
+			
+			String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
+			
+			if (id != null) {
+				image.setImageBitmap(People.loadContactPhoto(getBaseContext(), 
+						Uri.withAppendedPath(People.CONTENT_URI, id), 
+						R.drawable.smiley_face, null));
+			}
+			else if (ThumbnailCache.contains(url)) {
+				image.setImageBitmap(ThumbnailCache.get(url));
+			}
+			else if (description.equals("Contact not found")) {
+				image.setImageResource(R.drawable.neutral_face);
+			}
+			else if (description.contains("Mutiple contacts processed")) {
+				image.setImageResource(R.drawable.neutral_face);
+			}
+			else {
+				image.setImageResource(R.drawable.sad_face);
+			}
+		}
 	}
 }

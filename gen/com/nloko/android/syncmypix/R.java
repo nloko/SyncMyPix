@@ -9,41 +9,37 @@ package com.nloko.android.syncmypix;
 
 public final class R {
     public static final class array {
-        public static final int scheduleFreq=0x7f040001;
+        public static final int scheduleFreq=0x7f040002;
+        public static final int scheduleFreqValues=0x7f040003;
+        public static final int sourceValues=0x7f040001;
         public static final int sources=0x7f040000;
     }
     public static final class attr {
     }
     public static final class drawable {
         public static final int icon=0x7f020000;
+        public static final int neutral_face=0x7f020001;
+        public static final int sad_face=0x7f020002;
+        public static final int smiley_face=0x7f020003;
     }
     public static final class id {
-        public static final int LinearLayout01=0x7f060009;
-        public static final int completed=0x7f06000d;
-        public static final int completedLabel=0x7f06000c;
-        public static final int contactImage=0x7f06000e;
-        public static final int image=0x7f060015;
-        public static final int layout_root=0x7f060014;
-        public static final int loginStatus=0x7f060008;
-        public static final int matchingHeader=0x7f060006;
-        public static final int resultList=0x7f060011;
-        public static final int resultsListHeader=0x7f060010;
-        public static final int reverseNames=0x7f060007;
-        public static final int schedule=0x7f060002;
-        public static final int selectedName=0x7f06000f;
-        public static final int skipHeader=0x7f060003;
-        public static final int skipIfConflict=0x7f060005;
-        public static final int skipIfExists=0x7f060004;
-        public static final int source=0x7f060001;
-        public static final int started=0x7f06000b;
-        public static final int startedLabel=0x7f06000a;
-        public static final int text1=0x7f060013;
-        public static final int text2=0x7f060012;
+        public static final int LinearLayout01=0x7f060001;
+        public static final int completed=0x7f060005;
+        public static final int completedLabel=0x7f060004;
+        public static final int contactImage=0x7f060008;
+        public static final int image=0x7f06000c;
+        public static final int layout_root=0x7f06000b;
+        public static final int resultList=0x7f060007;
+        public static final int resultsListHeader=0x7f060006;
+        public static final int started=0x7f060003;
+        public static final int startedLabel=0x7f060002;
+        public static final int text1=0x7f06000a;
+        public static final int text2=0x7f060009;
         public static final int webview=0x7f060000;
     }
     public static final class layout {
         public static final int facebookloginwebview=0x7f030000;
-        public static final int main=0x7f030001;
+        public static final int preferences=0x7f030001;
         public static final int results=0x7f030002;
         public static final int resultslistitem=0x7f030003;
         public static final int zoomedpic=0x7f030004;

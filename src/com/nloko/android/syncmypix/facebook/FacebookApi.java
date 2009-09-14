@@ -39,14 +39,14 @@ import com.nloko.android.syncmypix.SocialNetworkUser;
 import com.nloko.simplyfacebook.net.FacebookJSONResponse;
 import com.nloko.simplyfacebook.net.FacebookRestClient;
 
-public class FacebookUsers {
+public class FacebookApi {
 
-	protected FacebookUsers()
+	protected FacebookApi()
 	{
 	}
 	
 	private FacebookRestClient client;
-	public FacebookUsers(FacebookRestClient client)
+	public FacebookApi(FacebookRestClient client)
 	{
 		if (client == null) {
 			throw new IllegalArgumentException ("client");
@@ -78,13 +78,18 @@ public class FacebookUsers {
 	
 	public List<SocialNetworkUser> getUserInfo (String uids) throws JSONException, ClientProtocolException, IOException
 	{
+		return getUserInfo(uids, false);
+	}
+	
+	public List<SocialNetworkUser> getUserInfo (String uids, boolean highQuality) throws JSONException, ClientProtocolException, IOException
+	{
 		if (uids == null) {
 			throw new IllegalArgumentException ("uids");
 		}
 		
 		Map <String, String> params = new HashMap <String, String> ();
 		params.put ("uids", uids);
-		params.put ("fields", "first_name,last_name,pic_big");
+		params.put ("fields", "uid,first_name,last_name,pic_big");
 		FacebookJSONResponse response = (FacebookJSONResponse) client.getData ("Users.getInfo", params);
 		//Log.d(null, response.data);
 		if (response == null || response.isError()) {
@@ -94,15 +99,79 @@ public class FacebookUsers {
 		JSONArray users = new JSONArray(response.data);
         
         List<SocialNetworkUser> list = new ArrayList<SocialNetworkUser>();
+        Map<String, SocialNetworkUser> userMap = new HashMap <String, SocialNetworkUser> ();
+        
+        SocialNetworkUser fbUser = null;
+        JSONObject user = null;
+        
         for (int i = 0; i < users.length(); i++) {
-            JSONObject user = users.getJSONObject(i);
-            SocialNetworkUser fbUser = new SocialNetworkUser();
+            user = users.getJSONObject(i);
+            fbUser = new SocialNetworkUser();
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
-            fbUser.picUrl = user.getString("pic_big");
+            fbUser.picUrl = user.getString("pic_big").equals("null") ? null : user.getString("pic_big");
+            
             list.add(fbUser);
+            userMap.put(user.getString("uid"), fbUser);
+        }
+        
+        if (highQuality) {
+        	setHighResPhotos(uids, userMap);
         }
         
         return list;
+	}
+	
+	private void setHighResPhotos(String uids, Map<String, SocialNetworkUser> userMap) throws ClientProtocolException, IOException
+	{
+		if (uids == null) {
+			throw new IllegalArgumentException("uids");
+		}
+		
+		Map <String, String> params = new HashMap <String, String> ();
+				
+		String pid_query = "SELECT owner, cover_pid, aid, name FROM album " +
+			"WHERE owner IN (%s) AND " +
+			"name IN (\"Profile Pictures\")";
+	
+		pid_query = String.format(pid_query, uids);
+		
+		String photo = "SELECT owner, src_big FROM photo " + 
+			"WHERE pid IN (SELECT cover_pid FROM #query1) ";
+		
+		SocialNetworkUser user = null;
+		String url = null;
+		String uid = null;
+		
+		try {
+			JSONObject queries = new JSONObject();
+			queries.put("query1", pid_query);
+			queries.put("query2", photo);
+			
+			params.put("queries", queries.toString());
+			
+			FacebookJSONResponse jr = (FacebookJSONResponse) client.getData("Fql.multiquery", params);
+						
+			JSONArray array = new JSONArray(jr.data);
+			if (array.length() > 1) {
+				JSONObject obj = array.getJSONObject(1);
+				array = obj.getJSONArray("fql_result_set");
+				
+				for (int i = 0; i < array.length(); i++) {
+					obj = array.getJSONObject(i);
+					uid = obj.getString("owner");
+					
+					if (userMap.containsKey(uid)) {
+						url = obj.getString("src_big");
+						user = userMap.get(uid);
+						user.picUrl = url;
+					}
+				}
+			}
+		}
+		catch (JSONException e) {
+			Log.e(null, android.util.Log.getStackTraceString(e));
+		}
+
 	}
 }

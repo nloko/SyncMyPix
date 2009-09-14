@@ -22,19 +22,14 @@
 
 package com.nloko.android.syncmypix;
 
-import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.R;
 
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -46,20 +41,15 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.preference.EditTextPreference;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
 
-public class GlobalConfig extends Activity {
+public class GlobalConfig extends PreferenceActivity {
 	
 	private static final String TAG = "GlobalConfig";
 	
@@ -94,32 +84,17 @@ public class GlobalConfig extends Activity {
 
     private void setupViews(Bundle savedInstanceState)
     {
-        setContentView(R.layout.main);	
-        
-        Spinner sources = (Spinner) findViewById(R.id.source);
-        ArrayAdapter sourcesAdapter = ArrayAdapter.createFromResource(
-                this, R.array.sources, android.R.layout.simple_spinner_item);
-        sourcesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sources.setAdapter(sourcesAdapter);
-        
-        Spinner schedule = (Spinner) findViewById(R.id.schedule);
-        ArrayAdapter scheduleAdapter = ArrayAdapter.createFromResource(
-                this, R.array.scheduleFreq, android.R.layout.simple_spinner_item);
-        scheduleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        schedule.setAdapter(scheduleAdapter);
-        
-    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		int schedPos = settings.getInt("sched_freq", 0);
-		setScheduleSelection(schedule, schedPos);
-		
-        schedule.setOnItemSelectedListener(new OnItemSelectedListener () {
 
-			public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-			
-				if (manualScheduleSelection) {
-					manualScheduleSelection = false;
-					return;
-				}
+    	//getWindow().setBackgroundDrawableResource(R.drawable.background);
+    	addPreferencesFromResource(R.layout.preferences);	
+        
+    	ListPreference schedule = (ListPreference) findPreference("sched_freq");
+        schedule.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+
+			public boolean onPreferenceChange(Preference preference,
+					Object newValue) {
+
+				int position = Integer.parseInt((String)newValue);
 				
 				long firstTriggerTime;
 				long interval;
@@ -134,53 +109,24 @@ public class GlobalConfig extends Activity {
 				else {
 					FacebookSyncService.cancelSchedule(GlobalConfig.this);
 				}
-			}
-
-			public void onNothingSelected(AdapterView<?> parent) {
+				return true;
 			}
         	
         });
 
-	
-		
-        final CheckBox skipIfExists = (CheckBox) findViewById(R.id.skipIfExists);
-        skipIfExists.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("skipIfExists", true));
-        
-        skipIfExists.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-            	Utils.setBoolean (getSharedPreferences(PREFS_NAME, 0), "skipIfExists", skipIfExists.isChecked());
-            }
-        });
-
-        final CheckBox skipIfConflict = (CheckBox) findViewById(R.id.skipIfConflict);
-        skipIfConflict.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("skipIfConflict", false));
-        
-        skipIfConflict.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-            	Utils.setBoolean (getSharedPreferences(PREFS_NAME, 0), "skipIfConflict", skipIfConflict.isChecked());
-            }
-        });
-        
-        final CheckBox reverseNames = (CheckBox) findViewById(R.id.reverseNames);
-        reverseNames.setChecked(getSharedPreferences(PREFS_NAME, 0).getBoolean("reverseNames", false));
-        
-        reverseNames.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-            	Utils.setBoolean (getSharedPreferences(PREFS_NAME, 0), "reverseNames", reverseNames.isChecked());
-            }
-        });
-        
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
     
-        setLoginStatus();
+        if (isLoggedIn()) {
+        	setLoginStatus(R.string.loginStatus_loggedin);
+        }
     }
 
-    public static long getScheduleInterval(int spinnerPos)
+    public static long getScheduleInterval(int pos)
     {
     	long interval;
-    	switch (spinnerPos) {
+    	switch (pos) {
     	
     		case 1:
 				interval = AlarmManager.INTERVAL_DAY;
@@ -198,18 +144,6 @@ public class GlobalConfig extends Activity {
     	return interval;
     }
     
-    // use this bool to prevent OnItemSelected event handling
-    private boolean manualScheduleSelection = false;
-    private void setScheduleSelection(Spinner s, int pos)
-    {
-    	if (s == null) {
-    		throw new IllegalArgumentException("s");
-    	}
-    	
-    	manualScheduleSelection = true;
-    	s.setSelection(pos);
-    }
-    
 	private void login()
     {
 		startActivity(new Intent(GlobalConfig.this, FacebookLoginWebView.class));
@@ -222,8 +156,7 @@ public class GlobalConfig extends Activity {
     	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "secret", null);
     	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "uid", null);
     	
-		TextView textview = (TextView) findViewById(R.id.loginStatus);
-		textview.setText(R.string.loginStatus_notloggedin);
+		setLoginStatus(R.string.loginStatus_notloggedin);
     }  
     
     private void sync()
@@ -234,13 +167,13 @@ public class GlobalConfig extends Activity {
     	
     	boolean hashServiceExecuting = hashService != null && hashService.isExecuting();
     	
-    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+/*    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		boolean skipIfExists = settings.getBoolean("skipIfExists", false);
 		
     	if (skipIfExists && (isGoogleSyncing() || hashServiceExecuting)) {
     		Toast.makeText(this, "SyncMyPix disabled while Android is performing Google synchronization. Please try again momentarily.", Toast.LENGTH_LONG).show();
     		return;
-    	}
+    	}*/
     	
    		showDialog(FRIENDS_PROGRESS);
     	
@@ -255,12 +188,10 @@ public class GlobalConfig extends Activity {
     	startActivity(i);
     }
     
-    private void setLoginStatus()
+    private void setLoginStatus(int status)
     {
-    	if (isLoggedIn ()) {
-			TextView textview = (TextView) findViewById(R.id.loginStatus);
-			textview.setText(R.string.loginStatus_loggedin);
-		}
+   		EditTextPreference loginStatus = (EditTextPreference) findPreference("loginStatus");
+   		loginStatus.setSummary(status);
     }
     
 	private boolean isLoggedIn ()
@@ -300,7 +231,9 @@ public class GlobalConfig extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
-		setLoginStatus();
+		if (isLoggedIn()) {
+			setLoginStatus(R.string.loginStatus_loggedin);
+		}
 		
 		if (!syncServiceConnected) {
 			Intent i = new Intent(GlobalConfig.this, FacebookSyncService.class);
@@ -318,6 +251,8 @@ public class GlobalConfig extends Activity {
 		
 		unbindService(syncServiceConn);
 		//unbindService(hashServiceConn);
+		
+		ThumbnailCache.destroy();
 	}
     
     
@@ -346,7 +281,7 @@ public class GlobalConfig extends Activity {
     	item.setIcon(android.R.drawable.ic_menu_myplaces);
     	
     	item = menu.add(0, MENU_SYNC, 0, "Sync");
-    	item.setIcon(android.R.drawable.ic_menu_rotate);
+    	item.setIcon(android.R.drawable.ic_menu_gallery);
     	
     	item = menu.add(0, MENU_RESULTS, 0, "Results");
     	item.setIcon(android.R.drawable.ic_menu_info_details);

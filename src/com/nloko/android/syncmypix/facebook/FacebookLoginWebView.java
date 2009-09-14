@@ -30,6 +30,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -53,11 +54,11 @@ public class FacebookLoginWebView extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        requestWindowFeature(Window.FEATURE_PROGRESS);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.facebookloginwebview);	
         
-        // Login page can take awhile to load
-        showDialog(PROGRESS_KEY);
-
         // Mobile page returns an auth_token. WTF?
         /*try {
         	login.setUrl("https://m.facebook.com/login.php");
@@ -86,8 +87,10 @@ public class FacebookLoginWebView extends Activity {
 			android.util.Log.e(TAG, msg);
 			Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
 			
-			if (progress != null && progress.isShowing()) {
-				removeDialog(PROGRESS_KEY);
+			setProgressFinished();
+			
+			if (authDialog != null && authDialog.isShowing()) {
+				removeDialog(AUTH_DIALOG);
 			}
 			
 			finish();
@@ -97,8 +100,10 @@ public class FacebookLoginWebView extends Activity {
 		public void onPageFinished(WebView view, String url) {
 			super.onPageFinished(view, url);
 			
-			if (progress != null && progress.isShowing()) {
-				dismissDialog(PROGRESS_KEY);
+			setProgressFinished();
+			
+			if (authDialog != null && authDialog.isShowing()) {
+				removeDialog(AUTH_DIALOG);
 			}
 		}
 
@@ -107,11 +112,12 @@ public class FacebookLoginWebView extends Activity {
 			// TODO Auto-generated method stub
 			super.onPageStarted(view, url, favicon);
 	
-			// TODO this seems like an SDK bug. Is activity running? crapo exception
-			try {
-				showDialog(PROGRESS_KEY);
+			if (url.equals(login.getFullLoginUrl())) {
+				setProgressLoading();
 			}
-			catch (Exception crapo) {}
+			else {
+				showDialog(AUTH_DIALOG);
+			}
 			
 			try	{
             	Log.d(TAG, url);
@@ -142,20 +148,33 @@ public class FacebookLoginWebView extends Activity {
         }
     }
     
-	private final int PROGRESS_KEY = 0;
-	private ProgressDialog progress;
-	
+    private void setProgressLoading()
+    {
+    	setProgress(5000);
+    	setProgressBarIndeterminateVisibility(true);
+    }
+    
+    private void setProgressFinished()
+    {
+    	setProgress(10000);
+    	setProgressBarIndeterminateVisibility(false);
+    }
+    
+    private final int AUTH_DIALOG = 0;
+    private ProgressDialog authDialog = null;
+    
 	@Override
 	protected Dialog onCreateDialog(int id) {
-		switch(id) {
-			case PROGRESS_KEY:
-				progress = new ProgressDialog(FacebookLoginWebView.this);
-				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				progress.setMessage("Please wait while page loads...");
-				progress.setCancelable(true);
-				return progress;
+		switch (id) {
+			case AUTH_DIALOG:
+				authDialog = new ProgressDialog(this);
+				authDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				authDialog.setMessage("Please wait verifying application authorization...");
+				authDialog.setCancelable(true);
+				return authDialog;
 		}
 		
-		return null;
+		return super.onCreateDialog(id);
 	}
+    
 }

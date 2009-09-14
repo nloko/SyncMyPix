@@ -4,11 +4,22 @@
         <item>Facebook</item>
     </string-array>
     
+    <string-array name="sourceValues">
+        <item>FacebookSyncService</item>
+    </string-array>
+    
     <string-array name="scheduleFreq">
     	<item>Never</item>
         <item>Daily</item>
         <item>Weekly</item>
         <item>Monthly</item>
+    </string-array>
+    
+    <string-array name="scheduleFreqValues">
+    	<item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
     </string-array>
     
 </resources>

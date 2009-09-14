@@ -48,7 +48,7 @@ public class SyncMyPixProvider extends ContentProvider {
 	private static final String TAG = "SyncMyPixProvider";
 	
     private static final String DATABASE_NAME = "syncpix.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     
     private static final String CONTACTS_TABLE_NAME = "contacts";
     private static final String RESULTS_TABLE_NAME = "results";
@@ -88,6 +88,7 @@ public class SyncMyPixProvider extends ContentProvider {
         resultsProjection.put(Results.NAME, Results.NAME);
         resultsProjection.put(Results.PIC_URL, Results.PIC_URL);
         resultsProjection.put(Results.DESCRIPTION, Results.DESCRIPTION);
+        resultsProjection.put(Results.CONTACT_ID, Results.CONTACT_ID);
     }
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -123,10 +124,36 @@ public class SyncMyPixProvider extends ContentProvider {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS contacts");
-            db.execSQL("DROP TABLE IF EXISTS results");
-            db.execSQL("DROP TABLE IF EXISTS sync");
-            onCreate(db);
+            
+            db.execSQL("CREATE TABLE results_new ("
+                    + Results._ID + " INTEGER PRIMARY KEY,"
+                    + Results.SYNC_ID + " INTEGER,"
+                    + Results.NAME + " TEXT DEFAULT NULL,"
+                    + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
+                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
+                    + Results.CONTACT_ID + " TEXT  DEFAULT NULL"
+                    + ");");
+            
+            db.execSQL("INSERT INTO results_new (" 
+            		+ Results._ID + ","
+            		+ Results.SYNC_ID + ","
+            		+ Results.NAME + ","
+            		+ Results.DESCRIPTION + ","
+            		+ Results.PIC_URL + ") "
+            		+ "SELECT "
+            		+ Results._ID + ","
+            		+ Results.SYNC_ID + ","
+            		+ Results.NAME + ","
+            		+ Results.DESCRIPTION + ","
+            		+ Results.PIC_URL
+            		+ " FROM " + RESULTS_TABLE_NAME + ";");
+            
+            db.execSQL("DROP TABLE IF EXISTS results;");
+            
+            db.execSQL("ALTER TABLE results_new RENAME TO " + RESULTS_TABLE_NAME +";");
+            //db.execSQL("DROP TABLE IF EXISTS contacts");
+            //db.execSQL("DROP TABLE IF EXISTS sync");
+            //onCreate(db);
         }
     }
 
@@ -286,7 +313,7 @@ public class SyncMyPixProvider extends ContentProvider {
         	orderBy = sortOrder;
         }
 
-        SQLiteDatabase db = openHelper.getReadableDatabase();
+        SQLiteDatabase db = openHelper.getWritableDatabase();
         Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, orderBy);
 
         // Tell the cursor what uri to watch, so it knows when its source data changes

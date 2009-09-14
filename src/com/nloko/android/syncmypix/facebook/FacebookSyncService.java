@@ -34,6 +34,7 @@ import com.nloko.android.syncmypix.GlobalConfig;
 import com.nloko.android.syncmypix.HashUpdateService;
 import com.nloko.android.syncmypix.SocialNetworkUser;
 import com.nloko.android.syncmypix.SyncMyPix;
+import com.nloko.android.syncmypix.ThumbnailCache;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.R;
@@ -50,6 +51,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -62,6 +64,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.provider.Contacts;
 import android.provider.Contacts.People;
 import android.provider.Contacts.Photos;
@@ -153,8 +156,8 @@ public class FacebookSyncService extends Service {
 							getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getString("session_key", null),
 							getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getString("secret", null));
 				
-				FacebookUsers users = new FacebookUsers (client);
-				List<SocialNetworkUser> userList = users.getUserInfo(users.getFriends());
+				FacebookApi api = new FacebookApi (client);
+				List<SocialNetworkUser> userList = api.getUserInfo(api.getFriends(), maxQuality);
 				
 				// start sync from main thread
 				Message msg = handler.obtainMessage();
@@ -257,15 +260,13 @@ public class FacebookSyncService extends Service {
     		values.put(Results.PIC_URL, user.picUrl);
     		values.put(Results.DESCRIPTION, "Picture Updated");
     		
-    		if (user.picUrl == null || user.picUrl.equals("null") || user.picUrl == "") {
+    		if (user.picUrl == null) {
     			values.put(Results.DESCRIPTION, "Picture not found");
     			resultsList.add(values);
     			return;
     		}
     		
-    		boolean skipIfConflict = getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("skipIfConflict", false);
-    		boolean reverseNames = getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("reverseNames", false);
-    		
+        		
     		String selection;
     		if (!reverseNames) {
     			selection = Utils.buildNameSelection(People.NAME, user.firstName, user.lastName);
@@ -324,6 +325,9 @@ public class FacebookSyncService extends Service {
     							resolver.startSync(contact, extras);*/
     	    							
     							ContactServices.updateContactPhoto(getContentResolver(), image, id);
+    							//ThumbnailCache.add(user.picUrl, image);
+    							
+    							values.put(Results.CONTACT_ID, id);
     							updateSyncContact(id, hash);
     						}
     						else {
@@ -360,7 +364,7 @@ public class FacebookSyncService extends Service {
         	
         	ContentResolver resolver = getContentResolver();
         	
-        	boolean skipIfExists = getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("skipIfExists", true);
+
         	boolean ok = true;
 
         	Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
@@ -560,6 +564,20 @@ public class FacebookSyncService extends Service {
     private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
     private PendingIntent alarmSender;
 	
+    private boolean skipIfExists;
+    private boolean skipIfConflict;
+    private boolean reverseNames;
+    private boolean maxQuality;
+    private void getPreferences()
+    {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		
+		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
+		reverseNames = prefs.getBoolean("reverseNames", false);
+		maxQuality = prefs.getBoolean("maxQuality", false);
+    	skipIfExists = prefs.getBoolean("skipIfExists", true);
+    }
+    
     @Override
 	public void onStart(Intent intent, int startId) {
     	
@@ -573,6 +591,8 @@ public class FacebookSyncService extends Service {
 		started = true;
 		cancel = false;
 
+		getPreferences();
+		
 		// cancel Google sync, if running
 		//ContentResolver().cancelSync(Contacts.CONTENT_URI);
 		

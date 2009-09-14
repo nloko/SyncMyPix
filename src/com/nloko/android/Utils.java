@@ -126,16 +126,21 @@ public final class Utils {
 			return bitmap;
 		}
 		
-		int newHeight = maxHeight;
-		int newWidth  = maxWidth;
+		int newHeight = height;
+		int newWidth  = width;
 		
-		float ratio = (height > width) ? (float)width / (float)height : (float)height / (float)width;
+		float ratio;
 		
-		if (height > width) {
-			newWidth  = Math.round((float)maxWidth * ratio);
+		if (newHeight > maxHeight) {
+			ratio  =  (float)newWidth / (float)newHeight;
+			newHeight = maxHeight;
+			newWidth  = Math.round(ratio * (float)newHeight);
 		}
-		else {
-			newHeight = Math.round((float)maxHeight * ratio);
+		
+		if (newWidth > maxWidth) {
+			ratio  = (float)newHeight / (float)newWidth;
+			newWidth   = maxWidth;
+			newHeight  = Math.round(ratio * (float)newWidth);
 		}
 		
 		float scaleWidth = ((float) newWidth) / width; 
