@@ -31,6 +31,7 @@ import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
@@ -79,11 +80,7 @@ public class SyncResults extends Activity {
 
 	Bitmap contactImage;
 	
-	private static final int LOADING_DIALOG = 0;
-	private static final int ZOOM_PIC = 1;
-	
 	private static final int UNKNOWN_HOST_ERROR = 2;
-	private static final int UPDATE_CONTACT = 3;
 	
 	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
 	private static final int PICK_CONTACT    = 5;
@@ -209,6 +206,29 @@ public class SyncResults extends Activity {
         new InitializeResultsThread(Looper.myQueue(), cur).start();
         new LoadThumbnailsThread().start();
 	}
+
+	 private final int MENU_HELP = 0;
+	    
+	 @Override
+	 public boolean onCreateOptionsMenu(Menu menu) {
+		 MenuItem item;
+
+		 item = menu.add(0, MENU_HELP, 0, "Help");
+		 item.setIcon(android.R.drawable.ic_menu_help);
+
+		 return true;
+	 }
+	 
+	 @Override
+	 public boolean onOptionsItemSelected(MenuItem item) {
+		 switch (item.getItemId()) {
+		 case MENU_HELP:
+			 showDialog(HELP_DIALOG);
+			 return true;
+		 }
+
+		 return false;
+	 }
 
 	private int lastPosition = -1;
 	
@@ -396,6 +416,11 @@ public class SyncResults extends Activity {
 		
 		return zoomedDialog;
 	}
+
+	private static final int LOADING_DIALOG = 0;
+	private static final int ZOOM_PIC = 1;
+	private static final int UPDATE_CONTACT = 3;
+	private static final int HELP_DIALOG = 4;
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -414,6 +439,19 @@ public class SyncResults extends Activity {
 				sync.setMessage("Syncing contact...");
 				sync.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return sync;
+			case HELP_DIALOG:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle("Help")
+					   .setIcon(android.R.drawable.ic_dialog_info)
+					   .setMessage(R.string.results_help_msg)
+				       .setCancelable(false)
+				       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               removeDialog(HELP_DIALOG);
+				           }
+				       });
+				AlertDialog help = builder.create();
+				return help;
 		}
 		
 		return super.onCreateDialog(id);

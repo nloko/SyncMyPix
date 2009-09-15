@@ -169,7 +169,7 @@ public class FacebookLoginWebView extends Activity {
 			case AUTH_DIALOG:
 				authDialog = new ProgressDialog(this);
 				authDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				authDialog.setMessage("Please wait verifying application authorization...");
+				authDialog.setMessage("Please wait while verifying application authorization...");
 				authDialog.setCancelable(true);
 				return authDialog;
 		}
