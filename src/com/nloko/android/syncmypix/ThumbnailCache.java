@@ -93,7 +93,7 @@ public class ThumbnailCache {
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		if (bitmap.compress(CompressFormat.JPEG, 50, out)) {
+		if (bitmap.compress(CompressFormat.JPEG, 75, out)) {
 			if (out != null) {
 				bitmap = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
 			}

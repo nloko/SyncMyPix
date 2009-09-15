@@ -23,4 +23,7 @@
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
     <string name="selectedName">Select a friend to view their picture and tap picture to zoom</string>
     <string name="resultsList">Social Network Friends</string>
+    <string name="instructions"><b>Instructions:</b> http://code.google.com/p/syncmypix/wiki/Instructions</string>
+    <string name="issues"><b>Bug reports:</b> http://code.google.com/p/syncmypix/issues/list</string>
+	<string name="release_notes"><b>Release notes:</b> http://code.google.com/p/syncmypix/wiki/ChangeLog</string>
 </resources>

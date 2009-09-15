@@ -38,6 +38,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -48,6 +49,10 @@ import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class GlobalConfig extends PreferenceActivity {
 	
@@ -71,7 +76,10 @@ public class GlobalConfig extends PreferenceActivity {
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	
+    	//requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         super.onCreate(savedInstanceState);
+        
         setupViews(savedInstanceState);
     }
     
@@ -84,10 +92,14 @@ public class GlobalConfig extends PreferenceActivity {
 
     private void setupViews(Bundle savedInstanceState)
     {
-
-    	//getWindow().setBackgroundDrawableResource(R.drawable.background);
-    	addPreferencesFromResource(R.layout.preferences);	
         
+    	getWindow().setBackgroundDrawableResource(R.drawable.background);
+    	getListView().setBackgroundColor(Color.TRANSPARENT);
+    	getListView().setCacheColorHint(Color.TRANSPARENT);
+
+    	addPreferencesFromResource(R.layout.preferences);	
+    	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
+    	
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
         schedule.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 
@@ -116,6 +128,9 @@ public class GlobalConfig extends PreferenceActivity {
 
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
+        }
+        else {
+            showDialog(ABOUT_DIALOG);
         }
     
         if (isLoggedIn()) {
@@ -273,6 +288,7 @@ public class GlobalConfig extends PreferenceActivity {
     private final int MENU_SYNC = 1;
     private final int MENU_RESULTS = 2;
     private final int MENU_LOGOUT = 3;
+    private final int MENU_ABOUT = 4;
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -288,6 +304,9 @@ public class GlobalConfig extends PreferenceActivity {
     	
     	item = menu.add(0, MENU_LOGOUT, 0, "Logout");
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
+    	
+    	item = menu.add(0, MENU_ABOUT, 0, "About");
+    	item.setIcon(android.R.drawable.ic_menu_help);
     	
     	return true;
 	}
@@ -307,11 +326,20 @@ public class GlobalConfig extends PreferenceActivity {
 			case MENU_LOGOUT:
 				logout();
 				return true;
+			case MENU_ABOUT:
+				showDialog(ABOUT_DIALOG);
+				return true;
 	    }
 		
 	    return false;
 	}
 
+	private final int SYNC_PROGRESS = 0;
+	private final int FRIENDS_PROGRESS = 1;
+	private final int ABOUT_DIALOG = 2;
+	private ProgressDialog progress;
+	private ProgressDialog friendsProgress;
+	
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch(id) {
@@ -337,11 +365,32 @@ public class GlobalConfig extends PreferenceActivity {
 				friendsProgress.setMessage("Getting friends from social network...");
 				friendsProgress.setCancelable(false);
 				return friendsProgress;
+				
+			case ABOUT_DIALOG:
+				return createAboutDialog();
 		}
 		
 		return super.onCreateDialog(id);
 	}
 
+	private Dialog createAboutDialog()
+	{
+		Dialog about = new Dialog(this);
+		about.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		about.setContentView(R.layout.about);
+		
+		Button ok = (Button)about.findViewById(R.id.ok);
+		ok.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				removeDialog(ABOUT_DIALOG);
+			}
+			
+		});
+		
+		return about;
+	}
+	
 	private HashUpdateService hashService;
 	private boolean hashServiceConnected = false;
 	private ServiceConnection hashServiceConn = new ServiceConnection() {
@@ -361,10 +410,7 @@ public class GlobalConfig extends PreferenceActivity {
 	private FacebookSyncService syncService;
 	private boolean syncServiceConnected = false;
 	
-	private final int SYNC_PROGRESS = 0;
-	private final int FRIENDS_PROGRESS = 1;
-	private ProgressDialog progress;
-	private ProgressDialog friendsProgress;
+	
 	
     private ServiceConnection syncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {

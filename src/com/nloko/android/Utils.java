@@ -175,20 +175,25 @@ public final class Utils {
 	
 	public static byte[] downloadPicture (String url) throws IOException
     {
-		byte[] image = null;
 		Bitmap bitmap = downloadPictureAsBitmap(url);
+    	return bitmapToJpeg(bitmap, 100);
+    }
+    
+	public static byte[] bitmapToJpeg(Bitmap bitmap, int quality)
+	{
+		byte[] image = null;
 		
 		if (bitmap != null) {
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 			//bitmap = resize(bitmap, 96, 96);
 			//Log.d(null, String.format("Width %d Height %d", bitmap.getWidth(), bitmap.getHeight()));
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+			bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
 			image =  bytes.toByteArray();
 		}
 
-    	return image;
-    }
-    
+		return image;
+	}
+	
 	public static void setBoolean (SharedPreferences settings, String key, boolean value)
     {
     	if (settings == null) {

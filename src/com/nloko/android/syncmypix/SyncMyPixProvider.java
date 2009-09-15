@@ -60,8 +60,9 @@ public class SyncMyPixProvider extends ContentProvider {
     private static final int CONTACTS = 1;
     private static final int CONTACTS_ID = 2;
     private static final int RESULTS = 3;
-    private static final int SYNC = 4;
-    private static final int SYNC_ID = 5;
+    private static final int RESULTS_ID = 4;
+    private static final int SYNC = 5;
+    private static final int SYNC_ID = 6;
 
     private static final UriMatcher uriMatcher;
 
@@ -70,6 +71,7 @@ public class SyncMyPixProvider extends ContentProvider {
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "contacts", CONTACTS);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "contacts/#", CONTACTS_ID);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "results", RESULTS);
+        uriMatcher.addURI(SyncMyPix.AUTHORITY, "results/#", RESULTS_ID);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "sync", SYNC);
         uriMatcher.addURI(SyncMyPix.AUTHORITY, "sync/#", SYNC_ID);
 
@@ -342,6 +344,12 @@ public class SyncMyPixProvider extends ContentProvider {
             
         case RESULTS:
             count = db.update(RESULTS_TABLE_NAME, values, selection, selectionArgs);
+            break;
+            
+        case RESULTS_ID:
+            Id = uri.getPathSegments().get(1);
+            count = db.update(RESULTS_TABLE_NAME, values, Results._ID + "=" + Id
+                    + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
             break;
             
         case SYNC:

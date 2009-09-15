@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/about_layout"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:theme="@android:style/Theme.Dialog"
+              android:padding="4dip"
+              >
+    <ImageView android:id="@+id/logo"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@drawable/logo" 
+               />
+               
+    <TextView android:id="@+id/copyright"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="Copyright (C) 2009 Neil Loknath"
+               />
+               
+    <TextView android:id="@+id/instructions"
+    		   android:layout_marginTop="6dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/instructions"
+               android:autoLink="web"
+               />
+               
+    <TextView android:id="@+id/release_notes"
+    		   android:layout_marginTop="4dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/release_notes"
+               android:autoLink="web"
+               />
+               
+    <TextView android:id="@+id/issues"
+    		   android:layout_marginTop="4dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/issues"
+               android:autoLink="web"
+               />
+               
+    <Button android:id="@+id/ok"
+               android:layout_marginTop="6dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="OK"
+               />
+</LinearLayout>

@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 
 import com.nloko.android.Utils;
+import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 
@@ -33,8 +34,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -47,8 +50,13 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.provider.Contacts.People;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -56,7 +64,9 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SyncResults extends Activity {
 
@@ -64,15 +74,19 @@ public class SyncResults extends Activity {
 	ListView listview;
 	
 	Looper downloadLooper;
-	Handler handleBitmap;
+	Handler mainHandler;
 	DownloadImageHandler downloadHandler;
 
 	Bitmap contactImage;
 	
-	private final int LOADING_DIALOG = 0;
-	private final int ZOOM_PIC = 1;
+	private static final int LOADING_DIALOG = 0;
+	private static final int ZOOM_PIC = 1;
 	
-	private final int UNKNOWN_HOST_ERROR = 0;
+	private static final int UNKNOWN_HOST_ERROR = 2;
+	private static final int UPDATE_CONTACT = 3;
+	
+	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
+	private static final int PICK_CONTACT    = 5;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +94,7 @@ public class SyncResults extends Activity {
 		
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
-
+		
 		showDialog(LOADING_DIALOG);
 		
         final ContentResolver resolver = getContentResolver();
@@ -107,6 +121,16 @@ public class SyncResults extends Activity {
 
         listview.setAdapter(adapter);      
         
+        listview.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+
+				return false;
+			}
+        	
+        });
+        
         listview.setOnItemClickListener(new OnItemClickListener () {
 
 			public void onItemClick(AdapterView<?> parent, View view, int position,
@@ -120,6 +144,7 @@ public class SyncResults extends Activity {
 					setProgressBarIndeterminateVisibility(true);
 					
 					Message msg = downloadHandler.obtainMessage();
+					msg.what = ZOOM_PIC;
 					msg.obj = url;
 					downloadHandler.sendMessage(msg);
 				}
@@ -127,7 +152,25 @@ public class SyncResults extends Activity {
         	
         });
 
-        handleBitmap = new Handler () {
+        listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+
+			public void onCreateContextMenu(ContextMenu menu, View v,
+					ContextMenuInfo menuInfo) {
+				
+				int position = ((AdapterContextMenuInfo)menuInfo).position;
+				if (cur.moveToPosition(position)) {
+					String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
+					String name = cur.getString(cur.getColumnIndex(Results.NAME));
+					
+					if (url != null) {
+						menu.setHeaderTitle(name);
+		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, "Add picture to contact");
+					}
+				}
+			}
+        });
+   
+        mainHandler = new Handler () {
 
 			@Override
 			public void handleMessage(Message msg) {
@@ -139,14 +182,16 @@ public class SyncResults extends Activity {
 					showDialog(ZOOM_PIC);
 					
 					setProgressBarIndeterminateVisibility(false);
+					
 				}
-				else {
-					handleWhat(msg.what);
-				}
+				
+				handleWhat(msg);
+
 			}
 			
-			private void handleWhat(int what) {
-				switch (what) {
+			private void handleWhat(Message msg) {
+				
+				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
 						Toast.makeText(SyncResults.this, "Unable to resolve host. Do you have network connectivity?", Toast.LENGTH_LONG).show();
 						break;
@@ -158,11 +203,138 @@ public class SyncResults extends Activity {
         downloadThread.start();
         
         downloadLooper = downloadThread.getLooper();
-        downloadHandler = new DownloadImageHandler(downloadLooper, handleBitmap);
+        downloadHandler = new DownloadImageHandler(downloadLooper, mainHandler);
+        
         
         new InitializeResultsThread(Looper.myQueue(), cur).start();
+        new LoadThumbnailsThread().start();
 	}
 
+	private int lastPosition = -1;
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+
+		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
+		
+		switch (item.getItemId()) {
+			case CONTEXTMENU_SELECT_CONTACT:
+				lastPosition = menuInfo.position;
+				
+				Intent intent = new Intent(Intent.ACTION_PICK, People.CONTENT_URI);  
+				startActivityForResult(intent, PICK_CONTACT);  
+				return true;
+		}
+		
+		return super.onContextItemSelected(item);
+	}
+
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch (requestCode) {  
+			case (PICK_CONTACT):  
+				if (resultCode == Activity.RESULT_OK) {  
+					Uri contactData = data.getData();  
+		            updateContact(contactData);
+				}
+			
+				break;
+		}
+	}
+
+	private void updateHash(String id, byte[] image)
+	{
+		final ContentResolver resolver = getContentResolver();
+		Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+		Cursor cursor = resolver.query(uri,
+						new String[] { Contacts._ID }, 
+						null, 
+						null, 
+						null);	
+		
+		String hash = Utils.getMd5Hash(image);
+		
+		ContentValues values = new ContentValues();
+		values.put(Contacts.PHOTO_HASH, hash);
+		
+		if (cursor.moveToFirst()) {
+			resolver.update(uri, values, null, null);
+		}
+		else {
+			resolver.insert(Contacts.CONTENT_URI, values);
+		}
+		
+		if (cursor != null) {
+			cursor.close();
+		}
+	}
+	
+	private void updateContact(Uri contact)
+	{
+		// avoid android.database.StaleDataException: Access closed cursor
+		cur.requery();
+		
+		if (cur.moveToPosition(lastPosition)) {
+			final ContentResolver resolver = getContentResolver();
+			final Uri contactUri = contact;
+
+			final long id  = cur.getLong(cur.getColumnIndex(Results._ID));
+			final String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
+		
+			showDialog(UPDATE_CONTACT);
+			
+			Thread thread = new Thread(new Runnable() {
+
+				public void run() {
+					try {
+						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
+						if (bitmap != null) {
+
+							String contactId = contactUri.getPathSegments().get(1);
+							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
+							ContactServices.updateContactPhoto(resolver, bytes, contactId);
+							updateHash(contactId, bytes);
+							
+							ThumbnailCache.add(url, bitmap);
+							runOnUiThread(new Runnable() {
+
+								public void run() {
+									((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+								}
+
+							});
+
+							ContentValues values = new ContentValues();
+							values.put(Results.DESCRIPTION, "Picture Updated");
+							values.put(Results.CONTACT_ID, contactId);
+							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
+									values, null, null);
+						}
+					}
+					catch (UnknownHostException ex) {
+						mainHandler.sendEmptyMessage(UNKNOWN_HOST_ERROR);
+					}
+					catch (Exception e) {}
+					finally {
+						runOnUiThread(new Runnable() {
+
+							public void run() {
+								removeDialog(UPDATE_CONTACT);
+							}
+						});
+					}
+				}
+			});
+			
+			thread.start();
+		}
+		
+	}
+	
 	private Dialog showZoomDialog()
 	{
 		
@@ -173,8 +345,6 @@ public class SyncResults extends Activity {
 		
 		final ImageView image = (ImageView)zoomedDialog.findViewById(R.id.image);
 
-		//final Drawable d = contactImage.getDrawable();
-		
 		final int padding = 15;
 		
 		final int width  = contactImage.getWidth();
@@ -238,6 +408,12 @@ public class SyncResults extends Activity {
 				return progress;
 			case ZOOM_PIC:
 				return showZoomDialog();
+			case UPDATE_CONTACT:
+				ProgressDialog sync = new ProgressDialog(this);
+				sync.setCancelable(false);
+				sync.setMessage("Syncing contact...");
+				sync.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				return sync;
 		}
 		
 		return super.onCreateDialog(id);
@@ -301,6 +477,49 @@ public class SyncResults extends Activity {
 		}
 	}
 	
+	private class LoadThumbnailsThread extends Thread
+	{
+		private Cursor cursor;
+		
+		public LoadThumbnailsThread()
+		{
+			final ContentResolver resolver = getContentResolver();
+	        String[] projection = { 
+	        		Results._ID, 
+	        		Results.CONTACT_ID,
+	        		Results.PIC_URL };
+	        
+	        cursor = resolver.query(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
+		}
+		
+		public void run()
+		{
+			String id = null;
+			String url = null;
+			
+			while(cursor.moveToNext()) {
+				id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+				url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+				
+				if (id != null) {
+					ThumbnailCache.add(url, People.loadContactPhoto(getBaseContext(), 
+							Uri.withAppendedPath(People.CONTENT_URI, id), 
+							R.drawable.smiley_face, null));
+					
+					runOnUiThread(new Runnable() {
+
+						public void run() {
+							((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+							
+						}
+						
+					});
+				}
+			}
+			
+			cursor.close();
+		}
+	}
 	
 	private class DownloadImageHandler extends Handler
 	{
@@ -316,12 +535,15 @@ public class SyncResults extends Activity {
 		public void handleMessage(Message msg)
 		{
 			String url = (String) msg.obj;
+					
 			if (url != null) {
 				try {
 					Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 					if (bitmap != null) {
 						Message mainMsg = mainHandler.obtainMessage();
+						
 						mainMsg.obj = bitmap;
+						mainMsg.what = msg.what;
 						mainHandler.sendMessage(mainMsg);
 						
 						ThumbnailCache.add(url, bitmap);
@@ -354,12 +576,8 @@ public class SyncResults extends Activity {
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
-			if (id != null) {
-				image.setImageBitmap(People.loadContactPhoto(getBaseContext(), 
-						Uri.withAppendedPath(People.CONTENT_URI, id), 
-						R.drawable.smiley_face, null));
-			}
-			else if (ThumbnailCache.contains(url)) {
+			
+			if (ThumbnailCache.contains(url)) {
 				image.setImageBitmap(ThumbnailCache.get(url));
 			}
 			else if (description.equals("Contact not found")) {

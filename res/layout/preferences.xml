@@ -22,7 +22,7 @@
             android:title="Schedule"
             android:summary="Select a frequency for scheduling contact picture synchronization"
             android:key="sched_freq"
-            android:defaultValue="Facebook"
+            android:defaultValue="0"
             android:entries="@array/scheduleFreq"
             android:entryValues="@array/scheduleFreqValues" />
     </PreferenceCategory>

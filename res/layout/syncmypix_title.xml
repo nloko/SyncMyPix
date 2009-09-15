@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/syncmypix_title"
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_height="fill_parent" 
+     android:layout_width="fill_parent"
+     android:orientation="vertical" 
+      >
+
+     <ImageView android:src="@drawable/mini_icon"
+          android:layout_width="25dip"
+          android:layout_height="fill_parent"  
+          android:id="@+id/title_icon"
+          android:layout_alignParentTop="true" />
+
+     <TextView android:id="@+id/title" 
+     	  android:layout_width="wrap_content"
+     	  android:layout_height="wrap_content"
+          android:textColor="#ffffff" 
+          android:textStyle="bold"
+          android:textSize="14dip"
+          android:text="@string/app_name" 
+          android:layout_toRightOf="@id/title_icon"
+          android:layout_alignParentTop="true"
+          android:padding="1dip" 
+           />
+          
+</RelativeLayout> 
