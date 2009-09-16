@@ -532,6 +532,7 @@ public class SyncResults extends Activity {
 		
 		public void run()
 		{
+			Bitmap bitmap = null;
 			String id = null;
 			String url = null;
 			
@@ -540,9 +541,13 @@ public class SyncResults extends Activity {
 				url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				
 				if (id != null) {
-					ThumbnailCache.add(url, People.loadContactPhoto(getBaseContext(), 
+					bitmap = People.loadContactPhoto(getBaseContext(), 
 							Uri.withAppendedPath(People.CONTENT_URI, id), 
-							R.drawable.smiley_face, null));
+							0, null);
+					
+					if (bitmap != null) {
+						ThumbnailCache.add(url, bitmap);
+					}
 					
 					runOnUiThread(new Runnable() {
 
