@@ -46,7 +46,7 @@
                />
                
     <TextView android:id="@+id/info"
-    		   android:layout_marginTop="6dip"
+    		   android:layout_marginTop="10dip"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:gravity="center_horizontal"
@@ -54,11 +54,20 @@
                android:autoLink="web"
                android:textColor="@android:color/white"
                />
-               
+
+	 <CheckBox android:id="@+id/do_not_show_about"
+	 		   android:layout_width="fill_parent"
+	 		   android:layout_height="wrap_content"
+	 		   android:layout_marginTop="4dip"
+	 		   android:textSize="12dip"
+	 		   android:text="Do not show until next upgrade"
+	 		   />
+	 		                         
     <Button android:id="@+id/ok"
                android:layout_marginTop="6dip"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:text="OK"
                />
+
 </LinearLayout>

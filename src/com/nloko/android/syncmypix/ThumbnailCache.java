@@ -36,12 +36,12 @@ import android.graphics.Bitmap.CompressFormat;
 
 public class ThumbnailCache {
 
-	private final static Map <String, Bitmap> images = new HashMap <String, Bitmap> (); 
-	private final static Object lock = new Object();
+	private final Map <String, Bitmap> images = new HashMap <String, Bitmap> (); 
+	private final Object lock = new Object();
 	
 	private ThumbnailCache() {}
 	
-/*	private static ThumbnailCache instance = null;
+	private static ThumbnailCache instance = null;
 	public static ThumbnailCache create()
 	{
 		if (instance == null) {
@@ -49,15 +49,15 @@ public class ThumbnailCache {
 		}
 		
 		return instance;
-	}*/
-	
-	public static void destroy()
-	{
-		images.clear();
-		//instance = null;
 	}
 	
-	public static boolean contains(String key)
+	public void destroy()
+	{
+		images.clear();
+		instance = null;
+	}
+	
+	public boolean contains(String key)
 	{
 		synchronized(lock) {
 			if (images.containsKey(key)) {
@@ -68,17 +68,17 @@ public class ThumbnailCache {
 		return false;
 	}
 	
-	public static void add(String key, byte[] image)
+	public void add(String key, byte[] image)
 	{
 		add(key, BitmapFactory.decodeByteArray(image, 0, image.length));
 	}
 	
-	public static void add(String key, Bitmap bitmap)
+	public void add(String key, Bitmap bitmap)
 	{
 		add(key, bitmap, true);
 	}
 	
-	public static void add(String key, Bitmap bitmap, boolean resize)
+	public void add(String key, Bitmap bitmap, boolean resize)
 	{
 		if (bitmap == null) {
 			throw new IllegalArgumentException("bitmap");
@@ -93,7 +93,7 @@ public class ThumbnailCache {
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		if (bitmap.compress(CompressFormat.JPEG, 75, out)) {
+		if (bitmap.compress(CompressFormat.JPEG, 100, out)) {
 			if (out != null) {
 				bitmap = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
 			}
@@ -104,7 +104,7 @@ public class ThumbnailCache {
 		}
 	}
 	
-	public static boolean remove(String key)
+	public boolean remove(String key)
 	{
 		synchronized(lock) {
 			if (images.containsKey(key)) {
@@ -116,7 +116,7 @@ public class ThumbnailCache {
 		return false;
 	}
 	
-	public static Bitmap get(String key) 
+	public Bitmap get(String key) 
 	{
 		synchronized(lock) {
 			if (images.containsKey(key)) {

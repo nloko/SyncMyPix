@@ -74,11 +74,12 @@ public class SyncResults extends Activity {
 	Cursor cur;
 	ListView listview;
 	
-	Looper downloadLooper;
 	Handler mainHandler;
+	Looper downloadLooper;
 	DownloadImageHandler downloadHandler;
-
 	Bitmap contactImage;
+
+	ThumbnailCache cache;
 	
 	private static final int UNKNOWN_HOST_ERROR = 2;
 	
@@ -93,6 +94,8 @@ public class SyncResults extends Activity {
 		setContentView(R.layout.results);	
 		
 		showDialog(LOADING_DIALOG);
+	
+		cache = ThumbnailCache.create();
 		
         final ContentResolver resolver = getContentResolver();
         String[] projection = { 
@@ -319,7 +322,7 @@ public class SyncResults extends Activity {
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
 							updateHash(contactId, bytes);
 							
-							ThumbnailCache.add(url, bitmap);
+							cache.add(url, bitmap);
 							runOnUiThread(new Runnable() {
 
 								public void run() {
@@ -330,7 +333,8 @@ public class SyncResults extends Activity {
 
 							ContentValues values = new ContentValues();
 							values.put(Results.DESCRIPTION, "Picture Updated");
-							values.put(Results.CONTACT_ID, contactId);
+							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
+							
 							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
 									values, null, null);
 						}
@@ -462,6 +466,7 @@ public class SyncResults extends Activity {
 	protected void onDestroy() {
 		
 		downloadLooper.quit();
+		cache.destroy();
 		
 		// TODO Auto-generated method stub
 		super.onDestroy();
@@ -533,20 +538,20 @@ public class SyncResults extends Activity {
 		public void run()
 		{
 			Bitmap bitmap = null;
-			String id = null;
+			long id = 0;
 			String url = null;
 			
 			while(cursor.moveToNext()) {
-				id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+				id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 				url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				
-				if (id != null) {
+				if (id > 0) {
 					bitmap = People.loadContactPhoto(getBaseContext(), 
-							Uri.withAppendedPath(People.CONTENT_URI, id), 
+							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(id)), 
 							0, null);
 					
 					if (bitmap != null) {
-						ThumbnailCache.add(url, bitmap);
+						cache.add(url, bitmap);
 					}
 					
 					runOnUiThread(new Runnable() {
@@ -589,7 +594,7 @@ public class SyncResults extends Activity {
 						mainMsg.what = msg.what;
 						mainHandler.sendMessage(mainMsg);
 						
-						ThumbnailCache.add(url, bitmap);
+						cache.add(url, bitmap);
 					}
 				}
 				catch (UnknownHostException ex) {
@@ -615,13 +620,13 @@ public class SyncResults extends Activity {
 			
 			ImageView image = (ImageView) view.findViewById(R.id.contactImage);
 			
-			String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+			//long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
 			
-			if (ThumbnailCache.contains(url)) {
-				image.setImageBitmap(ThumbnailCache.get(url));
+			if (cache.contains(url)) {
+				image.setImageBitmap(cache.get(url));
 			}
 			else if (description.equals("Contact not found")) {
 				image.setImageResource(R.drawable.neutral_face);

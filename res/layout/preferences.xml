@@ -20,7 +20,7 @@
             
         <ListPreference
             android:title="Schedule"
-            android:summary="Select a frequency for scheduling contact picture synchronization"
+            android:summary="Select a frequency for scheduling"
             android:key="sched_freq"
             android:defaultValue="0"
             android:entries="@array/scheduleFreq"
@@ -35,19 +35,19 @@
         <CheckBoxPreference
             android:title="Skip duplicate contacts"
             android:defaultValue="false"
-            android:summary="Skip when multiple contacts are found for a single Social Networking friend"
+            android:summary="Skip when multiple contacts are found for a single social networking friend"
             android:key="skipIfConflict" />
         <CheckBoxPreference
             android:title="Reverse names"
             android:defaultValue="false"
-            android:summary="Reverse first and last name"
+            android:summary="Reverse first and last name of social networking friend"
             android:key="reverseNames" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Pictures">
     	<CheckBoxPreference
             android:title="Maximum Quality"
             android:defaultValue="false"
-            android:summary="Download maximum resolution pictures"
+            android:summary="Download maximum resolution / size"
             android:key="maxQuality" />
     </PreferenceCategory>
     

@@ -56,6 +56,9 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		}
 		
 		else if (action.equals(Intent.ACTION_PACKAGE_REPLACED)) {
+			// show about dialog on upgrades
+			Utils.setBoolean(context.getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "do_not_show_about", false);
+			
 			rescheduleAlarm(context);
 		}
 		

@@ -326,7 +326,7 @@ public class FacebookSyncService extends Service {
     	    							
     							ContactServices.updateContactPhoto(getContentResolver(), image, id);
     							
-    							values.put(Results.CONTACT_ID, id);
+    							values.put(Results.CONTACT_ID, Long.parseLong(id));
     							updateSyncContact(id, hash);
     						}
     						else {

@@ -111,7 +111,8 @@ public class SyncMyPixProvider extends ContentProvider {
                     + Results.SYNC_ID + " INTEGER,"
                     + Results.NAME + " TEXT DEFAULT NULL,"
                     + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
-                    + Results.PIC_URL + " TEXT  DEFAULT NULL"
+                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
+                    + Results.CONTACT_ID + " INTEGER"
                     + ");");
             
             db.execSQL("CREATE TABLE " + SYNC_TABLE_NAME + " ("
@@ -133,7 +134,7 @@ public class SyncMyPixProvider extends ContentProvider {
                     + Results.NAME + " TEXT DEFAULT NULL,"
                     + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
                     + Results.PIC_URL + " TEXT  DEFAULT NULL,"
-                    + Results.CONTACT_ID + " TEXT  DEFAULT NULL"
+                    + Results.CONTACT_ID + " INTEGER"
                     + ");");
             
             db.execSQL("INSERT INTO results_new (" 

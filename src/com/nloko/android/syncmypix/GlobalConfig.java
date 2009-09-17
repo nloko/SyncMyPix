@@ -53,6 +53,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class GlobalConfig extends PreferenceActivity {
 	
@@ -99,8 +102,16 @@ public class GlobalConfig extends PreferenceActivity {
 
     	addPreferencesFromResource(R.layout.preferences);	
     	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
-    	
+
+    	int freq = getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
+    	
+    	// set value from old version
+    	// TODO remove this after awhile
+    	if (freq != Integer.parseInt(schedule.getValue())) {
+    		schedule.setValueIndex(freq);
+    	}
+    	
         schedule.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 
 			public boolean onPreferenceChange(Preference preference,
@@ -129,10 +140,10 @@ public class GlobalConfig extends PreferenceActivity {
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
-        else {
-            showDialog(ABOUT_DIALOG);
+        else if (!getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
+        	showDialog(ABOUT_DIALOG);
         }
-    
+        
         if (isLoggedIn()) {
         	setLoginStatus(R.string.loginStatus_loggedin);
         }
@@ -266,8 +277,6 @@ public class GlobalConfig extends PreferenceActivity {
 		
 		unbindService(syncServiceConn);
 		//unbindService(hashServiceConn);
-		
-		ThumbnailCache.destroy();
 	}
     
     
@@ -384,6 +393,18 @@ public class GlobalConfig extends PreferenceActivity {
 
 			public void onClick(View v) {
 				removeDialog(ABOUT_DIALOG);
+			}
+			
+		});
+		
+		CheckBox show = (CheckBox)about.findViewById(R.id.do_not_show_about);
+		show.setChecked(getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
+		show.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+
+				Utils.setBoolean(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "do_not_show_about", isChecked);
 			}
 			
 		});
