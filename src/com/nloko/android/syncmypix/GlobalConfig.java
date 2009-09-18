@@ -82,8 +82,8 @@ public class GlobalConfig extends PreferenceActivity {
 			return (Class<T>) cls;
 		}
 		catch(ClassNotFoundException e) {
-			Log.e(TAG, "Could not get class from XML");
-			return null;
+			Log.e(TAG, "Could not get class from XML. Defaulting to FacebookSyncService.class");
+			return (Class<T>) FacebookSyncService.class;
 		}
 	}
 	
@@ -114,6 +114,7 @@ public class GlobalConfig extends PreferenceActivity {
 			e.printStackTrace();
 		} catch (Exception e) {}
 
+		
 		return null;
 	}
 
