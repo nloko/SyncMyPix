@@ -176,6 +176,9 @@ public abstract class SyncService extends Service {
     
     private class SyncTask extends AsyncTask <List<SocialNetworkUser>, Integer, Long>
     {
+    	private final ContentResolver resolver = getContentResolver();
+    	private final StringBuilder sb = new StringBuilder();
+    	    	
         private void processUser(SocialNetworkUser user, Uri sync) 
         {
     		if (user == null) {
@@ -186,14 +189,17 @@ public abstract class SyncService extends Service {
     			throw new IllegalArgumentException ("sync");
     		}
     		
-    		Log.d(TAG, user.firstName + " " + user.lastName + " " + user.picUrl);
+    		sb.delete(0, sb.length());
+    		sb.append(user.firstName);
+    		sb.append(" ");
+    		sb.append(user.lastName);
     		
-    		ContentResolver resolver = getContentResolver();
-    		String syncId = sync.getPathSegments().get(1);
+    		final String name = sb.toString();
+    		Log.d(TAG, String.format("%s %s", name, user.picUrl));
+    		
+    		final String syncId = sync.getPathSegments().get(1);
     		
     		ContentValues values = new ContentValues();
-    		String name = user.firstName + " " + user.lastName;
-    		
     		values.put(Results.SYNC_ID, syncId);
     		values.put(Results.NAME, name);
     		values.put(Results.PIC_URL, user.picUrl);
@@ -205,8 +211,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-        		
-    		String selection;
+    		final String selection;
     		if (!reverseNames) {
     			selection = Utils.buildNameSelection(People.NAME, user.firstName, user.lastName);
     		}
@@ -214,8 +219,7 @@ public abstract class SyncService extends Service {
     			selection = Utils.buildNameSelection(People.NAME, user.lastName, user.firstName);
     		}
     		
-    		Cursor cur = ContactServices.getContact(resolver, selection);
-    		
+    		final Cursor cur = ContactServices.getContact(resolver, selection);
     		if (!cur.moveToFirst()) {
     			Log.d(TAG, "Contact not found in database.");
     			values.put(Results.DESCRIPTION, "Contact not found");
@@ -242,7 +246,7 @@ public abstract class SyncService extends Service {
 
     				do {
     					String id = cur.getString(cur.getColumnIndex(People._ID));
-    					final Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
+    					//final Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
     					
     					if (updateContactPictures(cur, id)) {
     							
@@ -300,9 +304,6 @@ public abstract class SyncService extends Service {
         		throw new IllegalArgumentException("id");
         	}
         	
-        	ContentResolver resolver = getContentResolver();
-        	
-
         	boolean ok = true;
 
         	Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
@@ -353,7 +354,6 @@ public abstract class SyncService extends Service {
         		throw new IllegalArgumentException("id");
         	}
         	
-        	ContentResolver resolver = getContentResolver();
         	Uri uri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
         	
     		ContentValues values = new ContentValues();
@@ -379,13 +379,11 @@ public abstract class SyncService extends Service {
 			
 			List<SocialNetworkUser> userList = users[0];
 			try {
-				ContentResolver cr = getContentResolver();
-				cr.delete(Sync.CONTENT_URI, null, null);
-				Uri sync = cr.insert(Sync.CONTENT_URI, null);
+				resolver.delete(Sync.CONTENT_URI, null, null);
+				Uri sync = resolver.insert(Sync.CONTENT_URI, null);
 
 				index = 1;
 				for (SocialNetworkUser user : userList) {
-					String name = user.firstName + " " + user.lastName;
 
 					// keep going if exception during sync
 					try {
@@ -398,7 +396,7 @@ public abstract class SyncService extends Service {
 						ContentValues values = new ContentValues();
 						String syncId = sync.getPathSegments().get(1);
 						values.put(Results.SYNC_ID, syncId);
-						values.put(Results.NAME, name);
+						values.put(Results.NAME, String.format("%s %s", user.firstName, user.lastName));
 						values.put(Results.PIC_URL, user.picUrl);
 						values.put(Results.DESCRIPTION, "Exception caught during sync");
 
@@ -418,7 +416,7 @@ public abstract class SyncService extends Service {
 
 				ContentValues syncValues = new ContentValues();
 				syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
-				cr.update(sync, syncValues, null, null);
+				resolver.update(sync, syncValues, null, null);
 				
 				total = index;
 			}

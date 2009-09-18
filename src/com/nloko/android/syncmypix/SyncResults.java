@@ -25,6 +25,7 @@ package com.nloko.android.syncmypix;
 import java.net.UnknownHostException;
 import java.util.Date;
 
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
@@ -80,6 +81,8 @@ public class SyncResults extends Activity {
 	Bitmap contactImage;
 
 	ThumbnailCache cache;
+	
+	private static final String TAG = "SyncResults";
 	
 	private static final int UNKNOWN_HOST_ERROR = 2;
 	
@@ -286,9 +289,12 @@ public class SyncResults extends Activity {
 		
 		if (cursor.moveToFirst()) {
 			resolver.update(uri, values, null, null);
+			Log.d(TAG, String.format("Hash updated %s", hash));
 		}
 		else {
+			values.put(Contacts._ID, id);
 			resolver.insert(Contacts.CONTENT_URI, values);
+			Log.d(TAG, String.format("Hash inserted %s", hash));
 		}
 		
 		if (cursor != null) {

@@ -111,7 +111,9 @@ public class FacebookApi {
             fbUser = new SocialNetworkUser();
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
-            fbUser.picUrl = user.getString("pic_big").equals("null") ? null : user.getString("pic_big");
+            fbUser.picUrl = (
+            		user.getString("pic_big").equals("null") ||
+            		user.getString("pic_big") == "") ? null : user.getString("pic_big");
             
             list.add(fbUser);
             userMap.put(user.getString("uid"), fbUser);
