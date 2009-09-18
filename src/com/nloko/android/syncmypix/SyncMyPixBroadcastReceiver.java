@@ -118,7 +118,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		
 		if (interval > 0) {
 			Log.d(TAG, "SCHEDULING SERVICE");
-			FacebookSyncService.updateSchedule(context, time, interval);
+			FacebookSyncService.updateSchedule(context, FacebookSyncService.class, time, interval);
 		}
 	}
 

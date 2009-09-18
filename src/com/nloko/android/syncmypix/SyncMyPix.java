@@ -37,7 +37,7 @@ public final class SyncMyPix {
 		
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.nloko.contact";
 
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.contact";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.nloko.contact";
 		
 		public static final String DEFAULT_SORT_ORDER = "_id ASC";
 		
@@ -52,7 +52,7 @@ public final class SyncMyPix {
 
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.nloko.result";
 
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.result";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.nloko.result";
 
         public static final String DEFAULT_SORT_ORDER = "name ASC";
 
@@ -73,7 +73,7 @@ public final class SyncMyPix {
 		
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.nloko.sync";
 
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.sync";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.nloko.sync";
 		
 		public static final String DATE_STARTED = "date_started";
 		

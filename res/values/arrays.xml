@@ -5,7 +5,7 @@
     </string-array>
     
     <string-array name="sourceValues">
-        <item>FacebookSyncService</item>
+        <item>com.nloko.android.syncmypix.facebook.FacebookSyncService</item>
     </string-array>
     
     <string-array name="scheduleFreq">

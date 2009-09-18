@@ -22,9 +22,11 @@
 
 package com.nloko.android.syncmypix;
 
+import java.lang.reflect.Method;
+
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
-import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.R;
 
 import android.app.AlarmManager;
@@ -36,12 +38,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -63,9 +63,6 @@ public class GlobalConfig extends PreferenceActivity {
 	
 	public static final String PREFS_NAME = "SyncMyPixPrefs";
 	
-	// TODO move this elsewhere if we're going to add more social networks
-	public static final String API_KEY = "d03f3dcb1ebb264e1ea701bd16f44e5a";
-	
 	private static boolean googleSyncing = false;
 	public static boolean isGoogleSyncing()
 	{
@@ -77,6 +74,49 @@ public class GlobalConfig extends PreferenceActivity {
 		googleSyncing = value;
 	}
 	
+	public <T extends SyncService> Class<T> getSyncSource()
+	{
+		ListPreference source = (ListPreference) findPreference("source");
+		try {
+			Class<?> cls = Class.forName(source.getValue());
+			return (Class<T>) cls;
+		}
+		catch(ClassNotFoundException e) {
+			Log.e(TAG, "Could not get class from XML");
+			return null;
+		}
+	}
+	
+	public <T extends SyncService> boolean isLoggedInFromSyncSource(Class<T> source)
+	{
+		try {
+			Method m = source.getMethod("isLoggedIn", Context.class);
+			return (Boolean) m.invoke(null, this);
+
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (Exception e) {}
+
+		return false;
+	}
+
+	public <T extends SyncService> Class<?> getLoginClassFromSyncSource(Class<T> source)
+	{
+		try {
+			Method m = source.getMethod("getLoginClass");
+			return (Class<?>) m.invoke(null);
+
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (Exception e) {}
+
+		return null;
+	}
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	
@@ -127,10 +167,10 @@ public class GlobalConfig extends PreferenceActivity {
 				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
 					firstTriggerTime = System.currentTimeMillis() + interval;
 					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
-					FacebookSyncService.updateSchedule(GlobalConfig.this, firstTriggerTime, interval);
+					SyncService.updateSchedule(GlobalConfig.this, getSyncSource(), firstTriggerTime, interval);
 				}
 				else {
-					FacebookSyncService.cancelSchedule(GlobalConfig.this);
+					SyncService.cancelSchedule(GlobalConfig.this, getSyncSource());
 				}
 				return true;
 			}
@@ -144,7 +184,7 @@ public class GlobalConfig extends PreferenceActivity {
         	showDialog(ABOUT_DIALOG);
         }
         
-        if (isLoggedIn()) {
+        if (isLoggedInFromSyncSource(getSyncSource())) {
         	setLoginStatus(R.string.loginStatus_loggedin);
         }
     }
@@ -155,7 +195,7 @@ public class GlobalConfig extends PreferenceActivity {
     	switch (pos) {
     	
     		case 1:
-				interval = AlarmManager.INTERVAL_DAY;
+				interval = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
 				break;
 			case 2:
 				interval = AlarmManager.INTERVAL_DAY * 7;
@@ -172,7 +212,7 @@ public class GlobalConfig extends PreferenceActivity {
     
 	private void login()
     {
-		startActivity(new Intent(GlobalConfig.this, FacebookLoginWebView.class));
+		startActivity(new Intent(GlobalConfig.this, getLoginClassFromSyncSource(getSyncSource())));
     }
     
     // TODO Should probably kill social network API session too
@@ -203,7 +243,7 @@ public class GlobalConfig extends PreferenceActivity {
     	
    		showDialog(FRIENDS_PROGRESS);
     	
-    	Intent i = new Intent(GlobalConfig.this, FacebookSyncService.class);
+    	Intent i = new Intent(GlobalConfig.this, getSyncSource());
    		startService(i);
     	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
     }
@@ -220,16 +260,6 @@ public class GlobalConfig extends PreferenceActivity {
    		loginStatus.setSummary(status);
     }
     
-	private boolean isLoggedIn ()
-    {
-    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		String session_key = settings.getString("session_key", null);
-		String secret = settings.getString("secret", null);
-		String uid = settings.getString("uid", null);
-	
-		return session_key != null && secret != null && uid != null;
-    }
-
 	private void hideDialogs(boolean remove)
 	{
 		if (!remove) {
@@ -257,12 +287,12 @@ public class GlobalConfig extends PreferenceActivity {
 	protected void onResume() {
 		super.onResume();
 		
-		if (isLoggedIn()) {
+		if (isLoggedInFromSyncSource(getSyncSource())) {
 			setLoginStatus(R.string.loginStatus_loggedin);
 		}
 		
 		if (!syncServiceConnected) {
-			Intent i = new Intent(GlobalConfig.this, FacebookSyncService.class);
+			Intent i = new Intent(GlobalConfig.this, getSyncSource());
 			bindService(i, syncServiceConn, 0);
 		}
 		
@@ -428,17 +458,15 @@ public class GlobalConfig extends PreferenceActivity {
 		
 	};
 	
-	private FacebookSyncService syncService;
+	private SyncService syncService;
 	private boolean syncServiceConnected = false;
-	
-	
 	
     private ServiceConnection syncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	
         	syncServiceConnected = true;
         	
-        	syncService = ((FacebookSyncService.LocalBinder)service).getService();
+        	syncService = ((SyncService.LocalBinder)service).getService();
         	syncService.setListener(new SyncServiceListener () {
 
 				public void updateUI(int percentage, int index, int total) {

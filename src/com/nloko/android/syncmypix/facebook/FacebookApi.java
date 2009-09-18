@@ -41,6 +41,8 @@ import com.nloko.simplyfacebook.net.FacebookRestClient;
 
 public class FacebookApi {
 
+	public static final String API_KEY = "d03f3dcb1ebb264e1ea701bd16f44e5a";
+	
 	protected FacebookApi()
 	{
 	}

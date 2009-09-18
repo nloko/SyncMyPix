@@ -65,7 +65,7 @@ public class FacebookLoginWebView extends Activity {
         }
         catch (Exception e) {}*/
         
-        login.setAPIKey(GlobalConfig.API_KEY);
+        login.setAPIKey(FacebookApi.API_KEY);
         
         webview = (WebView) findViewById(R.id.webview);
         webview.setWebViewClient(new FacebookWebViewClient ());

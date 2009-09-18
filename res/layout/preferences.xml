@@ -4,7 +4,7 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
      
      <EditTextPreference  
-         android:key="loginStatus"  
+         android:key="loginStatus" 
          android:title="Login Status"
          android:summary="Not logged in"
          android:enabled="false"  
@@ -14,7 +14,7 @@
             android:title="Social Network"
             android:summary="Select the social network you wish to sync contact pictures from"
             android:key="source"
-            android:defaultValue="Facebook"
+            android:defaultValue="com.nloko.android.syncmypix.facebook.FacebookSyncService"
             android:entries="@array/sources"
             android:entryValues="@array/sourceValues" />
             
