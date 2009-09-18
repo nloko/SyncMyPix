@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
+import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.R;
 
@@ -81,10 +82,14 @@ public class GlobalConfig extends PreferenceActivity {
 			Class<?> cls = Class.forName(source.getValue());
 			return (Class<T>) cls;
 		}
-		catch(ClassNotFoundException e) {
+		catch(ClassNotFoundException classException) {
 			Log.e(TAG, "Could not get class from XML. Defaulting to FacebookSyncService.class");
-			return (Class<T>) FacebookSyncService.class;
 		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return (Class<T>) FacebookSyncService.class;
 	}
 	
 	public <T extends SyncService> boolean isLoggedInFromSyncSource(Class<T> source)
@@ -97,7 +102,9 @@ public class GlobalConfig extends PreferenceActivity {
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		return false;
 	}
@@ -112,10 +119,12 @@ public class GlobalConfig extends PreferenceActivity {
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-		
-		return null;
+		// default to Facebook
+		return FacebookLoginWebView.class;
 	}
 
     @Override
