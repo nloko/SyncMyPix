@@ -15,6 +15,10 @@ Here's a run down of the features currently implemented:
     * Sync runs in the background leaving you free to do other tasks by 
       pressing HOME
     * View the results of the last sync operation 
+    * Manual conflict resolution in the "Results" interface where a long press
+      on a friend allows the picture to be manually added to a contact
+    * Easily Extensible to support more social networking sites as picture 
+      sources
 
 Name matching is VERY precise. For example, a Facebook friend with the name 
 "Billy Bob" will match the following phone contacts:
@@ -23,13 +27,8 @@ Name matching is VERY precise. For example, a Facebook friend with the name
 
 Look for the following new features in the future:
 
-    * Manual conflict resolution in the "Results" interface where a long press
-      on a friend would allow the picture to be manually added to a contact of
-      the user's choosing
     * A new "Progress" interface where the progress bar is integrated in the 
       screen and an image widget displays the last picture downloaded
-    * Improved extensibility with more social networking sites as picture 
-      sources
     * Improved name matching 
 
 Visit my blog for more news on this project and others: 
