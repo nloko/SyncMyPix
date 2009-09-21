@@ -17,9 +17,18 @@
                android:layout_height="wrap_content"
                android:text="Copyright (C) 2009 Neil Loknath"
                />
-               
-    <TextView android:id="@+id/instructions"
+             
+    <TextView android:id="@+id/faq"
     		   android:layout_marginTop="6dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/faq"
+               android:autoLink="web"
+               android:textColor="@android:color/white"
+               />
+                 
+    <TextView android:id="@+id/instructions"
+    		   android:layout_marginTop="4dip"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:text="@string/instructions"

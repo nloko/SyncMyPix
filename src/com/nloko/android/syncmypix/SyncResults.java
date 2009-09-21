@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
+import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Date;
 
@@ -29,6 +30,7 @@ import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
+import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 
 import android.app.Activity;
@@ -41,6 +43,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -55,11 +58,13 @@ import android.provider.Contacts.People;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
+import android.widget.FilterQueryProvider;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -72,7 +77,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SyncResults extends Activity {
 
-	Cursor cur;
+	//Cursor cur;
 	ListView listview;
 	
 	Handler mainHandler;
@@ -89,6 +94,15 @@ public class SyncResults extends Activity {
 	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
 	private static final int PICK_CONTACT    = 5;
 	
+	private String[] projection = { 
+    				Results._ID, 
+    				Results.NAME, 
+    				Results.DESCRIPTION, 
+    				Results.PIC_URL,
+    				Results.CONTACT_ID,
+    				Sync.DATE_STARTED, 
+    				Sync.DATE_COMPLETED };
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -100,25 +114,18 @@ public class SyncResults extends Activity {
 	
 		cache = ThumbnailCache.create();
 		
-        final ContentResolver resolver = getContentResolver();
-        String[] projection = { 
-        		Results._ID, 
-        		Results.NAME, 
-        		Results.DESCRIPTION, 
-        		Results.PIC_URL,
-        		Results.CONTACT_ID,
-        		Sync.DATE_STARTED, 
-        		Sync.DATE_COMPLETED };
+        //final ContentResolver resolver = getContentResolver();
         
-        cur = resolver.query(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
-        startManagingCursor(cur);
+        
+        Cursor cursor = managedQuery(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
+        //startManagingCursor(cur);
         
         listview = (ListView) findViewById(R.id.resultList);
         
 		ListAdapter adapter = new ResultsListAdapter(
                 this, 
                 R.layout.resultslistitem,  
-                cur,                                    
+                cursor,                                    
                 new String[] {Results.NAME, Results.DESCRIPTION },
                 new int[] { R.id.text1, R.id.text2 } );    
 
@@ -139,11 +146,11 @@ public class SyncResults extends Activity {
 			public void onItemClick(AdapterView<?> parent, View view, int position,
 					long id) {
 				
-				cur.moveToPosition(position);
-				String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
-
+				Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+				cursor.moveToPosition(position);
+				
+				String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				if (url != null) {
-			
 					setProgressBarIndeterminateVisibility(true);
 					
 					Message msg = downloadHandler.obtainMessage();
@@ -161,9 +168,11 @@ public class SyncResults extends Activity {
 					ContextMenuInfo menuInfo) {
 				
 				int position = ((AdapterContextMenuInfo)menuInfo).position;
-				if (cur.moveToPosition(position)) {
-					String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
-					String name = cur.getString(cur.getColumnIndex(Results.NAME));
+				Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+				
+				if (cursor.moveToPosition(position)) {
+					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+					String name = cursor.getString(cursor.getColumnIndex(Results.NAME));
 					
 					if (url != null) {
 						menu.setHeaderTitle(name);
@@ -183,11 +192,9 @@ public class SyncResults extends Activity {
 					
 					contactImage = bitmap;
 					showDialog(ZOOM_PIC);
-					
-					setProgressBarIndeterminateVisibility(false);
-					
 				}
 				
+				setProgressBarIndeterminateVisibility(false);
 				handleWhat(msg);
 
 			}
@@ -208,13 +215,19 @@ public class SyncResults extends Activity {
         downloadLooper = downloadThread.getLooper();
         downloadHandler = new DownloadImageHandler(downloadLooper, mainHandler);
         
-        
-        new InitializeResultsThread(Looper.myQueue(), cur).start();
+        new InitializeResultsThread(Looper.myQueue()).start();
         new LoadThumbnailsThread().start();
 	}
 
 	 private final int MENU_HELP = 0;
-	    
+	 private final int MENU_FILTER = 1;
+	 private final int MENU_FILTER_ALL = 2;
+	 private final int MENU_FILTER_NOTFOUND = 3;
+	 private final int MENU_FILTER_UPDATED = 4;
+	 private final int MENU_FILTER_SKIPPED = 5;
+	 private final int MENU_FILTER_ERROR = 6;
+	 private final int MENU_DELETE = 7;
+	 
 	 @Override
 	 public boolean onCreateOptionsMenu(Menu menu) {
 		 MenuItem item;
@@ -222,15 +235,53 @@ public class SyncResults extends Activity {
 		 item = menu.add(0, MENU_HELP, 0, "Help");
 		 item.setIcon(android.R.drawable.ic_menu_help);
 
+		 SubMenu options = menu.addSubMenu(0, MENU_FILTER, 0, "Filter Results");
+		 options.add(0, MENU_FILTER_ALL, 0, "All");
+		 options.add(0, MENU_FILTER_ERROR, 0, "Errors");
+		 options.add(0, MENU_FILTER_NOTFOUND, 0, "Not found");
+		 options.add(0, MENU_FILTER_SKIPPED, 0, "Skipped");
+		 options.add(0, MENU_FILTER_UPDATED, 0, "Updated");
+		 
+		 options.setIcon(android.R.drawable.ic_menu_sort_alphabetically);
+
+		 item = menu.add(0, MENU_DELETE, 0, "Delete");
+		 item.setIcon(android.R.drawable.ic_menu_delete);
+		 
 		 return true;
 	 }
 	 
 	 @Override
 	 public boolean onOptionsItemSelected(MenuItem item) {
+		 
+		 SimpleCursorAdapter adapter = (SimpleCursorAdapter)listview.getAdapter();
+		 
 		 switch (item.getItemId()) {
 		 case MENU_HELP:
 			 showDialog(HELP_DIALOG);
 			 return true;
+		 case MENU_FILTER_ALL:
+			 adapter.getFilter().filter(null);
+			 return true;
+		 case MENU_FILTER_ERROR:
+			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription() + "'," +
+					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription() + "'");
+			 return true;
+		 case MENU_FILTER_NOTFOUND:
+			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription() + "'");
+			 return true;
+		 case MENU_FILTER_UPDATED:
+			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription() + "'," +
+					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription() + "'");
+			 return true;
+		 case MENU_FILTER_SKIPPED:
+			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription() + "'," +
+					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription() + "'");
+			 return true;
+			 
+		 case MENU_DELETE:
+			 showDialog(DELETE_DIALOG);
+			 return true;
+		
 		 }
 
 		 return false;
@@ -305,17 +356,19 @@ public class SyncResults extends Activity {
 	private void updateContact(Uri contact)
 	{
 		// avoid android.database.StaleDataException: Access closed cursor
-		cur.requery();
+		Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+		cursor.requery();
 		
-		if (cur.moveToPosition(lastPosition)) {
+		if (cursor.moveToPosition(lastPosition)) {
+			
+			showDialog(UPDATE_CONTACT);
+			
 			final ContentResolver resolver = getContentResolver();
 			final Uri contactUri = contact;
 
-			final long id  = cur.getLong(cur.getColumnIndex(Results._ID));
-			final String url = cur.getString(cur.getColumnIndex(Results.PIC_URL));
+			final long id  = cursor.getLong(cursor.getColumnIndex(Results._ID));
+			final String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 		
-			showDialog(UPDATE_CONTACT);
-			
 			Thread thread = new Thread(new Runnable() {
 
 				public void run() {
@@ -329,6 +382,16 @@ public class SyncResults extends Activity {
 							updateHash(contactId, bytes);
 							
 							cache.add(url, bitmap);
+							
+							ContentValues values = new ContentValues();
+							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
+							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
+							
+							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
+									values, 
+									null, 
+									null);
+							
 							runOnUiThread(new Runnable() {
 
 								public void run() {
@@ -337,12 +400,6 @@ public class SyncResults extends Activity {
 
 							});
 
-							ContentValues values = new ContentValues();
-							values.put(Results.DESCRIPTION, "Picture Updated");
-							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
-							
-							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
-									values, null, null);
 						}
 					}
 					catch (UnknownHostException ex) {
@@ -353,7 +410,7 @@ public class SyncResults extends Activity {
 						runOnUiThread(new Runnable() {
 
 							public void run() {
-								removeDialog(UPDATE_CONTACT);
+								dismissDialog(UPDATE_CONTACT);
 							}
 						});
 					}
@@ -414,7 +471,7 @@ public class SyncResults extends Activity {
 			image.invalidate();
 		}
 
-		zoomedDialog.getWindow().setLayout(newWidth, newHeight);
+		//zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		
 		zoomedDialog.setOnCancelListener(new OnCancelListener() {
 
@@ -431,6 +488,8 @@ public class SyncResults extends Activity {
 	private static final int ZOOM_PIC = 1;
 	private static final int UPDATE_CONTACT = 3;
 	private static final int HELP_DIALOG = 4;
+	private static final int DELETE_DIALOG = 5;
+	private static final int DELETING = 6;
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -462,6 +521,35 @@ public class SyncResults extends Activity {
 				       });
 				AlertDialog help = builder.create();
 				return help;
+				
+			case DELETE_DIALOG:
+				AlertDialog.Builder deleteBuilder = new AlertDialog.Builder(this);
+				deleteBuilder.setTitle("Delete")
+					   .setIcon(android.R.drawable.ic_dialog_alert)
+					   .setMessage("Are you sure you want to delete all SyncMyPix pictures?")
+				       .setCancelable(false)
+				       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               removeDialog(DELETE_DIALOG);
+				               deleteAllPictures();
+				           }
+				       })
+				       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+				    	   public void onClick(DialogInterface dialog, int id) {
+				    		   removeDialog(DELETE_DIALOG);
+				    	   }
+				       });
+				
+				AlertDialog delete = deleteBuilder.create();
+				return delete;
+			
+			case DELETING:
+				ProgressDialog deleting = new ProgressDialog(this);
+				deleting.setCancelable(false);
+				deleting.setMessage("Deleting all SyncMyPix pictures...");
+				deleting.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				return deleting;
+			
 		}
 		
 		return super.onCreateDialog(id);
@@ -479,21 +567,85 @@ public class SyncResults extends Activity {
 
 	}
 
+	private void deleteAllPictures()
+	{
+		final Cursor cursor = managedQuery(Contacts.CONTENT_URI, 
+				new String[] { Contacts._ID, Contacts.PHOTO_HASH },
+				null,
+				null, 
+				null);
+		
+		if (cursor.getCount() == 0) {
+			return;
+		}
+		
+		final ContentResolver resolver = getContentResolver();
+		showDialog(DELETING);
+		
+		Thread thread = new Thread(new Runnable() {
+			
+			public void run() {
+				
+				synchronized(SyncService.syncLock) {
+					
+					while(cursor.moveToNext()) {
+						String id  = cursor.getString(cursor.getColumnIndex(Contacts._ID));
+						String dbHash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
+						Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
+						
+						InputStream stream = People.openContactPhotoInputStream(resolver, uri);
+						if (stream != null) {
+							String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
+							if (dbHash.equals(hash)) {
+								ContactServices.updateContactPhoto(resolver, null, id);
+							}
+						}
+					}
+					
+					resolver.delete(Contacts.CONTENT_URI, null, null);
+					resolver.delete(Results.CONTENT_URI, null, null);
+					resolver.delete(Sync.CONTENT_URI, null, null);
+
+				}
+				
+				runOnUiThread(new Runnable() {
+
+					public void run() {
+						dismissDialog(DELETING);
+						Toast.makeText(SyncResults.this,
+								"All SyncMyPix pictures deleted", 
+								Toast.LENGTH_LONG).show();
+						
+						finish();
+					}
+				});
+			}
+			
+		});
+		
+		thread.start();
+	}
+	
 	private class InitializeResultsThread extends Thread
 	{
 		private MessageQueue queue;
-		private Cursor cur;
-		InitializeResultsThread (MessageQueue queue, Cursor cur)
+		private Cursor cursor;
+		InitializeResultsThread (MessageQueue queue)
 		{
 			this.queue = queue;
-			this.cur = cur;
+			
+			cursor = managedQuery(Results.CONTENT_URI, 
+					new String[] { Sync.DATE_STARTED, Sync.DATE_COMPLETED }, 
+					null, 
+					null, 
+					null);
 		}
 		
 		public void run()
 		{
-			if (cur.moveToFirst()) {
-				long started = cur.getLong(cur.getColumnIndex(Sync.DATE_STARTED));
-				long completed = cur.getLong(cur.getColumnIndex(Sync.DATE_COMPLETED));
+			if (cursor.moveToFirst()) {
+				long started = cursor.getLong(cursor.getColumnIndex(Sync.DATE_STARTED));
+				long completed = cursor.getLong(cursor.getColumnIndex(Sync.DATE_COMPLETED));
 				
 				final String dateStarted = new Date(started).toString();
 				final String dateCompleted = new Date(completed).toString();
@@ -529,49 +681,86 @@ public class SyncResults extends Activity {
 	private class LoadThumbnailsThread extends Thread
 	{
 		private Cursor cursor;
+		private final String where = Results.DESCRIPTION + " IN ('" +
+			ResultsDescription.UPDATED.getDescription() + "','" +
+			ResultsDescription.MULTIPLEPROCESSED.getDescription() + "')";
+		
+		private boolean notified = false;
 		
 		public LoadThumbnailsThread()
 		{
-			final ContentResolver resolver = getContentResolver();
 	        String[] projection = { 
 	        		Results._ID, 
 	        		Results.CONTACT_ID,
 	        		Results.PIC_URL };
 	        
-	        cursor = resolver.query(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
+	        cursor = managedQuery(Results.CONTENT_URI, 
+	        		projection, 
+	        		where, 
+	        		null, 
+	        		Results.DEFAULT_SORT_ORDER);
+	        
+	        cursor.registerContentObserver(new ContentObserver(new Handler()) {
+
+				@Override
+				public void onChange(boolean selfChange) {
+					
+					super.onChange(selfChange);
+					notified = true;
+					run();
+				}
+	        	
+	        });
+
+		}
+		
+		private void refreshCursor()
+		{
+			cursor.requery();
+			cursor.moveToPosition(-1);
 		}
 		
 		public void run()
 		{
+			boolean updated = false;
 			Bitmap bitmap = null;
-			long id = 0;
 			String url = null;
+			long id = 0;
 			
-			while(cursor.moveToNext()) {
+			if (notified) {
+				refreshCursor();
+				notified = false;
+			}
+			
+			while(!notified && cursor.moveToNext()) {
+				
 				id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 				url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				
-				if (id > 0) {
+				if (!cache.contains(url) && id > 0) {
 					bitmap = People.loadContactPhoto(getBaseContext(), 
 							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(id)), 
 							0, null);
 					
 					if (bitmap != null) {
 						cache.add(url, bitmap);
+						updated = true;
 					}
-					
-					runOnUiThread(new Runnable() {
-
-						public void run() {
-							((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
-							
-						}
-						
-					});
 				}
+				
 			}
 			
-			cursor.close();
+			if (updated) {
+				runOnUiThread(new Runnable() {
+	
+					public void run() {
+						((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+						
+					}
+					
+				});
+			}
+			
 		}
 	}
 	
@@ -634,15 +823,33 @@ public class SyncResults extends Activity {
 			if (cache.contains(url)) {
 				image.setImageBitmap(cache.get(url));
 			}
-			else if (description.equals("Contact not found")) {
+			else if (description.equals(ResultsDescription.NOTFOUND.getDescription())) {
 				image.setImageResource(R.drawable.neutral_face);
 			}
-			else if (description.contains("Mutiple contacts processed")) {
+			else if (description.contains(ResultsDescription.MULTIPLEPROCESSED.getDescription())) {
 				image.setImageResource(R.drawable.neutral_face);
 			}
 			else {
 				image.setImageResource(R.drawable.sad_face);
 			}
 		}
+
+		@Override
+		public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
+			ContentResolver resolver = getContentResolver();
+			String where = null;
+			
+			if (constraint != null) {
+				where = Results.DESCRIPTION + " IN (" + constraint + ")";
+			}
+			
+			return resolver.query(Results.CONTENT_URI, 
+					projection, 
+					where, 
+					null, 
+					null);
+
+		}
+		
 	}
 }

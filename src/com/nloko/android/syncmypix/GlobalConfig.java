@@ -39,6 +39,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,11 +77,13 @@ public class GlobalConfig extends PreferenceActivity {
 		googleSyncing = value;
 	}
 	
-	public <T extends SyncService> Class<T> getSyncSource()
+	public static <T extends SyncService> Class<T> getSyncSource(Context context)
 	{
-		ListPreference source = (ListPreference) findPreference("source");
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		String source = prefs.getString("source", null);
+		
 		try {
-			Class<?> cls = Class.forName(source.getValue());
+			Class<?> cls = Class.forName(source);
 			return (Class<T>) cls;
 		}
 		catch(ClassNotFoundException classException) {
@@ -177,10 +181,13 @@ public class GlobalConfig extends PreferenceActivity {
 				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
 					firstTriggerTime = System.currentTimeMillis() + interval;
 					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
-					SyncService.updateSchedule(GlobalConfig.this, getSyncSource(), firstTriggerTime, interval);
+					SyncService.updateSchedule(GlobalConfig.this, 
+							getSyncSource(getBaseContext()), 
+							firstTriggerTime, 
+							interval);
 				}
 				else {
-					SyncService.cancelSchedule(GlobalConfig.this, getSyncSource());
+					SyncService.cancelSchedule(GlobalConfig.this, getSyncSource(getBaseContext()));
 				}
 				return true;
 			}
@@ -194,7 +201,7 @@ public class GlobalConfig extends PreferenceActivity {
         	showDialog(ABOUT_DIALOG);
         }
         
-        if (isLoggedInFromSyncSource(getSyncSource())) {
+        if (isLoggedInFromSyncSource(getSyncSource(getBaseContext()))) {
         	setLoginStatus(R.string.loginStatus_loggedin);
         }
     }
@@ -222,7 +229,7 @@ public class GlobalConfig extends PreferenceActivity {
     
 	private void login()
     {
-		startActivity(new Intent(GlobalConfig.this, getLoginClassFromSyncSource(getSyncSource())));
+		startActivity(new Intent(GlobalConfig.this, getLoginClassFromSyncSource(getSyncSource(getBaseContext()))));
     }
     
     // TODO Should probably kill social network API session too
@@ -253,7 +260,7 @@ public class GlobalConfig extends PreferenceActivity {
     	
    		showDialog(FRIENDS_PROGRESS);
     	
-    	Intent i = new Intent(GlobalConfig.this, getSyncSource());
+    	Intent i = new Intent(GlobalConfig.this, getSyncSource(getBaseContext()));
    		startService(i);
     	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
     }
@@ -297,12 +304,12 @@ public class GlobalConfig extends PreferenceActivity {
 	protected void onResume() {
 		super.onResume();
 		
-		if (isLoggedInFromSyncSource(getSyncSource())) {
+		if (isLoggedInFromSyncSource(getSyncSource(getBaseContext()))) {
 			setLoginStatus(R.string.loginStatus_loggedin);
 		}
 		
 		if (!syncServiceConnected) {
-			Intent i = new Intent(GlobalConfig.this, getSyncSource());
+			Intent i = new Intent(GlobalConfig.this, getSyncSource(getBaseContext()));
 			bindService(i, syncServiceConn, 0);
 		}
 		

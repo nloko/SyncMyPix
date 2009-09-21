@@ -31,6 +31,32 @@ public final class SyncMyPix {
     
 	private SyncMyPix() {}
 	
+	public static enum ResultsDescription {
+		NOTFOUND (0, "Contact not found"),
+		UPDATED (1, "Picture updated"),
+		SKIPPED_EXISTS (2, "Skipped: non-SyncMyPix picture exists"),
+		SKIPPED_MULTIPLEFOUND (3, "Skipped: multiple contacts found"),
+		MULTIPLEPROCESSED (4, "Multiple contacts processed; conflicts may have occurred"),
+		DOWNLOAD_FAILED (5, "Picture download failed"),
+		ERROR (6, "Error occurred during processing");
+		
+		private final int index;
+		private final String msg;
+		
+		ResultsDescription(int index, String msg) {
+			this.index = index;
+			this.msg = msg;
+		}
+		
+		public String getDescription() {
+			return msg;
+		}
+		
+		public int getIndex() {
+			return index;
+		}
+	}
+	
 	public static final class Contacts implements BaseColumns {
 		
 		public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/contacts");

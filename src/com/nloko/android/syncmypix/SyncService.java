@@ -29,6 +29,7 @@ import java.util.List;
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
+import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 
 import android.app.AlarmManager;
@@ -58,6 +59,8 @@ import android.widget.Toast;
 public abstract class SyncService extends Service {
 
 	private final static String TAG = "SyncService";
+	
+	public final static Object syncLock = new Object();
 	
 	private final MainHandler mainHandler = new MainHandler ();
 	public MainHandler getMainHandler()
@@ -203,7 +206,7 @@ public abstract class SyncService extends Service {
     		values.put(Results.SYNC_ID, syncId);
     		values.put(Results.NAME, name);
     		values.put(Results.PIC_URL, user.picUrl);
-    		values.put(Results.DESCRIPTION, "Picture Updated");
+    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
     		
     		if (user.picUrl == null) {
     			values.put(Results.DESCRIPTION, "Picture not found");
@@ -222,7 +225,7 @@ public abstract class SyncService extends Service {
     		final Cursor cur = ContactServices.getContact(resolver, selection);
     		if (!cur.moveToFirst()) {
     			Log.d(TAG, "Contact not found in database.");
-    			values.put(Results.DESCRIPTION, "Contact not found");
+    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription());
     		}
     		else {
     			boolean ok = true;
@@ -231,11 +234,11 @@ public abstract class SyncService extends Service {
     				Log.d(TAG, String.format("Multiple contacts found %d", cur.getCount()));
     				
     				if (skipIfConflict) {
-    					values.put(Results.DESCRIPTION, "Skipped: multiple found");
+    					values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription());
     					ok = false;
     				}
     				else {
-    					values.put(Results.DESCRIPTION, "Multiple contacts processed; conflicts may have occurred");
+    					values.put(Results.DESCRIPTION, ResultsDescription.MULTIPLEPROCESSED.getDescription());
     				}
     			}
     			
@@ -273,12 +276,12 @@ public abstract class SyncService extends Service {
     							updateSyncContact(id, hash);
     						}
     						else {
-    							values.put(Results.DESCRIPTION, "Picture download failed");
+    							values.put(Results.DESCRIPTION, ResultsDescription.DOWNLOAD_FAILED.getDescription());
     							break;
     						}
     					}
     					else if (cur.getCount() == 1) {
-    						values.put(Results.DESCRIPTION, "Skipped: non-SyncMyPix picture exists");
+    						values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_EXISTS.getDescription());
     					}
 
     					// TODO This is such crap, I hate it. There must be a better way.
@@ -378,57 +381,61 @@ public abstract class SyncService extends Service {
 			int index = 0;
 			
 			List<SocialNetworkUser> userList = users[0];
-			try {
-				resolver.delete(Sync.CONTENT_URI, null, null);
-				Uri sync = resolver.insert(Sync.CONTENT_URI, null);
-
-				index = 1;
-				for (SocialNetworkUser user : userList) {
-
-					// keep going if exception during sync
-					try {
-						processUser(user, sync);
-					}
-					catch (Exception processException) {
-
-						Log.e(TAG, android.util.Log.getStackTraceString(processException));
-
-						ContentValues values = new ContentValues();
-						String syncId = sync.getPathSegments().get(1);
-						values.put(Results.SYNC_ID, syncId);
-						values.put(Results.NAME, String.format("%s %s", user.firstName, user.lastName));
-						values.put(Results.PIC_URL, user.picUrl);
-						values.put(Results.DESCRIPTION, "Exception caught during sync");
-
-						resultsList.add(values);
-					}
-
-					publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
-
-					if (cancel) {
-						mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
-								R.string.syncservice_canceled, 
-								0));
-
-						break;
-					}
-				}
-
-				ContentValues syncValues = new ContentValues();
-				syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
-				resolver.update(sync, syncValues, null, null);
+			
+			synchronized(syncLock) {
 				
-				total = index;
-			}
-			catch (Exception ex) {
-				Log.e(TAG, android.util.Log.getStackTraceString(ex));
-				mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
-						R.string.syncservice_fatalsyncerror, 
-						0));
-
-			}
-			finally {
-				mainHandler.post(mainHandler.resetExecuting);
+				try {
+					resolver.delete(Sync.CONTENT_URI, null, null);
+					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
+	
+					index = 1;
+					for (SocialNetworkUser user : userList) {
+	
+						// keep going if exception during sync
+						try {
+							processUser(user, sync);
+						}
+						catch (Exception processException) {
+	
+							Log.e(TAG, android.util.Log.getStackTraceString(processException));
+	
+							ContentValues values = new ContentValues();
+							String syncId = sync.getPathSegments().get(1);
+							values.put(Results.SYNC_ID, syncId);
+							values.put(Results.NAME, String.format("%s %s", user.firstName, user.lastName));
+							values.put(Results.PIC_URL, user.picUrl);
+							values.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription());
+	
+							resultsList.add(values);
+						}
+	
+						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
+	
+						if (cancel) {
+							mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
+									R.string.syncservice_canceled, 
+									0));
+	
+							break;
+						}
+					}
+	
+					ContentValues syncValues = new ContentValues();
+					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
+					resolver.update(sync, syncValues, null, null);
+					
+					total = index;
+				
+				} catch (Exception ex) {
+					Log.e(TAG, android.util.Log.getStackTraceString(ex));
+					mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
+							R.string.syncservice_fatalsyncerror, 
+							0));
+	
+				} finally {
+					mainHandler.post(mainHandler.resetExecuting);
+				}
+				
 			}
 			
 			return total;
@@ -455,8 +462,6 @@ public abstract class SyncService extends Service {
 			if (!resultsList.isEmpty()) {
 				new UpdateResultsTable(resultsList).start();
 			}
-			
-			ContentResolver resolver = getContentResolver();
 			
 /*			// nudge Google sync
 			Bundle extras = new Bundle();

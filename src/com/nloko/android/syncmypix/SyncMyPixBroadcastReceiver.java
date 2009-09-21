@@ -105,7 +105,6 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 	
 	private void rescheduleAlarm(Context context)
 	{
-		
 		SharedPreferences settings = context.getSharedPreferences(GlobalConfig.PREFS_NAME, 0);
 		int freq = settings.getInt("sched_freq", 0);
 		long time = settings.getLong("sched_time", 0);
@@ -118,7 +117,10 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		
 		if (interval > 0) {
 			Log.d(TAG, "SCHEDULING SERVICE");
-			FacebookSyncService.updateSchedule(context, FacebookSyncService.class, time, interval);
+			SyncService.updateSchedule(context, 
+					GlobalConfig.getSyncSource(context), 
+					time, 
+					interval);
 		}
 	}
 

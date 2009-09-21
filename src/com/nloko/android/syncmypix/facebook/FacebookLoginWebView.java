@@ -98,6 +98,13 @@ public class FacebookLoginWebView extends Activity {
     			}
     		}
         	
+            
+/*          @Override
+            public void onReceivedSslError(
+                final WebView view, final SslErrorHandler handler, final SslError error) {
+
+            }*/
+            
         	@Override
     		public void onReceivedError(WebView view, int errorCode,
     				String description, String failingUrl) {
@@ -120,8 +127,12 @@ public class FacebookLoginWebView extends Activity {
     			// TODO Auto-generated method stub
     			super.onPageStarted(view, url, favicon);
     			
-    			if (!url.equals(login.getFullLoginUrl())) { 
-    				showDialog(AUTH_DIALOG);
+    			if (!url.equals(login.getFullLoginUrl())) {
+    				// ignore bogus BadTokenException
+    				try {
+    					showDialog(AUTH_DIALOG);
+    				}
+    				catch (Exception e) {}
     			}
     			
     			try	{
@@ -165,7 +176,8 @@ public class FacebookLoginWebView extends Activity {
         });
         
         webview.getSettings().setJavaScriptEnabled(true);
-                        
+        //webview.clearSslPreferences();                
+        
         Log.d(TAG, login.getFullLoginUrl());
         webview.loadUrl(login.getFullLoginUrl());
     }
