@@ -36,9 +36,10 @@ public final class SyncMyPix {
 		UPDATED (1, "Picture updated"),
 		SKIPPED_EXISTS (2, "Skipped: non-SyncMyPix picture exists"),
 		SKIPPED_MULTIPLEFOUND (3, "Skipped: multiple contacts found"),
-		MULTIPLEPROCESSED (4, "Multiple contacts processed; conflicts may have occurred"),
-		DOWNLOAD_FAILED (5, "Picture download failed"),
-		ERROR (6, "Error occurred during processing");
+		SKIPPED_UNCHANGED (4, "Skipped: no update required"),
+		MULTIPLEPROCESSED (5, "Multiple contacts processed; verify results"),
+		DOWNLOAD_FAILED (6, "Picture download failed"),
+		ERROR (7, "Error occurred during processing");
 		
 		private final int index;
 		private final String msg;
@@ -68,6 +69,8 @@ public final class SyncMyPix {
 		public static final String DEFAULT_SORT_ORDER = "_id ASC";
 		
 		public static final String PHOTO_HASH = "photo_hash";
+		
+		public static final String NETWORK_PHOTO_HASH = "network_photo_hash";
 	}
 	
 	public static final class Results implements BaseColumns {

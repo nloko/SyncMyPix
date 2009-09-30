@@ -45,6 +45,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -244,36 +245,57 @@ public abstract class SyncService extends Service {
     			
     			if (ok) {
     				
+    				InputStream is = null;
+    				Bitmap bitmap = null;
     				byte[] image = null;
+    				
+    				String contactHash = null;
+    				//String networkHash = null;
+    				//String dbHash;
     				String hash = null;
 
     				do {
     					String id = cur.getString(cur.getColumnIndex(People._ID));
-    					//final Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
+    					DBHashes hashes = getHashes(id);
     					
-    					if (updateContactPictures(cur, id)) {
+    					Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
+    	        		is = People.openContactPhotoInputStream(resolver, contact);
+    	        		// photo is set, so let's get its hash
+    	        		if (is != null) {
+    	        			contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+    	        		}
+    	        		
+    					if (isSyncablePicture(id, hashes.updatedHash, contactHash)) {
     							
     						if (image == null) {
     							try {
-    								image = Utils.downloadPicture(user.picUrl);
+    								bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+    								image = Utils.bitmapToJpeg(bitmap, 100);
     								hash = Utils.getMd5Hash(image);
     							}
     							catch (Exception e) {}
     						}
     	
     						if (image != null) {
-    							//People.setPhotoData(resolver, contact, image);
-    							
-/*    							// nudge the Google sync operation along 
-    							Bundle extras = new Bundle();
-    							extras.putBoolean(ContentResolver.SYNC_EXTRAS_FORCE, true);
-    							extras.putBoolean(ContentResolver.SYNC_EXTRAS_UPLOAD, true);
-    							resolver.startSync(contact, extras);*/
-    	    							
-    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
+    							// picture is a new one and we should sync it
+    							if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
+    								
+    								String updatedHash = hash;
+    								
+    								if (cropSquare) {
+    									bitmap = Utils.centerCrop(bitmap, 96, 96);
+    									image = Utils.bitmapToJpeg(bitmap, 100);
+    									updatedHash = Utils.getMd5Hash(image);
+    								}
+    								
+	    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
+	    							updateSyncContact(id, hash, updatedHash);
+    							}
+    							else if (cur.getCount() == 1) {
+    								values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_UNCHANGED.getDescription());
+    							}
     							
     							values.put(Results.CONTACT_ID, Long.parseLong(id));
-    							updateSyncContact(id, hash);
     						}
     						else {
     							values.put(Results.DESCRIPTION, ResultsDescription.DOWNLOAD_FAILED.getDescription());
@@ -284,11 +306,6 @@ public abstract class SyncService extends Service {
     						values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_EXISTS.getDescription());
     					}
 
-    					// TODO This is such crap, I hate it. There must be a better way.
-    					// track last processed to HashUpdateService doesn't update too many hashes
-    					// if sync was cancelled
-    					//Utils.setInt(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "last_contact_processed", Integer.parseInt(id));
-    					
     				} while (cur.moveToNext());
     			}
     		}
@@ -297,61 +314,68 @@ public abstract class SyncService extends Service {
     		cur.close();
     	}
 
-        private boolean updateContactPictures(Cursor cur, String id)
+        private DBHashes getHashes(String id)
         {
-        	if (cur == null) {
-        		throw new IllegalArgumentException("cur");
+        	if (id == null) {
+        		throw new IllegalArgumentException("id");
         	}
         	
+        	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
+    		
+        	Cursor syncC = resolver.query(syncUri, 
+    				new String[] { SyncMyPix.Contacts._ID,
+    				SyncMyPix.Contacts.PHOTO_HASH,
+    				SyncMyPix.Contacts.NETWORK_PHOTO_HASH }, 
+    				null, 
+    				null, 
+    				null);
+    		
+        	DBHashes hashes = new DBHashes();
+        	
+    		if (syncC.moveToFirst()) {
+    			hashes.updatedHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.PHOTO_HASH));
+    			hashes.networkHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.NETWORK_PHOTO_HASH));
+    		}
+    		
+    		syncC.close();
+    		
+    		return hashes;
+        }
+        
+        private boolean isSyncablePicture(String id, String dbHash, String contactHash)
+        {
         	if (id == null) {
         		throw new IllegalArgumentException("id");
         	}
         	
         	boolean ok = true;
 
-        	Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
+        	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
         	    	
         	if (skipIfExists) {
-        		Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
-        		Cursor syncC = resolver.query(syncUri, 
-        				new String[] { SyncMyPix.Contacts._ID,
-        				SyncMyPix.Contacts.PHOTO_HASH }, 
-        				null, 
-        				null, 
-        				null);
         		
-        		String hash = null;
-        		InputStream is = People.openContactPhotoInputStream(resolver, contact);
-        		
-        		// photo is set, so let's get its hash
-        		if (is != null) {
-        			hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
-        		}
-
         		// not tracking any hashes for contact and photo is set for contact
-        		if (!syncC.moveToFirst() && hash != null) {
+        		if (dbHash == null && contactHash != null) {
         			ok = false;
         		}
         		
         		// we are tracking a hash and there is a photo for this contact
-        		else if (hash != null) {
-        			String dbHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.PHOTO_HASH));
-        			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, hash));
+        		else if (contactHash != null) {
+
+        			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, contactHash));
 
         			// hashes do not match, so we don't need to track this hash anymore
-        			if (!hash.equals(dbHash)) {
+        			if (!contactHash.equals(dbHash)) {
        					resolver.delete(syncUri, null, null);
         				ok = false;
         			}
         		}
-
-        		syncC.close();
         	}
         	
         	return ok;
         }
         
-        private void updateSyncContact (String id, String hash)
+        private void updateSyncContact (String id, String networkHash, String updatedHash)
         {
         	if (id == null) {
         		throw new IllegalArgumentException("id");
@@ -361,7 +385,8 @@ public abstract class SyncService extends Service {
         	
     		ContentValues values = new ContentValues();
     		values.put(SyncMyPix.Contacts._ID, id);
-    		values.put(SyncMyPix.Contacts.PHOTO_HASH, hash);
+    		values.put(SyncMyPix.Contacts.PHOTO_HASH, updatedHash);
+    		values.put(SyncMyPix.Contacts.NETWORK_PHOTO_HASH, networkHash);
     		
         	Cursor cur = resolver.query(uri, new String[] { SyncMyPix.Contacts._ID }, null, null, null);
     		if (cur.getCount() == 0) {
@@ -462,12 +487,12 @@ public abstract class SyncService extends Service {
 			if (!resultsList.isEmpty()) {
 				new UpdateResultsTable(resultsList).start();
 			}
-			
-/*			// nudge Google sync
-			Bundle extras = new Bundle();
-			extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-			extras.putBoolean(ContentResolver.SYNC_EXTRAS_FORCE, true);
-			resolver.startSync(Contacts.CONTENT_URI, new Bundle());*/
+		}
+		
+		private final class DBHashes
+		{
+			public String updatedHash = null;
+			public String networkHash = null;
 		}
     }
 
@@ -501,6 +526,8 @@ public abstract class SyncService extends Service {
     protected boolean skipIfConflict;
     protected boolean reverseNames;
     protected boolean maxQuality;
+    protected boolean cropSquare;
+    
     private void getPreferences()
     {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -509,6 +536,7 @@ public abstract class SyncService extends Service {
 		reverseNames = prefs.getBoolean("reverseNames", false);
 		maxQuality = prefs.getBoolean("maxQuality", false);
     	skipIfExists = prefs.getBoolean("skipIfExists", true);
+    	cropSquare = prefs.getBoolean("cropSquare", true);
     }
     
     @Override
@@ -526,9 +554,6 @@ public abstract class SyncService extends Service {
 
 		getPreferences();
 		
-		// cancel Google sync, if running
-		//ContentResolver().cancelSync(Contacts.CONTENT_URI);
-		
 		notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		notifyManager.cancel(R.string.syncservice_stopped);
 		
@@ -538,14 +563,11 @@ public abstract class SyncService extends Service {
 		alarmSender = PendingIntent.getService(getBaseContext(),
                 0, new Intent(getBaseContext(), HashUpdateService.class), 0);
 
-		handleHashUpdateService();
 	}
 
     @Override
     public void onDestroy() {
 
-    	unbindService(serviceConn);
-    	
     	cancelNotification(R.string.syncservice_started);
         unsetListener();
 
@@ -570,7 +592,7 @@ public abstract class SyncService extends Service {
         }
 
         // The PendingIntent to launch our activity if the user selects this notification
-        Intent i = new Intent(this, GlobalConfig.class);
+        Intent i = new Intent(this, MainActivity.class);
         //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -585,21 +607,8 @@ public abstract class SyncService extends Service {
     
     private void launchProgress()
     {
-    	Intent i = new Intent(this, GlobalConfig.class);
+    	Intent i = new Intent(this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    }
-    
-    private void handleHashUpdateService()
-    {
-    	AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-    	am.cancel(alarmSender);
-    	
-    	Intent i = new Intent(getBaseContext(), HashUpdateService.class);
-    	if (bindService(i, serviceConn, 0)) {
-    		if (boundService != null) {
-    			boundService.cancelUpdate();
-    		}
-    	}
     }
     
     private void showError (int msg)
@@ -622,23 +631,6 @@ public abstract class SyncService extends Service {
         	Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
         }
     }
-
-	private HashUpdateService boundService;
-	private boolean serviceConnected = false;
-    private ServiceConnection serviceConn = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-        	
-        	serviceConnected = true;
-        	
-        	boundService = ((HashUpdateService.LocalBinder)service).getService();
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            
-        	serviceConnected = false;
-        	boundService = null;
-        }
-    };
 
 	// just access directly. No IPC crap to deal with.
     private final IBinder binder = new LocalBinder();

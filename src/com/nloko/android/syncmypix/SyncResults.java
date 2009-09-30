@@ -91,8 +91,7 @@ public class SyncResults extends Activity {
 	
 	private static final int UNKNOWN_HOST_ERROR = 2;
 	
-	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
-	private static final int PICK_CONTACT    = 5;
+	
 	
 	private String[] projection = { 
     				Results._ID, 
@@ -102,6 +101,10 @@ public class SyncResults extends Activity {
     				Results.CONTACT_ID,
     				Sync.DATE_STARTED, 
     				Sync.DATE_COMPLETED };
+	
+	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
+	private static final int CONTEXTMENU_VIEW_CONTACT = 5;
+	private static final int PICK_CONTACT    = 6;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -171,11 +174,16 @@ public class SyncResults extends Activity {
 				Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
 				
 				if (cursor.moveToPosition(position)) {
+					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 					String name = cursor.getString(cursor.getColumnIndex(Results.NAME));
 					
 					if (url != null) {
 						menu.setHeaderTitle(name);
+						if (id != null) {
+							menu.add(0, CONTEXTMENU_VIEW_CONTACT, Menu.NONE, "View synced contact");
+						}
+						
 		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, "Add picture to contact");
 					}
 				}
@@ -275,6 +283,7 @@ public class SyncResults extends Activity {
 			 return true;
 		 case MENU_FILTER_SKIPPED:
 			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription() + "'," +
+					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription() + "'," +
 					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription() + "'");
 			 return true;
 			 
@@ -295,6 +304,20 @@ public class SyncResults extends Activity {
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
 		
 		switch (item.getItemId()) {
+			case CONTEXTMENU_VIEW_CONTACT:
+				int position = ((AdapterContextMenuInfo)menuInfo).position;
+				Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+				
+				if (cursor.moveToPosition(position)) {
+					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+					if (id != null) {
+						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(People.CONTENT_URI, id));
+						startActivity(intent);
+					}
+				}
+				
+				return true;
+				
 			case CONTEXTMENU_SELECT_CONTACT:
 				lastPosition = menuInfo.position;
 				
@@ -336,6 +359,7 @@ public class SyncResults extends Activity {
 		String hash = Utils.getMd5Hash(image);
 		
 		ContentValues values = new ContentValues();
+		values.put(Contacts.NETWORK_PHOTO_HASH, hash);
 		values.put(Contacts.PHOTO_HASH, hash);
 		
 		if (cursor.moveToFirst()) {
@@ -683,6 +707,7 @@ public class SyncResults extends Activity {
 		private Cursor cursor;
 		private final String where = Results.DESCRIPTION + " IN ('" +
 			ResultsDescription.UPDATED.getDescription() + "','" +
+			ResultsDescription.SKIPPED_UNCHANGED.getDescription() + "','" +
 			ResultsDescription.MULTIPLEPROCESSED.getDescription() + "')";
 		
 		private boolean notified = false;
@@ -789,7 +814,9 @@ public class SyncResults extends Activity {
 						mainMsg.what = msg.what;
 						mainHandler.sendMessage(mainMsg);
 						
-						cache.add(url, bitmap);
+						if (!cache.contains(url)) {
+							cache.add(url, bitmap);
+						}
 					}
 				}
 				catch (UnknownHostException ex) {

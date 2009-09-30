@@ -7,8 +7,10 @@
               android:padding="4dip"
               >
     <ImageView android:id="@+id/logo"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
+               android:layout_width="fill_parent"
+               android:layout_height="72dip"
+			   android:layout_gravity="left"
+			   android:scaleType="fitStart"
                android:src="@drawable/logo" 
                />
                
@@ -16,6 +18,7 @@
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:text="Copyright (C) 2009 Neil Loknath"
+               android:textSize="10dip"
                />
              
     <TextView android:id="@+id/faq"
@@ -25,6 +28,7 @@
                android:text="@string/faq"
                android:autoLink="web"
                android:textColor="@android:color/white"
+               android:textSize="11dip"
                />
                  
     <TextView android:id="@+id/instructions"
@@ -34,6 +38,7 @@
                android:text="@string/instructions"
                android:autoLink="web"
                android:textColor="@android:color/white"
+               android:textSize="11dip"
                />
                
     <TextView android:id="@+id/release_notes"
@@ -43,6 +48,7 @@
                android:text="@string/release_notes"
                android:autoLink="web"
                android:textColor="@android:color/white"
+               android:textSize="11dip"
                />
                
     <TextView android:id="@+id/issues"
@@ -52,23 +58,26 @@
                android:text="@string/issues"
                android:autoLink="web"
                android:textColor="@android:color/white"
+               android:textSize="11dip"
                />
                
     <TextView android:id="@+id/info"
-    		   android:layout_marginTop="10dip"
+    		   android:layout_marginTop="8dip"
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:gravity="center_horizontal"
                android:text="@string/about_info"
                android:autoLink="web"
                android:textColor="@android:color/white"
+               android:textSize="12dip"
                />
 
 	 <CheckBox android:id="@+id/do_not_show_about"
+	 		   
 	 		   android:layout_width="fill_parent"
 	 		   android:layout_height="wrap_content"
 	 		   android:layout_marginTop="4dip"
-	 		   android:textSize="12dip"
+	 		   android:textSize="10dip"
 	 		   android:text="Do not show until next upgrade"
 	 		   />
 	 		                         

@@ -35,7 +35,9 @@ import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 
 import com.nloko.android.Log;
 
@@ -112,7 +114,46 @@ public final class Utils {
 		return bytes.toByteArray();
 	}
 
-	// TODO test this method. Probably buggy
+	public static Bitmap centerCrop (Bitmap bitmap, int destHeight, int destWidth)
+	{
+		Bitmap resized;
+		if (bitmap.getHeight() > bitmap.getWidth()) {
+			resized = resize(bitmap, 0, destWidth);
+		}
+		else {
+			resized = resize(bitmap, destHeight, 0);
+		}
+		
+		return crop(resized, destWidth, destWidth);
+	}
+	
+	public static Bitmap crop(Bitmap bitmapToCrop, int destHeight, int destWidth)
+	{
+		Bitmap b = Bitmap.createBitmap(destHeight, destWidth, Bitmap.Config.RGB_565);
+        Canvas c1 = new Canvas(b);
+
+        int width = bitmapToCrop.getWidth();
+        int height = bitmapToCrop.getHeight();
+        if (width <= destWidth && height <= destHeight) {
+        	return bitmapToCrop;
+        }
+        
+        int midpointX =  width / 2;
+        int midpointY =  height / 2;
+        
+        Rect r = new Rect(midpointX - destWidth / 2, 
+        		midpointY - destHeight / 2,
+        		midpointX + destWidth / 2, 
+        		midpointY + destHeight / 2);
+        
+        int left = 0; //(width / 2) - (bitmapToCrop.getWidth() / 2);
+        int top = 0; //(height / 2) - (bitmapToCrop.getWidth() / 2);
+        c1.drawBitmap(bitmapToCrop, r, new Rect(left, top, left
+                + destWidth, top + destHeight), null);
+
+        return b;
+	}
+	
 	public static Bitmap resize(Bitmap bitmap, int maxHeight, int maxWidth)
 	{
 		if (bitmap == null) {
@@ -122,7 +163,7 @@ public final class Utils {
 		int height = bitmap.getHeight();
 		int width  = bitmap.getWidth();
 
-		if (height <= maxHeight && width <= maxWidth) {
+		if ((maxHeight > 0 && height <= maxHeight) && (maxWidth > 0 && width <= maxWidth)) {
 			return bitmap;
 		}
 		
@@ -131,13 +172,13 @@ public final class Utils {
 		
 		float ratio;
 		
-		if (newHeight > maxHeight) {
+		if (newHeight > maxHeight && maxHeight > 0) {
 			ratio  =  (float)newWidth / (float)newHeight;
 			newHeight = maxHeight;
 			newWidth  = Math.round(ratio * (float)newHeight);
 		}
 		
-		if (newWidth > maxWidth) {
+		if (newWidth > maxWidth && maxWidth > 0) {
 			ratio  = (float)newHeight / (float)newWidth;
 			newWidth   = maxWidth;
 			newHeight  = Math.round(ratio * (float)newWidth);
@@ -185,9 +226,22 @@ public final class Utils {
 		
 		if (bitmap != null) {
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			//bitmap = resize(bitmap, 96, 96);
-			//Log.d(null, String.format("Width %d Height %d", bitmap.getWidth(), bitmap.getHeight()));
+			
 			bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
+			image =  bytes.toByteArray();
+		}
+
+		return image;
+	}
+	
+	public static byte[] bitmapToPNG(Bitmap bitmap)
+	{
+		byte[] image = null;
+		
+		if (bitmap != null) {
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
 			image =  bytes.toByteArray();
 		}
 

@@ -1,0 +1,82 @@
+<RelativeLayout android:id="@+id/relativeMain" 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	android:background="@drawable/background"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView android:id="@+id/logo"
+               android:layout_width="fill_parent"
+               android:layout_height="96dip"
+               android:layout_marginTop="90dip"
+               android:layout_centerHorizontal="true"
+               android:scaleType="fitCenter"
+               android:src="@drawable/logo" 
+               />
+               
+    <ImageButton android:id="@+id/syncButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	android:layout_below="@id/logo"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="36dip"
+    	android:src="@drawable/sync_button"/> 
+    	
+    <TextView android:id="@+id/syncTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#ffffff" 
+          android:textStyle="bold"
+          android:textSize="14dip"
+          android:text="Sync"
+          android:layout_below="@id/syncButton"
+          android:layout_marginLeft="20dip"
+          android:layout_alignLeft="@id/syncButton"
+          android:padding="1dip" 
+           />
+           
+    <ImageButton android:id="@+id/settingsButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	android:layout_toRightOf="@id/syncButton"
+    	android:layout_below="@id/logo"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="20dip"
+    	android:src="@drawable/settings_button" />          
+          
+    <TextView android:id="@+id/settingsTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#ffffff" 
+          android:textStyle="bold"
+          android:text="Settings" 
+          android:textSize="14dip"
+          android:layout_below="@id/settingsButton"
+          android:layout_alignLeft="@id/settingsButton"
+          android:layout_marginLeft="8dip"
+          android:padding="1dip" 
+ 
+           />
+                
+	<ImageButton android:id="@+id/resultsButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content" 
+    	android:layout_toRightOf="@id/settingsButton"
+    	android:layout_below="@id/logo"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="20dip"
+    	android:src="@drawable/results_button" /> 
+    	
+    <TextView android:id="@+id/resultsTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#ffffff" 
+          android:textStyle="bold"
+          android:text="Results" 
+          android:textSize="14dip"
+          android:layout_below="@id/resultsButton"
+          android:layout_alignLeft="@id/resultsButton"
+          android:layout_marginLeft="10dip"
+          android:padding="1dip" 
+           />
+           
+</RelativeLayout>

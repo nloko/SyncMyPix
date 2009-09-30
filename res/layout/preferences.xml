@@ -49,6 +49,11 @@
             android:defaultValue="false"
             android:summary="Download maximum resolution / size"
             android:key="maxQuality" />
+        <CheckBoxPreference
+            android:title="Crop"
+            android:defaultValue="false"
+            android:summary="Crop a 96px square using midpoint of original"
+            android:key="cropSquare" />
     </PreferenceCategory>
     
 </PreferenceScreen>

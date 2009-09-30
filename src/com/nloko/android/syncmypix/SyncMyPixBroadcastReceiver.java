@@ -20,7 +20,6 @@
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-
 package com.nloko.android.syncmypix;
 
 import com.nloko.android.Log;
@@ -51,7 +50,6 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 
 		String action = intent.getAction();
 		if (action.equals(Intent.ACTION_BOOT_COMPLETED) ) {
-			//beginGoogleSync(context);
 			rescheduleAlarm(context);
 		}
 		
@@ -64,43 +62,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		
 		// this is undocumented stuff from android.content.SyncManager
 		else if (action.equals(SYNC_STATE_CHANGED)) {
-			
-/*			Bundle extras = intent.getExtras();
-			boolean active = extras.getBoolean("active");
-			Log.d(TAG, String.format("ACTION SYNC DETECTED %b", active));
-			
-			if (!active) {
-				startHashUpdateService(context);
-			}
-			
-			GlobalConfig.setGoogleSyncing(active);*/
 		}
-	}
-	
-	private void beginGoogleSync(Context context)
-	{
-		Bundle extras = new Bundle();
-		extras.putBoolean(ContentResolver.SYNC_EXTRAS_FORCE, true);
-		extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-		
-		context.getContentResolver().startSync(Contacts.CONTENT_URI, extras);
-	}
-	
-	private void startHashUpdateService(Context context)
-	{
-		if (context == null) {
-			throw new IllegalArgumentException("context");
-		}
-		
-		PendingIntent alarmSender = PendingIntent.getService(context,
-                0, new Intent(context, HashUpdateService.class), 0);
-		
-		long time = SystemClock.elapsedRealtime();
-		
-        // Schedule the alarm!
-        AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                        time, alarmSender);
 	}
 	
 	private void rescheduleAlarm(Context context)
@@ -118,7 +80,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		if (interval > 0) {
 			Log.d(TAG, "SCHEDULING SERVICE");
 			SyncService.updateSchedule(context, 
-					GlobalConfig.getSyncSource(context), 
+					MainActivity.getSyncSource(context), 
 					time, 
 					interval);
 		}

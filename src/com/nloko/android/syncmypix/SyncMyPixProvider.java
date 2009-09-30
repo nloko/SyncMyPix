@@ -48,7 +48,7 @@ public class SyncMyPixProvider extends ContentProvider {
 	private static final String TAG = "SyncMyPixProvider";
 	
     private static final String DATABASE_NAME = "syncpix.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     
     private static final String CONTACTS_TABLE_NAME = "contacts";
     private static final String RESULTS_TABLE_NAME = "results";
@@ -79,6 +79,7 @@ public class SyncMyPixProvider extends ContentProvider {
         contactsProjection = new HashMap<String, String>();
         contactsProjection.put(Contacts._ID, Contacts._ID);
         contactsProjection.put(Contacts.PHOTO_HASH, Contacts.PHOTO_HASH);
+        contactsProjection.put(Contacts.NETWORK_PHOTO_HASH, Contacts.NETWORK_PHOTO_HASH);
 
         resultsProjection = new HashMap<String, String>();
         resultsProjection.put(Sync._ID, SYNC_TABLE_NAME + "." + Sync._ID);
@@ -103,7 +104,8 @@ public class SyncMyPixProvider extends ContentProvider {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL("CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
                     + Contacts._ID + " INTEGER PRIMARY KEY,"
-                    + Contacts.PHOTO_HASH + " TEXT"
+                    + Contacts.PHOTO_HASH + " TEXT,"
+                    + Contacts.NETWORK_PHOTO_HASH + " TEXT"
                     + ");");
             
             db.execSQL("CREATE TABLE " + RESULTS_TABLE_NAME + " ("
@@ -127,36 +129,53 @@ public class SyncMyPixProvider extends ContentProvider {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
+
+            if (oldVersion == 2) {
+	            db.execSQL("CREATE TABLE results_new ("
+	                    + Results._ID + " INTEGER PRIMARY KEY,"
+	                    + Results.SYNC_ID + " INTEGER,"
+	                    + Results.NAME + " TEXT DEFAULT NULL,"
+	                    + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
+	                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
+	                    + Results.CONTACT_ID + " INTEGER"
+	                    + ");");
+	            
+	            db.execSQL("INSERT INTO results_new (" 
+	            		+ Results._ID + ","
+	            		+ Results.SYNC_ID + ","
+	            		+ Results.NAME + ","
+	            		+ Results.DESCRIPTION + ","
+	            		+ Results.PIC_URL + ") "
+	            		+ "SELECT "
+	            		+ Results._ID + ","
+	            		+ Results.SYNC_ID + ","
+	            		+ Results.NAME + ","
+	            		+ Results.DESCRIPTION + ","
+	            		+ Results.PIC_URL
+	            		+ " FROM " + RESULTS_TABLE_NAME + ";");
+	            
+	            db.execSQL("DROP TABLE IF EXISTS results;");
+	            
+	            db.execSQL("ALTER TABLE results_new RENAME TO " + RESULTS_TABLE_NAME +";");
+            }
             
-            db.execSQL("CREATE TABLE results_new ("
-                    + Results._ID + " INTEGER PRIMARY KEY,"
-                    + Results.SYNC_ID + " INTEGER,"
-                    + Results.NAME + " TEXT DEFAULT NULL,"
-                    + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
-                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
-                    + Results.CONTACT_ID + " INTEGER"
+            db.execSQL("CREATE TABLE contacts_new ("
+                    + Contacts._ID + " INTEGER PRIMARY KEY,"
+                    + Contacts.PHOTO_HASH + " TEXT,"
+                    + Contacts.NETWORK_PHOTO_HASH + " TEXT"
                     + ");");
             
-            db.execSQL("INSERT INTO results_new (" 
-            		+ Results._ID + ","
-            		+ Results.SYNC_ID + ","
-            		+ Results.NAME + ","
-            		+ Results.DESCRIPTION + ","
-            		+ Results.PIC_URL + ") "
+            db.execSQL("INSERT INTO contacts_new (" 
+            		+ Contacts._ID + ","
+            		+ Contacts.PHOTO_HASH + ")"
             		+ "SELECT "
-            		+ Results._ID + ","
-            		+ Results.SYNC_ID + ","
-            		+ Results.NAME + ","
-            		+ Results.DESCRIPTION + ","
-            		+ Results.PIC_URL
-            		+ " FROM " + RESULTS_TABLE_NAME + ";");
+            		+ Contacts._ID + ","
+            		+ Contacts.PHOTO_HASH
+            		+ " FROM " + CONTACTS_TABLE_NAME + ";");
             
-            db.execSQL("DROP TABLE IF EXISTS results;");
+            db.execSQL("DROP TABLE IF EXISTS contacts;");
             
-            db.execSQL("ALTER TABLE results_new RENAME TO " + RESULTS_TABLE_NAME +";");
-            //db.execSQL("DROP TABLE IF EXISTS contacts");
-            //db.execSQL("DROP TABLE IF EXISTS sync");
-            //onCreate(db);
+            db.execSQL("ALTER TABLE contacts_new RENAME TO " + CONTACTS_TABLE_NAME +";");
         }
     }
 
