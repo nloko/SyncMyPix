@@ -23,10 +23,10 @@
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
     <string name="selectedName">Select a friend to view their picture and tap picture to zoom</string>
     <string name="resultsList">Social Network Friends</string>
-    <string name="instructions"><b>Instructions:</b> http://code.google.com/p/syncmypix/wiki/Instructions</string>
-    <string name="issues"><b>Bug reports:</b> http://code.google.com/p/syncmypix/issues/list</string>
-	<string name="release_notes"><b>Release notes:</b> http://code.google.com/p/syncmypix/wiki/ChangeLog</string>
-	<string name="faq"><b>FAQ:</b> http://code.google.com/p/syncmypix/wiki/FAQ</string>
+    <string name="instructions">http://code.google.com/p/syncmypix/wiki/Instructions</string>
+    <string name="issues">http://code.google.com/p/syncmypix/issues/list</string>
+	<string name="release_notes">http://code.google.com/p/syncmypix/wiki/ChangeLog</string>
+	<string name="faq">http://code.google.com/p/syncmypix/wiki/FAQ</string>
 	<string name="results_help_msg"><b>Select</b> a friend to view their profile picture, or <b>long press</b> to add their picture to a phone contact</string>
 	<string name="about_info">Press <b>MENU</b> for available actions</string>
 </resources>

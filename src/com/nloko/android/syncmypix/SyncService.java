@@ -159,6 +159,7 @@ public abstract class SyncService extends Service {
         		throw new IllegalArgumentException("values");
         	}
 
+        	//Log.d(TAG, String.format("Creating result for %s with contact id %s", values.getAsString(Results.NAME), values.getAsString(Results.CONTACT_ID)));
         	ContentResolver resolver = getContentResolver();
         	resolver.insert(Results.CONTENT_URI, values);
         }
@@ -203,11 +204,7 @@ public abstract class SyncService extends Service {
     		
     		final String syncId = sync.getPathSegments().get(1);
     		
-    		ContentValues values = new ContentValues();
-    		values.put(Results.SYNC_ID, syncId);
-    		values.put(Results.NAME, name);
-    		values.put(Results.PIC_URL, user.picUrl);
-    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
+    		ContentValues values = createResult(syncId, name, user.picUrl);
     		
     		if (user.picUrl == null) {
     			values.put(Results.DESCRIPTION, "Picture not found");
@@ -227,6 +224,7 @@ public abstract class SyncService extends Service {
     		if (!cur.moveToFirst()) {
     			Log.d(TAG, "Contact not found in database.");
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription());
+    			resultsList.add(values);
     		}
     		else {
     			boolean ok = true;
@@ -236,10 +234,8 @@ public abstract class SyncService extends Service {
     				
     				if (skipIfConflict) {
     					values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription());
+    					resultsList.add(values);
     					ok = false;
-    				}
-    				else {
-    					values.put(Results.DESCRIPTION, ResultsDescription.MULTIPLEPROCESSED.getDescription());
     				}
     			}
     			
@@ -250,11 +246,12 @@ public abstract class SyncService extends Service {
     				byte[] image = null;
     				
     				String contactHash = null;
-    				//String networkHash = null;
-    				//String dbHash;
     				String hash = null;
 
     				do {
+    					//ContentValues is an immutable object
+    					ContentValues valuesCopy = new ContentValues(values);
+    					
     					String id = cur.getString(cur.getColumnIndex(People._ID));
     					DBHashes hashes = getHashes(id);
     					
@@ -291,29 +288,45 @@ public abstract class SyncService extends Service {
 	    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
 	    							updateSyncContact(id, hash, updatedHash);
     							}
-    							else if (cur.getCount() == 1) {
-    								values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_UNCHANGED.getDescription());
+    							else {
+    								valuesCopy.put(Results.DESCRIPTION, 
+    										ResultsDescription.SKIPPED_UNCHANGED.getDescription());
     							}
     							
-    							values.put(Results.CONTACT_ID, Long.parseLong(id));
+    							valuesCopy.put(Results.CONTACT_ID, id);
     						}
     						else {
-    							values.put(Results.DESCRIPTION, ResultsDescription.DOWNLOAD_FAILED.getDescription());
+    							valuesCopy.put(Results.DESCRIPTION, 
+    									ResultsDescription.DOWNLOAD_FAILED.getDescription());
     							break;
     						}
     					}
-    					else if (cur.getCount() == 1) {
-    						values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_EXISTS.getDescription());
+    					else {
+    						valuesCopy.put(Results.DESCRIPTION, 
+    								ResultsDescription.SKIPPED_EXISTS.getDescription());
     					}
-
+    		    		
+    					 resultsList.add(valuesCopy);
+    					 
     				} while (cur.moveToNext());
     			}
     		}
 
-    		resultsList.add(values);
+    		
     		cur.close();
     	}
 
+        private ContentValues createResult(String id, String name, String url)
+        {
+        	ContentValues values = new ContentValues();
+    		values.put(Results.SYNC_ID, id);
+    		values.put(Results.NAME, name);
+    		values.put(Results.PIC_URL, url);
+    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
+    		
+    		return values;
+        }
+        
         private DBHashes getHashes(String id)
         {
         	if (id == null) {

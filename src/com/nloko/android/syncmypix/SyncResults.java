@@ -102,9 +102,13 @@ public class SyncResults extends Activity {
     				Sync.DATE_STARTED, 
     				Sync.DATE_COMPLETED };
 	
+	private static final int CONTEXTMENU_CROP = 3;
 	private static final int CONTEXTMENU_SELECT_CONTACT = 4;
 	private static final int CONTEXTMENU_VIEW_CONTACT = 5;
+	
 	private static final int PICK_CONTACT    = 6;
+	//private static final int PICK_CONTACT_AND_CROP    = 7;
+	private static final int REQUEST_CROP_PHOTO    = 8;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +186,7 @@ public class SyncResults extends Activity {
 						menu.setHeaderTitle(name);
 						if (id != null) {
 							menu.add(0, CONTEXTMENU_VIEW_CONTACT, Menu.NONE, "View synced contact");
+							menu.add(0, CONTEXTMENU_CROP, Menu.NONE, "Crop picture");
 						}
 						
 		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, "Add picture to contact");
@@ -303,15 +308,20 @@ public class SyncResults extends Activity {
 
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
 		
+		int position;
+		Cursor cursor;
+		Intent intent;
+		String id;
+		
 		switch (item.getItemId()) {
 			case CONTEXTMENU_VIEW_CONTACT:
-				int position = ((AdapterContextMenuInfo)menuInfo).position;
-				Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+				position = ((AdapterContextMenuInfo)menuInfo).position;
+				cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
 				
 				if (cursor.moveToPosition(position)) {
-					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					if (id != null) {
-						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(People.CONTENT_URI, id));
+						intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(People.CONTENT_URI, id));
 						startActivity(intent);
 					}
 				}
@@ -321,8 +331,36 @@ public class SyncResults extends Activity {
 			case CONTEXTMENU_SELECT_CONTACT:
 				lastPosition = menuInfo.position;
 				
-				Intent intent = new Intent(Intent.ACTION_PICK, People.CONTENT_URI);  
+				intent = new Intent(Intent.ACTION_PICK, People.CONTENT_URI);  
 				startActivityForResult(intent, PICK_CONTACT);  
+				return true;
+				
+			case CONTEXTMENU_CROP:
+				lastPosition = menuInfo.position;
+				
+				position = ((AdapterContextMenuInfo)menuInfo).position;
+				cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+				
+				if (cursor.moveToPosition(position)) {
+					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+									
+					Bitmap bitmap = People.loadContactPhoto(this, Uri.withAppendedPath(People.CONTENT_URI, id), 0, null);
+					
+					intent = new Intent("com.android.camera.action.CROP");
+					intent.setClassName("com.nloko.android.syncmypix", "com.nloko.android.syncmypix.CropImage");
+					/*if (myIntent.getStringExtra("mimeType") != null) {
+						intent.setDataAndType(myIntent.getData(), myIntent.getStringExtra("mimeType"));
+					}*/
+					intent.putExtra("data", bitmap);
+					intent.putExtra("crop", "true");
+					intent.putExtra("aspectX", 1);
+					intent.putExtra("aspectY", 1);
+					intent.putExtra("outputX", 96);
+					intent.putExtra("outputY", 96);
+					intent.putExtra("return-data", true);
+					startActivityForResult(intent, REQUEST_CROP_PHOTO);
+				}
+				
 				return true;
 		}
 		
@@ -334,13 +372,21 @@ public class SyncResults extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		super.onActivityResult(requestCode, resultCode, data);
+		if (resultCode != Activity.RESULT_OK) {
+			return;
+		}
+		
+		Uri contactData;
 		
 		switch (requestCode) {  
-			case (PICK_CONTACT):  
-				if (resultCode == Activity.RESULT_OK) {  
-					Uri contactData = data.getData();  
-		            updateContact(contactData);
-				}
+			case PICK_CONTACT:  
+				contactData = data.getData();  
+	            updateContact(contactData);
+			
+				break;
+			
+			case REQUEST_CROP_PHOTO:  
+
 			
 				break;
 		}
