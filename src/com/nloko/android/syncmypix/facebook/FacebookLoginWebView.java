@@ -119,6 +119,7 @@ public class FacebookLoginWebView extends Activity {
     				removeDialog(AUTH_DIALOG);
     			}
     			
+    			setResult(Activity.RESULT_CANCELED);
     			finish();
     		}
 
@@ -151,9 +152,11 @@ public class FacebookLoginWebView extends Activity {
                         	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "uid", login.getUid());
                         }
                         
+                        setResult(Activity.RESULT_OK);
                         finish();
                     }
                     else if (page.getPath().equals(login.getCancelUrl().getPath())) {
+                    	setResult(Activity.RESULT_CANCELED);
                     	finish();
                     }
                 } 

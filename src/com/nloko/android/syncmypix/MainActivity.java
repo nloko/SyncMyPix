@@ -129,7 +129,12 @@ public class MainActivity extends Activity {
         sync.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				sync();
+				if (isLoggedInFromSyncSource(getBaseContext(), getSyncSource(getBaseContext()))) {
+					sync();
+				}
+				else {
+					login();
+				}
 			}
         	
         });
@@ -155,12 +160,33 @@ public class MainActivity extends Activity {
 
     }
     
+    
+    @Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		if (resultCode != Activity.RESULT_OK) {
+			return;
+		}
+		
+		switch(requestCode) {
+			case SOCIAL_NETWORK_LOGIN:
+				sync();
+				break;
+		}
+	}
+
+
+	private final static int SOCIAL_NETWORK_LOGIN = 0;
+    
 	private void login()
     {
-		startActivity(new Intent(MainActivity.this, getLoginClassFromSyncSource(getSyncSource(getBaseContext()))));
+		startActivityForResult(new Intent(MainActivity.this, 
+				getLoginClassFromSyncSource(getSyncSource(getBaseContext()))), 
+				SOCIAL_NETWORK_LOGIN);
     }
     
-    // TODO Should probably kill social network API session too
+    // TODO This is needless filler, REMOVE
     private void logout()
     {
     	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "session_key", null);
@@ -248,15 +274,14 @@ public class MainActivity extends Activity {
 	}
 
 
-	private final int MENU_LOGIN = 0;
-    private final int MENU_LOGOUT = 3;
+	private final int MENU_LOGOUT = 3;
     private final int MENU_ABOUT = 4;
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
     	MenuItem item;
-    	item = menu.add(0, MENU_LOGIN, 0, "Login");
-    	item.setIcon(android.R.drawable.ic_menu_myplaces);
+    	//item = menu.add(0, MENU_LOGIN, 0, "Login");
+    	//item.setIcon(android.R.drawable.ic_menu_myplaces);
     	
     	item = menu.add(0, MENU_LOGOUT, 0, "Logout");
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
@@ -270,9 +295,9 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case MENU_LOGIN:
-				login();
-				return true;
+			//case MENU_LOGIN:
+				//login();
+				//return true;
 			case MENU_LOGOUT:
 				logout();
 				return true;
