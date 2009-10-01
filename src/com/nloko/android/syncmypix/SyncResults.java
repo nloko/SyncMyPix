@@ -386,13 +386,31 @@ public class SyncResults extends Activity {
 				break;
 			
 			case REQUEST_CROP_PHOTO:  
-
-			
+				// this is the last contact long pressed in the list
+				int position = lastPosition;
+				
+				SimpleCursorAdapter adapter = (SimpleCursorAdapter)listview.getAdapter();
+				Cursor cursor = adapter.getCursor();
+				
+				if (cursor.moveToPosition(position)) {
+					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+					
+					Bitmap bitmap = (Bitmap) data.getParcelableExtra("data");
+					byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
+					
+					ContactServices.updateContactPhoto(getContentResolver(), bytes, id);
+					updateHashes(id, null, bytes);
+					
+					cache.add(url, bitmap);
+					adapter.notifyDataSetChanged();
+				}
+				
 				break;
 		}
 	}
 
-	private void updateHash(String id, byte[] image)
+	private void updateHashes(String id, byte[] origImage, byte[] modifiedImage)
 	{
 		final ContentResolver resolver = getContentResolver();
 		Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
@@ -402,20 +420,26 @@ public class SyncResults extends Activity {
 						null, 
 						null);	
 		
-		String hash = Utils.getMd5Hash(image);
-		
 		ContentValues values = new ContentValues();
-		values.put(Contacts.NETWORK_PHOTO_HASH, hash);
-		values.put(Contacts.PHOTO_HASH, hash);
+		
+		if (origImage != null) {
+			String networkHash = Utils.getMd5Hash(origImage);
+			values.put(Contacts.NETWORK_PHOTO_HASH, networkHash);
+		}
+		
+		if (modifiedImage != null) {
+			String hash = Utils.getMd5Hash(modifiedImage);
+			values.put(Contacts.PHOTO_HASH, hash);
+		}
 		
 		if (cursor.moveToFirst()) {
 			resolver.update(uri, values, null, null);
-			Log.d(TAG, String.format("Hash updated %s", hash));
+			//Log.d(TAG, String.format("Hash updated %s", hash));
 		}
 		else {
 			values.put(Contacts._ID, id);
 			resolver.insert(Contacts.CONTENT_URI, values);
-			Log.d(TAG, String.format("Hash inserted %s", hash));
+			//Log.d(TAG, String.format("Hash inserted %s", hash));
 		}
 		
 		if (cursor != null) {
@@ -449,7 +473,7 @@ public class SyncResults extends Activity {
 							String contactId = contactUri.getPathSegments().get(1);
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
-							updateHash(contactId, bytes);
+							updateHashes(contactId, bytes, bytes);
 							
 							cache.add(url, bitmap);
 							
