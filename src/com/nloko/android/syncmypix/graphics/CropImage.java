@@ -37,6 +37,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.Contacts.People;
 import android.util.AttributeSet;
 import android.util.Config;
 import android.util.Log;
@@ -396,6 +397,11 @@ public class CropImage extends Activity {
                 mDoFaceDetection = extras.containsKey("noFaceDetection") ? !extras.getBoolean("noFaceDetection") : true;
             }
 
+            if (mBitmap == null) {
+            	Uri contact = intent.getData();
+            	mBitmap = People.loadContactPhoto(this, contact, 0, null);
+            }
+            
             /*if (mBitmap == null) {
                 Uri target = intent.getData();
                 mAllImages = ImageManager.makeImageList(target, CropImage.this, ImageManager.SORT_ASCENDING);

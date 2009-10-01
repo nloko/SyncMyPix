@@ -345,13 +345,14 @@ public class SyncResults extends Activity {
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 									
-					Bitmap bitmap = People.loadContactPhoto(this, Uri.withAppendedPath(People.CONTENT_URI, id), 0, null);
+					//Bitmap bitmap = People.loadContactPhoto(this, Uri.withAppendedPath(People.CONTENT_URI, id), 0, null);
 
 					// launch cropping activity
 					intent = new Intent("com.android.camera.action.CROP");
 
 					intent.setClass(getBaseContext(), CropImage.class);
-					intent.putExtra("data", bitmap);
+					//intent.putExtra("data", bitmap);
+					intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
 					intent.putExtra("crop", "true");
 					intent.putExtra("aspectX", 1);
 					intent.putExtra("aspectY", 1);
