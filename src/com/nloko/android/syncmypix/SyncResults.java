@@ -32,6 +32,8 @@ import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
+import com.nloko.android.syncmypix.graphics.CropImage;
+import com.nloko.android.syncmypix.graphics.ThumbnailCache;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -107,8 +109,7 @@ public class SyncResults extends Activity {
 	private static final int CONTEXTMENU_VIEW_CONTACT = 5;
 	
 	private static final int PICK_CONTACT    = 6;
-	//private static final int PICK_CONTACT_AND_CROP    = 7;
-	private static final int REQUEST_CROP_PHOTO    = 8;
+	private static final int REQUEST_CROP_PHOTO    = 7;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -345,12 +346,11 @@ public class SyncResults extends Activity {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 									
 					Bitmap bitmap = People.loadContactPhoto(this, Uri.withAppendedPath(People.CONTENT_URI, id), 0, null);
-					
+
+					// launch cropping activity
 					intent = new Intent("com.android.camera.action.CROP");
-					intent.setClassName("com.nloko.android.syncmypix", "com.nloko.android.syncmypix.CropImage");
-					/*if (myIntent.getStringExtra("mimeType") != null) {
-						intent.setDataAndType(myIntent.getData(), myIntent.getStringExtra("mimeType"));
-					}*/
+
+					intent.setClass(getBaseContext(), CropImage.class);
 					intent.putExtra("data", bitmap);
 					intent.putExtra("crop", "true");
 					intent.putExtra("aspectX", 1);
@@ -381,7 +381,7 @@ public class SyncResults extends Activity {
 		switch (requestCode) {  
 			case PICK_CONTACT:  
 				contactData = data.getData();  
-	            updateContact(contactData);
+	            updateContactWithSelection(contactData);
 			
 				break;
 			
@@ -434,12 +434,10 @@ public class SyncResults extends Activity {
 		
 		if (cursor.moveToFirst()) {
 			resolver.update(uri, values, null, null);
-			//Log.d(TAG, String.format("Hash updated %s", hash));
 		}
 		else {
 			values.put(Contacts._ID, id);
 			resolver.insert(Contacts.CONTENT_URI, values);
-			//Log.d(TAG, String.format("Hash inserted %s", hash));
 		}
 		
 		if (cursor != null) {
@@ -447,7 +445,7 @@ public class SyncResults extends Activity {
 		}
 	}
 	
-	private void updateContact(Uri contact)
+	private void updateContactWithSelection(Uri contact)
 	{
 		// avoid android.database.StaleDataException: Access closed cursor
 		Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();

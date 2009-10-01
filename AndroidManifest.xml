@@ -39,7 +39,7 @@
         <activity android:name="com.nloko.android.syncmypix.facebook.FacebookLoginWebView"
                   android:label="@string/facebooklogin">
         </activity>
-        <activity android:name="com.nloko.android.syncmypix.CropImage"
+        <activity android:name="com.nloko.android.syncmypix.graphics.CropImage"
                   android:label="Crop Picture">
         </activity>
         <activity android:name=".SyncResults"

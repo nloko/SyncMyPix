@@ -286,7 +286,7 @@ public abstract class SyncService extends Service {
     								}
     								
 	    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
-	    							updateSyncContact(id, hash, updatedHash);
+	    							updateHashes(id, hash, updatedHash);
     							}
     							else {
     								valuesCopy.put(Results.DESCRIPTION, 
@@ -388,7 +388,7 @@ public abstract class SyncService extends Service {
         	return ok;
         }
         
-        private void updateSyncContact (String id, String networkHash, String updatedHash)
+        private void updateHashes (String id, String networkHash, String updatedHash)
         {
         	if (id == null) {
         		throw new IllegalArgumentException("id");
@@ -423,6 +423,7 @@ public abstract class SyncService extends Service {
 			synchronized(syncLock) {
 				
 				try {
+					// clear previous results, if any
 					resolver.delete(Sync.CONTENT_URI, null, null);
 					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
 	
@@ -437,20 +438,19 @@ public abstract class SyncService extends Service {
 	
 							Log.e(TAG, android.util.Log.getStackTraceString(processException));
 	
-							ContentValues values = new ContentValues();
 							String syncId = sync.getPathSegments().get(1);
-							values.put(Results.SYNC_ID, syncId);
-							values.put(Results.NAME, String.format("%s %s", user.firstName, user.lastName));
-							values.put(Results.PIC_URL, user.picUrl);
+							ContentValues values = createResult(syncId, 
+									String.format("%s %s", user.firstName, user.lastName), 
+									user.picUrl);
+							
 							values.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription());
-	
 							resultsList.add(values);
 						}
 	
 						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
 	
 						if (cancel) {
-							mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
+							mainHandler.sendMessage(mainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
 									R.string.syncservice_canceled, 
 									0));
 	
@@ -466,7 +466,7 @@ public abstract class SyncService extends Service {
 				
 				} catch (Exception ex) {
 					Log.e(TAG, android.util.Log.getStackTraceString(ex));
-					mainHandler.sendMessage(mainHandler.obtainMessage(mainHandler.SHOW_ERROR, 
+					mainHandler.sendMessage(mainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
 							R.string.syncservice_fatalsyncerror, 
 							0));
 	
@@ -486,7 +486,6 @@ public abstract class SyncService extends Service {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected void onPostExecute(Long result) {
 			if (result > 0 && !cancel) {
@@ -529,7 +528,6 @@ public abstract class SyncService extends Service {
     	return started;
     }
     
-    
 	private NotificationManager notifyManager;
 	
     private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
@@ -543,13 +541,13 @@ public abstract class SyncService extends Service {
     
     private void getPreferences()
     {
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		SyncMyPixPreferences prefs = new SyncMyPixPreferences(getBaseContext());
 		
-		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
-		reverseNames = prefs.getBoolean("reverseNames", false);
-		maxQuality = prefs.getBoolean("maxQuality", false);
-    	skipIfExists = prefs.getBoolean("skipIfExists", true);
-    	cropSquare = prefs.getBoolean("cropSquare", true);
+		skipIfConflict = prefs.getSkipIfConflict();
+		reverseNames = prefs.getReverseNames();
+		maxQuality = prefs.getMaxQuality();
+    	skipIfExists = prefs.getSkipIfExists();
+    	cropSquare = prefs.getCropSquare();
     }
     
     @Override

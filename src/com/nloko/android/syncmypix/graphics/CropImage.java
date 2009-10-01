@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.nloko.android.syncmypix;
+package com.nloko.android.syncmypix.graphics;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -53,7 +53,9 @@ import java.util.ArrayList;
 
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
-import com.nloko.android.syncmypix.HighlightView.ModifyMode;
+import com.nloko.android.syncmypix.R.id;
+import com.nloko.android.syncmypix.R.layout;
+import com.nloko.android.syncmypix.graphics.HighlightView.ModifyMode;
 
 public class CropImage extends Activity {
     private static final String TAG = "CropImage";
