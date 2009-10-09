@@ -36,7 +36,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceChangeListener;
 
-public class GlobalConfig extends PreferenceActivity {
+public class GlobalPreferences extends PreferenceActivity {
 	
 	private static final String TAG = "GlobalConfig";
 	
@@ -69,7 +69,7 @@ public class GlobalConfig extends PreferenceActivity {
     	addPreferencesFromResource(R.layout.preferences);	
     	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
 
-    	int freq = getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getInt("sched_freq", 0);
+    	int freq = getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
     	
     	// set value from old version
@@ -88,18 +88,18 @@ public class GlobalConfig extends PreferenceActivity {
 				long firstTriggerTime;
 				long interval;
 				
-				Utils.setInt(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_freq", position);
+				Utils.setInt(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "sched_freq", position);
 				
-				if ((interval = GlobalConfig.getScheduleInterval(position)) > 0) {
+				if ((interval = GlobalPreferences.getScheduleInterval(position)) > 0) {
 					firstTriggerTime = System.currentTimeMillis() + interval;
-					Utils.setLong(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "sched_time", firstTriggerTime);
-					SyncService.updateSchedule(GlobalConfig.this, 
+					Utils.setLong(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "sched_time", firstTriggerTime);
+					SyncService.updateSchedule(GlobalPreferences.this, 
 							MainActivity.getSyncSource(getBaseContext()), 
 							firstTriggerTime, 
 							interval);
 				}
 				else {
-					SyncService.cancelSchedule(GlobalConfig.this, MainActivity.getSyncSource(getBaseContext()));
+					SyncService.cancelSchedule(GlobalPreferences.this, MainActivity.getSyncSource(getBaseContext()));
 				}
 				return true;
 			}

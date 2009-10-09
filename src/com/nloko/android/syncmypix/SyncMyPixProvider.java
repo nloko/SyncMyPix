@@ -327,6 +327,19 @@ public class SyncMyPixProvider extends ContentProvider {
             orderBy = Results.DEFAULT_SORT_ORDER;
             break;
 
+        case RESULTS_ID:
+        	qb.setProjectionMap(resultsProjection);
+            qb.setTables(RESULTS_TABLE_NAME
+            		+ " LEFT OUTER JOIN "
+            		+ SYNC_TABLE_NAME
+            		+ " ON ("
+            		+ RESULTS_TABLE_NAME + "." + Results.SYNC_ID + "=" + SYNC_TABLE_NAME + "." + Sync._ID
+            		+ ")");
+            
+            qb.appendWhere(RESULTS_TABLE_NAME + "." + Results._ID + "=" + uri.getPathSegments().get(1));
+            orderBy = Results.DEFAULT_SORT_ORDER;
+        	break;
+        	
         default:
             throw new IllegalArgumentException("Unknown URI " + uri);
         }

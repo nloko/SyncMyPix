@@ -21,7 +21,6 @@
 
 package com.nloko.android;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +30,6 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -82,6 +80,10 @@ public final class Utils {
 		if (lastName == null) {
 			throw new IllegalArgumentException ("lastName");
 		}
+		
+		// escape single quotes
+		firstName = firstName.replace("'", "''");
+		lastName = lastName.replace("'", "''");
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("%s = '%s %s' OR ", field, firstName, lastName));

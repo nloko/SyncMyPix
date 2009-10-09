@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Date;
 
-import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
@@ -66,7 +65,6 @@ import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
-import android.widget.FilterQueryProvider;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -302,7 +300,7 @@ public class SyncResults extends Activity {
 		 return false;
 	 }
 
-	private int lastPosition = -1;
+	private Uri uriOfSelected = null;
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
@@ -330,36 +328,24 @@ public class SyncResults extends Activity {
 				return true;
 				
 			case CONTEXTMENU_SELECT_CONTACT:
-				lastPosition = menuInfo.position;
+				
+				position = ((AdapterContextMenuInfo)menuInfo).position;
+				uriOfSelected = getResultsUriFromListPosition(position);
 				
 				intent = new Intent(Intent.ACTION_PICK, People.CONTENT_URI);  
 				startActivityForResult(intent, PICK_CONTACT);  
 				return true;
 				
 			case CONTEXTMENU_CROP:
-				lastPosition = menuInfo.position;
 				
 				position = ((AdapterContextMenuInfo)menuInfo).position;
+				uriOfSelected = getResultsUriFromListPosition(position);
+				
 				cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
 				
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
-									
-					//Bitmap bitmap = People.loadContactPhoto(this, Uri.withAppendedPath(People.CONTENT_URI, id), 0, null);
-
-					// launch cropping activity
-					intent = new Intent("com.android.camera.action.CROP");
-
-					intent.setClass(getBaseContext(), CropImage.class);
-					//intent.putExtra("data", bitmap);
-					intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
-					intent.putExtra("crop", "true");
-					intent.putExtra("aspectX", 1);
-					intent.putExtra("aspectY", 1);
-					intent.putExtra("outputX", 96);
-					intent.putExtra("outputY", 96);
-					intent.putExtra("return-data", true);
-					startActivityForResult(intent, REQUEST_CROP_PHOTO);
+					crop(id);
 				}
 				
 				return true;
@@ -387,13 +373,17 @@ public class SyncResults extends Activity {
 				break;
 			
 			case REQUEST_CROP_PHOTO:  
-				// this is the last contact long pressed in the list
-				int position = lastPosition;
+				
+				ContentResolver resolver = getContentResolver();
+				Cursor cursor = resolver.query(uriOfSelected, 
+						new String[] { Results.CONTACT_ID, Results.PIC_URL }, 
+						null, 
+						null, 
+						null);
 				
 				SimpleCursorAdapter adapter = (SimpleCursorAdapter)listview.getAdapter();
-				Cursor cursor = adapter.getCursor();
 				
-				if (cursor.moveToPosition(position)) {
+				if (cursor.moveToFirst()) {
 					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 					
@@ -411,6 +401,35 @@ public class SyncResults extends Activity {
 		}
 	}
 
+	private Uri getResultsUriFromListPosition(int pos)
+	{
+		Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
+		
+		if (cursor != null && cursor.moveToPosition(pos)) {
+			String id = cursor.getString(cursor.getColumnIndex(Results._ID));
+			return Uri.withAppendedPath(Results.CONTENT_URI, id);
+		}
+		
+		return null;
+	}
+	
+	private void crop(String id)
+	{
+		// launch cropping activity
+		Intent intent = new Intent("com.android.camera.action.CROP");
+
+		intent.setClass(getBaseContext(), CropImage.class);
+		//intent.putExtra("data", bitmap);
+		intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
+		intent.putExtra("crop", "true");
+		intent.putExtra("aspectX", 1);
+		intent.putExtra("aspectY", 1);
+		intent.putExtra("outputX", 96);
+		intent.putExtra("outputY", 96);
+		intent.putExtra("return-data", true);
+		startActivityForResult(intent, REQUEST_CROP_PHOTO);
+	}
+	
 	private void updateHashes(String id, byte[] origImage, byte[] modifiedImage)
 	{
 		final ContentResolver resolver = getContentResolver();
@@ -448,15 +467,18 @@ public class SyncResults extends Activity {
 	
 	private void updateContactWithSelection(Uri contact)
 	{
-		// avoid android.database.StaleDataException: Access closed cursor
-		Cursor cursor = ((SimpleCursorAdapter)listview.getAdapter()).getCursor();
-		cursor.requery();
+		final ContentResolver resolver = getContentResolver();
 		
-		if (cursor.moveToPosition(lastPosition)) {
+		Cursor cursor = resolver.query(uriOfSelected, 
+				new String[] { Results._ID, Results.PIC_URL }, 
+				null, 
+				null, 
+				null);
+		
+		if (cursor.moveToFirst()) {
 			
 			showDialog(UPDATE_CONTACT);
 			
-			final ContentResolver resolver = getContentResolver();
 			final Uri contactUri = contact;
 
 			final long id  = cursor.getLong(cursor.getColumnIndex(Results._ID));
@@ -469,7 +491,8 @@ public class SyncResults extends Activity {
 						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 						if (bitmap != null) {
 
-							String contactId = contactUri.getPathSegments().get(1);
+							final String contactId = contactUri.getPathSegments().get(1);
+							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
 							updateHashes(contactId, bytes, bytes);
@@ -488,7 +511,8 @@ public class SyncResults extends Activity {
 							runOnUiThread(new Runnable() {
 
 								public void run() {
-									((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+									//((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
+									crop(contactId);
 								}
 
 							});
@@ -562,9 +586,9 @@ public class SyncResults extends Activity {
 			m.postScale((float)newWidth / (float)width, (float)newHeight / (float)height);
 			image.setImageMatrix(m);
 			image.invalidate();
+			
+			zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		}
-
-		//zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		
 		zoomedDialog.setOnCancelListener(new OnCancelListener() {
 

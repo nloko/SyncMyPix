@@ -43,14 +43,14 @@
                 android:layout_width="100dip"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:text="Save"
+                android:text="Crop"
             />
 		    <Button
                 android:id="@+id/discard"
                 android:layout_width="100dip"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:text="Discard"
+                android:text="Skip"
             />
         </RelativeLayout>
 	</RelativeLayout>

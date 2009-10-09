@@ -29,7 +29,6 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
-import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -109,7 +108,7 @@ public class HashUpdateService extends Service {
 		return binder;
 	}
 	
-	private boolean hasDownloadServiceRun(long time)
+	protected boolean hasDownloadServiceRun(long time)
 	{
 		Cursor cur = getContentResolver().query(Results.CONTENT_URI, 
 				new String[] { Results._ID, Sync.DATE_COMPLETED }, 

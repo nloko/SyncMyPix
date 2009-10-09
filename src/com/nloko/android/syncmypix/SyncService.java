@@ -37,13 +37,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -53,7 +50,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.provider.Contacts.People;
 import android.widget.Toast;
 
@@ -199,7 +195,8 @@ public abstract class SyncService extends Service {
     		sb.append(" ");
     		sb.append(user.lastName);
     		
-    		final String name = sb.toString();
+    		// escape single quotes for SQL
+    		final String name = sb.toString().replace("'", "''");
     		Log.d(TAG, String.format("%s %s", name, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
@@ -688,5 +685,10 @@ public abstract class SyncService extends Service {
     public static Class<?> getLoginClass()
     {
     	return null;
+    }
+    
+    public static String getSocialNetworkName()
+    {
+    	return "Default";
     }
 }

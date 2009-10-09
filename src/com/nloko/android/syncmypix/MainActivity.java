@@ -28,6 +28,7 @@ import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
+import com.nloko.android.syncmypix.views.ConfirmSyncDialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -121,7 +122,7 @@ public class MainActivity extends Activity {
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
-        else if (!getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
+        else if (!getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
         	showDialog(ABOUT_DIALOG);
         }
         
@@ -131,6 +132,7 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				if (isLoggedInFromSyncSource(getBaseContext(), getSyncSource(getBaseContext()))) {
 					sync();
+					//showDialog(CONFIRM_DIALOG);
 				}
 				else {
 					login();
@@ -143,7 +145,7 @@ public class MainActivity extends Activity {
         settings.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				Intent i = new Intent(MainActivity.this, GlobalConfig.class);
+				Intent i = new Intent(MainActivity.this, GlobalPreferences.class);
 				startActivity(i);
 			}
         	
@@ -189,9 +191,9 @@ public class MainActivity extends Activity {
     // TODO This is needless filler, REMOVE
     private void logout()
     {
-    	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "session_key", null);
-    	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "secret", null);
-    	Utils.setString(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "uid", null);
+    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "session_key", null);
+    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "secret", null);
+    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "uid", null);
     	
 		//setLoginStatus(R.string.loginStatus_notloggedin);
     }  
@@ -312,6 +314,8 @@ public class MainActivity extends Activity {
 	private final int SYNC_PROGRESS = 0;
 	private final int FRIENDS_PROGRESS = 1;
 	private final int ABOUT_DIALOG = 2;
+	private final int CONFIRM_DIALOG = 3;
+	
 	private ProgressDialog progress;
 	private ProgressDialog friendsProgress;
 	
@@ -343,6 +347,20 @@ public class MainActivity extends Activity {
 				
 			case ABOUT_DIALOG:
 				return createAboutDialog();
+				
+			case CONFIRM_DIALOG:
+				ConfirmSyncDialog dialog = new ConfirmSyncDialog(this);
+				dialog.setProceedButtonListener(new DialogInterface.OnClickListener() {
+
+					public void onClick(DialogInterface dialog, int which) {
+						sync();
+						
+					}
+					
+				});
+				
+				dialog.setCancelButtonListener(null);
+				return dialog;
 		}
 		
 		return super.onCreateDialog(id);
@@ -364,13 +382,13 @@ public class MainActivity extends Activity {
 		});
 		
 		CheckBox show = (CheckBox)about.findViewById(R.id.do_not_show_about);
-		show.setChecked(getSharedPreferences(GlobalConfig.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
+		show.setChecked(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
 		show.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
 
-				Utils.setBoolean(getSharedPreferences(GlobalConfig.PREFS_NAME, 0), "do_not_show_about", isChecked);
+				Utils.setBoolean(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "do_not_show_about", isChecked);
 			}
 			
 		});

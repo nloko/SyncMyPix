@@ -22,8 +22,11 @@
 
 package com.nloko.android.syncmypix;
 
+import java.lang.reflect.Method;
+
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 public final class SyncMyPixPreferences {
@@ -70,9 +73,34 @@ public final class SyncMyPixPreferences {
 		return cropSquare;
 	}
     
+    private String source;
+    public String getSource()
+    {
+    	return source;
+    }
+    
+	private <T extends SyncService> String getSocialNetworkName (Class<T> source)
+	{
+		try {
+			Method m = source.getMethod("getSocialNetworkName");
+			return (String) m.invoke(null);
+
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return SyncService.getSocialNetworkName();
+	}
+	
     private void getPreferences(Context context)
     {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+	
+		source = getSocialNetworkName(MainActivity.getSyncSource(context));
 		
 		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
 		reverseNames = prefs.getBoolean("reverseNames", false);
