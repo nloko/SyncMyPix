@@ -77,7 +77,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SyncResults extends Activity {
 
-	//Cursor cur;
+	SyncMyPixDbHelper dbHelper;
 	ListView listview;
 	
 	Handler mainHandler;
@@ -120,11 +120,9 @@ public class SyncResults extends Activity {
 	
 		cache = ThumbnailCache.create();
 		
-        //final ContentResolver resolver = getContentResolver();
-        
-        
+		dbHelper = new SyncMyPixDbHelper(getBaseContext());
+		
         Cursor cursor = managedQuery(Results.CONTENT_URI, projection, null, null, Results.DEFAULT_SORT_ORDER);
-        //startManagingCursor(cur);
         
         listview = (ListView) findViewById(R.id.resultList);
         
@@ -391,7 +389,7 @@ public class SyncResults extends Activity {
 					byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 					
 					ContactServices.updateContactPhoto(getContentResolver(), bytes, id);
-					updateHashes(id, null, bytes);
+					dbHelper.updateHashes(id, null, bytes);
 					
 					cache.add(url, bitmap);
 					adapter.notifyDataSetChanged();
@@ -430,41 +428,6 @@ public class SyncResults extends Activity {
 		startActivityForResult(intent, REQUEST_CROP_PHOTO);
 	}
 	
-	private void updateHashes(String id, byte[] origImage, byte[] modifiedImage)
-	{
-		final ContentResolver resolver = getContentResolver();
-		Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
-		Cursor cursor = resolver.query(uri,
-						new String[] { Contacts._ID }, 
-						null, 
-						null, 
-						null);	
-		
-		ContentValues values = new ContentValues();
-		
-		if (origImage != null) {
-			String networkHash = Utils.getMd5Hash(origImage);
-			values.put(Contacts.NETWORK_PHOTO_HASH, networkHash);
-		}
-		
-		if (modifiedImage != null) {
-			String hash = Utils.getMd5Hash(modifiedImage);
-			values.put(Contacts.PHOTO_HASH, hash);
-		}
-		
-		if (cursor.moveToFirst()) {
-			resolver.update(uri, values, null, null);
-		}
-		else {
-			values.put(Contacts._ID, id);
-			resolver.insert(Contacts.CONTENT_URI, values);
-		}
-		
-		if (cursor != null) {
-			cursor.close();
-		}
-	}
-	
 	private void updateContactWithSelection(Uri contact)
 	{
 		final ContentResolver resolver = getContentResolver();
@@ -495,7 +458,7 @@ public class SyncResults extends Activity {
 							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
-							updateHashes(contactId, bytes, bytes);
+							dbHelper.updateHashes(contactId, bytes, bytes);
 							
 							cache.add(url, bitmap);
 							
@@ -585,7 +548,7 @@ public class SyncResults extends Activity {
 			Matrix m = new Matrix();
 			m.postScale((float)newWidth / (float)width, (float)newHeight / (float)height);
 			image.setImageMatrix(m);
-			image.invalidate();
+			//image.invalidate();
 			
 			zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		}
@@ -648,7 +611,27 @@ public class SyncResults extends Activity {
 				       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				           public void onClick(DialogInterface dialog, int id) {
 				               removeDialog(DELETE_DIALOG);
-				               deleteAllPictures();
+				               
+				               showDialog(DELETING);
+				               dbHelper.deleteAllPictures(new DbHelperNotifier() {
+
+								public void onUpdateComplete() {
+									
+									runOnUiThread(new Runnable() {
+
+										public void run() {
+											dismissDialog(DELETING);
+											Toast.makeText(SyncResults.this,
+													"All SyncMyPix pictures deleted", 
+													Toast.LENGTH_LONG).show();
+											
+											finish();
+										}
+									});
+									
+								}
+				            	   
+				               });
 				           }
 				       })
 				       .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -683,66 +666,7 @@ public class SyncResults extends Activity {
 		super.onDestroy();
 
 	}
-
-	private void deleteAllPictures()
-	{
-		final Cursor cursor = managedQuery(Contacts.CONTENT_URI, 
-				new String[] { Contacts._ID, Contacts.PHOTO_HASH },
-				null,
-				null, 
-				null);
 		
-		if (cursor.getCount() == 0) {
-			return;
-		}
-		
-		final ContentResolver resolver = getContentResolver();
-		showDialog(DELETING);
-		
-		Thread thread = new Thread(new Runnable() {
-			
-			public void run() {
-				
-				synchronized(SyncService.syncLock) {
-					
-					while(cursor.moveToNext()) {
-						String id  = cursor.getString(cursor.getColumnIndex(Contacts._ID));
-						String dbHash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
-						Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
-						
-						InputStream stream = People.openContactPhotoInputStream(resolver, uri);
-						if (stream != null) {
-							String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
-							if (dbHash.equals(hash)) {
-								ContactServices.updateContactPhoto(resolver, null, id);
-							}
-						}
-					}
-					
-					resolver.delete(Contacts.CONTENT_URI, null, null);
-					resolver.delete(Results.CONTENT_URI, null, null);
-					resolver.delete(Sync.CONTENT_URI, null, null);
-
-				}
-				
-				runOnUiThread(new Runnable() {
-
-					public void run() {
-						dismissDialog(DELETING);
-						Toast.makeText(SyncResults.this,
-								"All SyncMyPix pictures deleted", 
-								Toast.LENGTH_LONG).show();
-						
-						finish();
-					}
-				});
-			}
-			
-		});
-		
-		thread.start();
-	}
-	
 	private class InitializeResultsThread extends Thread
 	{
 		private MessageQueue queue;
@@ -944,9 +868,6 @@ public class SyncResults extends Activity {
 				image.setImageBitmap(cache.get(url));
 			}
 			else if (description.equals(ResultsDescription.NOTFOUND.getDescription())) {
-				image.setImageResource(R.drawable.neutral_face);
-			}
-			else if (description.contains(ResultsDescription.MULTIPLEPROCESSED.getDescription())) {
 				image.setImageResource(R.drawable.neutral_face);
 			}
 			else {

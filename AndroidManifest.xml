@@ -65,5 +65,5 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS" />
 	<uses-permission android:name="android.permission.WRITE_CONTACTS" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-	
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest> 

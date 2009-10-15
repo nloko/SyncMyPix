@@ -30,12 +30,15 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import com.nloko.android.Log;
 
@@ -43,8 +46,20 @@ public final class Utils {
 
 	private Utils() {}
 	
-      public static String getMd5Hash(byte[] input) 
-      {
+	public static boolean hasInternetConnection(Context context)
+	{
+		if (context == null) {
+			throw new IllegalArgumentException("context");
+		}
+		
+		ConnectivityManager connMgr=(ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info=connMgr.getActiveNetworkInfo();
+
+		return(info!=null && info.isConnected()); 
+	}
+	
+    public static String getMd5Hash(byte[] input) 
+    {
     	  if (input == null) {
     		  throw new IllegalArgumentException("input");
     	  }

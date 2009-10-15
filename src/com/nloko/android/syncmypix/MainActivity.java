@@ -52,6 +52,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class MainActivity extends Activity {
@@ -200,11 +201,19 @@ public class MainActivity extends Activity {
     
     private void sync()
     {
+    	if (!Utils.hasInternetConnection(getBaseContext())) {
+    		Toast.makeText(this, R.string.syncservice_networkerror, Toast.LENGTH_LONG).show();
+    		return;
+    	}
+    	
    		showDialog(FRIENDS_PROGRESS);
     	
     	Intent i = new Intent(MainActivity.this, getSyncSource(getBaseContext()));
-   		startService(i);
     	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
+    	
+    	if (syncService == null || !syncService.isExecuting()) {
+    		startService(i);
+    	}
     }
     
     private void showResults()

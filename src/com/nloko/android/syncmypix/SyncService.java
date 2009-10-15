@@ -31,6 +31,7 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
+import com.nloko.android.syncmypix.SyncMyPixDbHelper.DBHashes;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -98,7 +99,7 @@ public abstract class SyncService extends Service {
 		public void handleError(int msg)
 		{
 			if (listener != null) {
-				listener.error(0);
+				listener.error(msg);
 			}
 			
 			showError(msg);
@@ -177,6 +178,8 @@ public abstract class SyncService extends Service {
     
     private class SyncTask extends AsyncTask <List<SocialNetworkUser>, Integer, Long>
     {
+    	private final SyncMyPixDbHelper dbHelper = new SyncMyPixDbHelper(getBaseContext());
+    	
     	private final ContentResolver resolver = getContentResolver();
     	private final StringBuilder sb = new StringBuilder();
     	    	
@@ -249,67 +252,73 @@ public abstract class SyncService extends Service {
     					//ContentValues is an immutable object
     					ContentValues valuesCopy = new ContentValues(values);
     					
-    					String id = cur.getString(cur.getColumnIndex(People._ID));
-    					DBHashes hashes = getHashes(id);
-    					
-    					Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
-    	        		is = People.openContactPhotoInputStream(resolver, contact);
-    	        		// photo is set, so let's get its hash
-    	        		if (is != null) {
-    	        			contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
-    	        		}
-    	        		
-    					if (isSyncablePicture(id, hashes.updatedHash, contactHash)) {
-    							
-    						if (image == null) {
-    							try {
-    								bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
-    								image = Utils.bitmapToJpeg(bitmap, 100);
-    								hash = Utils.getMd5Hash(image);
-    							}
-    							catch (Exception e) {}
-    						}
-    	
-    						if (image != null) {
-    							// picture is a new one and we should sync it
-    							if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
-    								
-    								String updatedHash = hash;
-    								
-    								if (cropSquare) {
-    									bitmap = Utils.centerCrop(bitmap, 96, 96);
-    									image = Utils.bitmapToJpeg(bitmap, 100);
-    									updatedHash = Utils.getMd5Hash(image);
-    								}
-    								
-	    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
-	    							updateHashes(id, hash, updatedHash);
-    							}
-    							else {
-    								valuesCopy.put(Results.DESCRIPTION, 
-    										ResultsDescription.SKIPPED_UNCHANGED.getDescription());
-    							}
-    							
-    							valuesCopy.put(Results.CONTACT_ID, id);
-    						}
-    						else {
-    							valuesCopy.put(Results.DESCRIPTION, 
-    									ResultsDescription.DOWNLOAD_FAILED.getDescription());
-    							break;
-    						}
+    					try {
+	    					String id = cur.getString(cur.getColumnIndex(People._ID));
+	    					DBHashes hashes = dbHelper.getHashes(id);
+	    					
+	    					Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
+	    	        		is = People.openContactPhotoInputStream(resolver, contact);
+	    	        		// photo is set, so let's get its hash
+	    	        		if (is != null) {
+	    	        			contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+	    	        		}
+	    	        		
+	    					if (dbHelper.isSyncablePicture(id, hashes.updatedHash, contactHash, skipIfExists)) {
+	    							
+	    						if (image == null) {
+	    							try {
+	    								bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+	    								image = Utils.bitmapToJpeg(bitmap, 100);
+	    								hash = Utils.getMd5Hash(image);
+	    							}
+	    							catch (Exception e) {}
+	    						}
+	    	
+	    						if (image != null) {
+	    							// picture is a new one and we should sync it
+	    							if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
+	    								
+	    								String updatedHash = hash;
+	    								
+	    								if (cropSquare) {
+	    									bitmap = Utils.centerCrop(bitmap, 96, 96);
+	    									image = Utils.bitmapToJpeg(bitmap, 100);
+	    									updatedHash = Utils.getMd5Hash(image);
+	    								}
+	    								
+		    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
+		    							dbHelper.updateHashes(id, hash, updatedHash);
+	    							}
+	    							else {
+	    								valuesCopy.put(Results.DESCRIPTION, 
+	    										ResultsDescription.SKIPPED_UNCHANGED.getDescription());
+	    							}
+	    							
+	    							valuesCopy.put(Results.CONTACT_ID, id);
+	    						}
+	    						else {
+	    							valuesCopy.put(Results.DESCRIPTION, 
+	    									ResultsDescription.DOWNLOAD_FAILED.getDescription());
+	    							break;
+	    						}
+	    					}
+	    					else {
+	    						valuesCopy.put(Results.DESCRIPTION, 
+	    								ResultsDescription.SKIPPED_EXISTS.getDescription());
+	    					}
+
     					}
-    					else {
-    						valuesCopy.put(Results.DESCRIPTION, 
-    								ResultsDescription.SKIPPED_EXISTS.getDescription());
+    					catch (Exception e) {
+    						valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription());
     					}
-    		    		
-    					 resultsList.add(valuesCopy);
+    					finally {
+    						resultsList.add(valuesCopy);
+    					}
     					 
     				} while (cur.moveToNext());
     			}
     		}
 
-    		
     		cur.close();
     	}
 
@@ -324,91 +333,7 @@ public abstract class SyncService extends Service {
     		return values;
         }
         
-        private DBHashes getHashes(String id)
-        {
-        	if (id == null) {
-        		throw new IllegalArgumentException("id");
-        	}
-        	
-        	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
-    		
-        	Cursor syncC = resolver.query(syncUri, 
-    				new String[] { SyncMyPix.Contacts._ID,
-    				SyncMyPix.Contacts.PHOTO_HASH,
-    				SyncMyPix.Contacts.NETWORK_PHOTO_HASH }, 
-    				null, 
-    				null, 
-    				null);
-    		
-        	DBHashes hashes = new DBHashes();
-        	
-    		if (syncC.moveToFirst()) {
-    			hashes.updatedHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.PHOTO_HASH));
-    			hashes.networkHash = syncC.getString(syncC.getColumnIndex(SyncMyPix.Contacts.NETWORK_PHOTO_HASH));
-    		}
-    		
-    		syncC.close();
-    		
-    		return hashes;
-        }
         
-        private boolean isSyncablePicture(String id, String dbHash, String contactHash)
-        {
-        	if (id == null) {
-        		throw new IllegalArgumentException("id");
-        	}
-        	
-        	boolean ok = true;
-
-        	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
-        	    	
-        	if (skipIfExists) {
-        		
-        		// not tracking any hashes for contact and photo is set for contact
-        		if (dbHash == null && contactHash != null) {
-        			ok = false;
-        		}
-        		
-        		// we are tracking a hash and there is a photo for this contact
-        		else if (contactHash != null) {
-
-        			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, contactHash));
-
-        			// hashes do not match, so we don't need to track this hash anymore
-        			if (!contactHash.equals(dbHash)) {
-       					resolver.delete(syncUri, null, null);
-        				ok = false;
-        			}
-        		}
-        	}
-        	
-        	return ok;
-        }
-        
-        private void updateHashes (String id, String networkHash, String updatedHash)
-        {
-        	if (id == null) {
-        		throw new IllegalArgumentException("id");
-        	}
-        	
-        	Uri uri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
-        	
-    		ContentValues values = new ContentValues();
-    		values.put(SyncMyPix.Contacts._ID, id);
-    		values.put(SyncMyPix.Contacts.PHOTO_HASH, updatedHash);
-    		values.put(SyncMyPix.Contacts.NETWORK_PHOTO_HASH, networkHash);
-    		
-        	Cursor cur = resolver.query(uri, new String[] { SyncMyPix.Contacts._ID }, null, null, null);
-    		if (cur.getCount() == 0) {
-    			resolver.insert(SyncMyPix.Contacts.CONTENT_URI, values);
-    		}
-    		else {
-    			resolver.update(uri, values, null, null);
-    		}
-    		
-    		cur.close();
-        }
-
 		@Override
 		protected Long doInBackground(List<SocialNetworkUser>... users) {
 			
@@ -426,24 +351,7 @@ public abstract class SyncService extends Service {
 	
 					index = 1;
 					for (SocialNetworkUser user : userList) {
-	
-						// keep going if exception during sync
-						try {
-							processUser(user, sync);
-						}
-						catch (Exception processException) {
-	
-							Log.e(TAG, android.util.Log.getStackTraceString(processException));
-	
-							String syncId = sync.getPathSegments().get(1);
-							ContentValues values = createResult(syncId, 
-									String.format("%s %s", user.firstName, user.lastName), 
-									user.picUrl);
-							
-							values.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription());
-							resultsList.add(values);
-						}
-	
+						processUser(user, sync);
 						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
 	
 						if (cancel) {
@@ -497,12 +405,6 @@ public abstract class SyncService extends Service {
 				new UpdateResultsTable(resultsList).start();
 			}
 		}
-		
-		private final class DBHashes
-		{
-			public String updatedHash = null;
-			public String networkHash = null;
-		}
     }
 
     private boolean cancel = false;
@@ -550,11 +452,7 @@ public abstract class SyncService extends Service {
     @Override
 	public void onStart(Intent intent, int startId) {
     	
-    	if (isExecuting()) {
-    		return;
-    	}
-    	
-		super.onStart(intent, startId);
+    	super.onStart(intent, startId);
 		
 		executing = true;
 		started = true;

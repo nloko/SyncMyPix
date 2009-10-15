@@ -118,6 +118,7 @@ public class GlobalPreferences extends PreferenceActivity {
     	
     		case 1:
 				interval = AlarmManager.INTERVAL_DAY;
+    			//interval = 60000 * 5;
 				break;
 			case 2:
 				interval = AlarmManager.INTERVAL_DAY * 7;
