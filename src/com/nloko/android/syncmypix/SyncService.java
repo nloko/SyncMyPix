@@ -223,7 +223,7 @@ public abstract class SyncService extends Service {
     		final Cursor cur = ContactServices.getContact(resolver, selection);
     		if (!cur.moveToFirst()) {
     			Log.d(TAG, "Contact not found in database.");
-    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription());
+    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getBaseContext()));
     			resultsList.add(values);
     		}
     		else {
@@ -233,7 +233,7 @@ public abstract class SyncService extends Service {
     				Log.d(TAG, String.format("Multiple contacts found %d", cur.getCount()));
     				
     				if (skipIfConflict) {
-    					values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription());
+    					values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(getBaseContext()));
     					resultsList.add(values);
     					ok = false;
     				}
@@ -291,25 +291,25 @@ public abstract class SyncService extends Service {
 	    							}
 	    							else {
 	    								valuesCopy.put(Results.DESCRIPTION, 
-	    										ResultsDescription.SKIPPED_UNCHANGED.getDescription());
+	    										ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()));
 	    							}
 	    							
 	    							valuesCopy.put(Results.CONTACT_ID, id);
 	    						}
 	    						else {
 	    							valuesCopy.put(Results.DESCRIPTION, 
-	    									ResultsDescription.DOWNLOAD_FAILED.getDescription());
+	    									ResultsDescription.DOWNLOAD_FAILED.getDescription(getBaseContext()));
 	    							break;
 	    						}
 	    					}
 	    					else {
 	    						valuesCopy.put(Results.DESCRIPTION, 
-	    								ResultsDescription.SKIPPED_EXISTS.getDescription());
+	    								ResultsDescription.SKIPPED_EXISTS.getDescription(getBaseContext()));
 	    					}
 
     					}
     					catch (Exception e) {
-    						valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription());
+    						valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(getBaseContext()));
     					}
     					finally {
     						resultsList.add(valuesCopy);
@@ -328,7 +328,7 @@ public abstract class SyncService extends Service {
     		values.put(Results.SYNC_ID, id);
     		values.put(Results.NAME, name);
     		values.put(Results.PIC_URL, url);
-    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
+    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getBaseContext()));
     		
     		return values;
         }

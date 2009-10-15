@@ -182,11 +182,11 @@ public class SyncResults extends Activity {
 					if (url != null) {
 						menu.setHeaderTitle(name);
 						if (id != null) {
-							menu.add(0, CONTEXTMENU_VIEW_CONTACT, Menu.NONE, "View synced contact");
-							menu.add(0, CONTEXTMENU_CROP, Menu.NONE, "Crop picture");
+							menu.add(0, CONTEXTMENU_VIEW_CONTACT, Menu.NONE, R.string.syncresults_menu_viewsynced);
+							menu.add(0, CONTEXTMENU_CROP, Menu.NONE, R.string.syncresults_menu_crop);
 						}
 						
-		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, "Add picture to contact");
+		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, R.string.syncresults_menu_addpicture);
 					}
 				}
 			}
@@ -213,7 +213,7 @@ public class SyncResults extends Activity {
 				
 				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
-						Toast.makeText(SyncResults.this, "Unable to resolve host. Do you have network connectivity?", Toast.LENGTH_LONG).show();
+						Toast.makeText(SyncResults.this, R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
 						break;
 				}
 			}
@@ -245,7 +245,7 @@ public class SyncResults extends Activity {
 		 item = menu.add(0, MENU_HELP, 0, "Help");
 		 item.setIcon(android.R.drawable.ic_menu_help);
 
-		 SubMenu options = menu.addSubMenu(0, MENU_FILTER, 0, "Filter Results");
+		 SubMenu options = menu.addSubMenu(0, MENU_FILTER, 0, R.string.syncresults_filterButton);
 		 options.add(0, MENU_FILTER_ALL, 0, "All");
 		 options.add(0, MENU_FILTER_ERROR, 0, "Errors");
 		 options.add(0, MENU_FILTER_NOTFOUND, 0, "Not found");
@@ -254,7 +254,7 @@ public class SyncResults extends Activity {
 		 
 		 options.setIcon(android.R.drawable.ic_menu_sort_alphabetically);
 
-		 item = menu.add(0, MENU_DELETE, 0, "Delete");
+		 item = menu.add(0, MENU_DELETE, 0, R.string.syncresults_deleteButton);
 		 item.setIcon(android.R.drawable.ic_menu_delete);
 		 
 		 return true;
@@ -273,20 +273,20 @@ public class SyncResults extends Activity {
 			 adapter.getFilter().filter(null);
 			 return true;
 		 case MENU_FILTER_ERROR:
-			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription() + "'," +
-					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription() + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription(this) + "'," +
+					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription(this) + "'");
 			 return true;
 		 case MENU_FILTER_NOTFOUND:
-			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription() + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription(this) + "'");
 			 return true;
 		 case MENU_FILTER_UPDATED:
-			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription() + "'," +
-					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription() + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription(this) + "'," +
+					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription(this) + "'");
 			 return true;
 		 case MENU_FILTER_SKIPPED:
-			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription() + "'," +
-					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription() + "'," +
-					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription() + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription(this) + "'," +
+					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription(this) + "'," +
+					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(this) + "'");
 			 return true;
 			 
 		 case MENU_DELETE:
@@ -463,7 +463,7 @@ public class SyncResults extends Activity {
 							cache.add(url, bitmap);
 							
 							ContentValues values = new ContentValues();
-							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription());
+							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getBaseContext()));
 							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
 							
 							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
@@ -577,7 +577,7 @@ public class SyncResults extends Activity {
 			case LOADING_DIALOG:
 				ProgressDialog progress = new ProgressDialog(this);
 				progress.setCancelable(true);
-				progress.setMessage("Loading...");
+				progress.setMessage(getString(R.string.syncresults_loadingDialog));
 				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return progress;
 			case ZOOM_PIC:
@@ -585,12 +585,12 @@ public class SyncResults extends Activity {
 			case UPDATE_CONTACT:
 				ProgressDialog sync = new ProgressDialog(this);
 				sync.setCancelable(false);
-				sync.setMessage("Syncing contact...");
+				sync.setMessage(getString(R.string.syncresults_syncDialog));
 				sync.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return sync;
 			case HELP_DIALOG:
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Help")
+				builder.setTitle(R.string.syncresults_helpDialog)
 					   .setIcon(android.R.drawable.ic_dialog_info)
 					   .setMessage(R.string.results_help_msg)
 				       .setCancelable(false)
@@ -604,9 +604,9 @@ public class SyncResults extends Activity {
 				
 			case DELETE_DIALOG:
 				AlertDialog.Builder deleteBuilder = new AlertDialog.Builder(this);
-				deleteBuilder.setTitle("Delete")
+				deleteBuilder.setTitle(R.string.syncresults_deleteDialog)
 					   .setIcon(android.R.drawable.ic_dialog_alert)
-					   .setMessage("Are you sure you want to delete all SyncMyPix pictures?")
+					   .setMessage(R.string.syncresults_deleteDialog_msg)
 				       .setCancelable(false)
 				       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				           public void onClick(DialogInterface dialog, int id) {
@@ -622,7 +622,7 @@ public class SyncResults extends Activity {
 										public void run() {
 											dismissDialog(DELETING);
 											Toast.makeText(SyncResults.this,
-													"All SyncMyPix pictures deleted", 
+													R.string.syncresults_deleted, 
 													Toast.LENGTH_LONG).show();
 											
 											finish();
@@ -646,7 +646,7 @@ public class SyncResults extends Activity {
 			case DELETING:
 				ProgressDialog deleting = new ProgressDialog(this);
 				deleting.setCancelable(false);
-				deleting.setMessage("Deleting all SyncMyPix pictures...");
+				deleting.setMessage(getString(R.string.syncresults_deletingDialog));
 				deleting.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return deleting;
 			
@@ -723,9 +723,9 @@ public class SyncResults extends Activity {
 	{
 		private Cursor cursor;
 		private final String where = Results.DESCRIPTION + " IN ('" +
-			ResultsDescription.UPDATED.getDescription() + "','" +
-			ResultsDescription.SKIPPED_UNCHANGED.getDescription() + "','" +
-			ResultsDescription.MULTIPLEPROCESSED.getDescription() + "')";
+			ResultsDescription.UPDATED.getDescription(getBaseContext()) + "','" +
+			ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()) + "','" +
+			ResultsDescription.MULTIPLEPROCESSED.getDescription(getBaseContext()) + "')";
 		
 		private boolean notified = false;
 		
@@ -867,7 +867,7 @@ public class SyncResults extends Activity {
 			if (cache.contains(url)) {
 				image.setImageBitmap(cache.get(url));
 			}
-			else if (description.equals(ResultsDescription.NOTFOUND.getDescription())) {
+			else if (description.equals(ResultsDescription.NOTFOUND.getDescription(getBaseContext()))) {
 				image.setImageResource(R.drawable.neutral_face);
 			}
 			else {

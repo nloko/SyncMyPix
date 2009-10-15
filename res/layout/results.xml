@@ -5,7 +5,7 @@
 	android:background="@drawable/background"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
-	<TextView android:text="Started" 
+	<TextView android:text="@string/syncresults.started" 
 		android:id="@+id/startedLabel" 
 		android:visibility="invisible"
 		android:layout_width="wrap_content" 
@@ -20,7 +20,7 @@
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" />
 
-	<TextView android:text="Completed" 
+	<TextView android:text="@string/syncresults.completed" 
 		android:id="@+id/completedLabel"
 		android:visibility="invisible"
 		android:layout_marginTop="4dip"
@@ -35,7 +35,7 @@
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" />
 
-	<TextView android:text="@string/resultsList" 
+	<TextView android:text="@string/syncresults.resultsList" 
 		android:id="@+id/resultsListHeader" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" 
@@ -50,6 +50,5 @@
 		android:layout_height="wrap_content" 
 		android:background="@android:color/transparent"
 		android:cacheColorHint="#00000000" />
-	
 	
 </LinearLayout>

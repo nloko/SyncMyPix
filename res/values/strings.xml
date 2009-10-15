@@ -24,12 +24,32 @@
     <string name="preferences.notloggedin">Not logged in</string>
     <string name="preferences.loggedin">Logged in</string>
     
-    <string name="syncButton">Sync</string>
-    <string name="settingsButton">Settings</string>
-    <string name="resultsButton">Results</string>
+    <string name="main.syncButton">Sync</string>
+    <string name="main.settingsButton">Settings</string>
+    <string name="main.resultsButton">Results</string>
+    <string name="main.logoutButton">Logout</string>
+    <string name="main.aboutButton">About</string>
+    <string name="main.friendsDialog">Getting friends from social network...</string>
+    <string name="main.syncDialog">Syncing contacts...</string>
     
     <string name="app_name">SyncMyPix</string>
     <string name="syncresults">Sync Results</string>
+    <string name="syncresults.started">Started</string>
+    <string name="syncresults.completed">Completed</string>
+    <string name="syncresults.resultsList">Social Network Friends</string>
+    <string name="syncresults.menu.viewsynced">View synced contact</string>
+    <string name="syncresults.menu.crop">Crop picture</string>
+    <string name="syncresults.menu.addpicture">Add picture to contact</string>
+    <string name="syncresults.networkerror">Unable to resolve host. Do you have network connectivity?</string>
+    <string name="syncresults.filterButton">Filter Results</string>
+    <string name="syncresults.deleteButton">Delete</string>
+    <string name="syncresults.loadingDialog">Loading...</string>
+    <string name="syncresults.syncDialog">Syncing contact...</string>
+    <string name="syncresults.helpDialog">Help</string>
+    <string name="syncresults.deleteDialog">Delete</string>
+    <string name="syncresults.deleteDialog.msg">Are you sure you want to delete all SyncMyPix pictures?</string>
+    <string name="syncresults.deletingDialog">Deleting all SyncMyPix pictures...</string>
+    <string name="syncresults.deleted">"All SyncMyPix pictures deleted"</string>
     
     <string name="facebooklogin">Login to Facebook</string>
     <string name="facebooklogin.urlError">Error parsing URL</string>
@@ -41,8 +61,15 @@
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.networkerror">No Internet connection available</string>
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
-    
-    <string name="resultsList">Social Network Friends</string>
+        
+    <string name="resultsdescription.notfound">Contact not found</string>
+    <string name="resultsdescription.updated">Picture updated</string>
+    <string name="resultsdescription.skippedexists">Skipped: non-SyncMyPix picture exists</string>
+    <string name="resultsdescription.skippedmultiplefound">Skipped: multiple contacts found</string>
+    <string name="resultsdescription.skippedunchanged">Skipped: no update required</string>
+    <string name="resultsdescription.multipleprocessed">Multiple contacts processed; verify results</string>
+    <string name="resultsdescription.downloadfailed">Picture download failed</string>
+    <string name="resultsdescription.error">Error occurred during processing</string>
     
     <string name="instructions">http://code.google.com/p/syncmypix/wiki/Instructions</string>
     <string name="issues">http://code.google.com/p/syncmypix/issues/list</string>

@@ -294,10 +294,10 @@ public class MainActivity extends Activity {
     	//item = menu.add(0, MENU_LOGIN, 0, "Login");
     	//item.setIcon(android.R.drawable.ic_menu_myplaces);
     	
-    	item = menu.add(0, MENU_LOGOUT, 0, "Logout");
+    	item = menu.add(0, MENU_LOGOUT, 0, R.string.main_logoutButton);
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	
-    	item = menu.add(0, MENU_ABOUT, 0, "About");
+    	item = menu.add(0, MENU_ABOUT, 0, R.string.main_aboutButton);
     	item.setIcon(android.R.drawable.ic_menu_help);
     	
     	return true;
@@ -334,7 +334,7 @@ public class MainActivity extends Activity {
 			case SYNC_PROGRESS:
 				progress = new ProgressDialog(MainActivity.this);
 				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				progress.setMessage("Syncing contacts...");
+				progress.setMessage(getString(R.string.main_syncDialog));
 				progress.setCancelable(false);
 				progress.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
 					
@@ -350,7 +350,7 @@ public class MainActivity extends Activity {
 			case FRIENDS_PROGRESS:
 				friendsProgress = new ProgressDialog(MainActivity.this);
 				friendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				friendsProgress.setMessage("Getting friends from social network...");
+				friendsProgress.setMessage(getString(R.string.main_friendsDialog));
 				friendsProgress.setCancelable(false);
 				return friendsProgress;
 				

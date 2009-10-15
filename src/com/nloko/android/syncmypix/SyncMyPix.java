@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
+import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -32,25 +33,26 @@ public final class SyncMyPix {
 	private SyncMyPix() {}
 	
 	public static enum ResultsDescription {
-		NOTFOUND (0, "Contact not found"),
-		UPDATED (1, "Picture updated"),
-		SKIPPED_EXISTS (2, "Skipped: non-SyncMyPix picture exists"),
-		SKIPPED_MULTIPLEFOUND (3, "Skipped: multiple contacts found"),
-		SKIPPED_UNCHANGED (4, "Skipped: no update required"),
-		MULTIPLEPROCESSED (5, "Multiple contacts processed; verify results"),
-		DOWNLOAD_FAILED (6, "Picture download failed"),
-		ERROR (7, "Error occurred during processing");
+		NOTFOUND (0, R.string.resultsdescription_notfound),
+		UPDATED (1, R.string.resultsdescription_updated),
+		SKIPPED_EXISTS (2, R.string.resultsdescription_skippedexists),
+		SKIPPED_MULTIPLEFOUND (3, R.string.resultsdescription_skippedmultiplefound),
+		SKIPPED_UNCHANGED (4, R.string.resultsdescription_skippedunchanged),
+		MULTIPLEPROCESSED (5, R.string.resultsdescription_multipleprocessed),
+		DOWNLOAD_FAILED (6, R.string.resultsdescription_downloadfailed),
+		ERROR (7, R.string.resultsdescription_error);
 		
 		private final int index;
-		private final String msg;
+		private final int msg;
 		
-		ResultsDescription(int index, String msg) {
+		ResultsDescription(int index, int msg) {
 			this.index = index;
 			this.msg = msg;
 		}
 		
-		public String getDescription() {
-			return msg;
+		public String getDescription(Context context) {
+			
+			return context != null ? context.getString(msg) : null;
 		}
 		
 		public int getIndex() {
