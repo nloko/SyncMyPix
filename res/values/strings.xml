@@ -1,20 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="source_prompt">Select a source</string>
-	<string name="schedule_prompt">Select a frequency</string>
-	<string name="skipHeader">Skip Settings</string>
-	<string name="matchingHeader">Match Settings</string>
-    <string name="skipIfExists">Skip if non-SyncMyPix picture exists</string>
-    <string name="skipIfConflict">Skip if multiple phone contacts found</string>
-    <string name="reverseNames">Reverse first and last name</string>
-    <string name="loginStatus.notloggedin">Not logged in</string>
-    <string name="loginStatus.loggedin">Logged in</string>
-    <string name="loginButton">Login</string>
-    <string name="startButton">Start</string>
+	<string name="preferences.picturesHeader">Pictures</string>
+	<string name="preferences.maxquality">Maximum Quality</string>
+	<string name="preferences.maxquality.summary">Download maximum resolution / size</string>
+	<string name="preferences.cropsquare">Crop</string>
+	<string name="preferences.cropsquare.summary">Crop a 96px square using midpoint of downloaded picture</string>
+	
+	<string name="preferences.sourceHeader">Sync Source</string>
+	<string name="preferences.source">Social Network</string>
+	<string name="preferences.source.summary">Select the social network you wish to sync contact pictures from</string>
+	<string name="preferences.schedule">Schedule</string>
+	<string name="preferences.schedule.summary">Select a frequency for scheduling</string>
+	
+	<string name="preferences.matchingHeader">Matching</string>
+    <string name="preferences.skipIfExists">Skip existing pictures</string>
+    <string name="preferences.skipIfExists.summary">Skip contact if their picture was not set by SyncMyPix</string>
+    <string name="preferences.skipIfConflict">Skip duplicate contacts</string>
+    <string name="preferences.skipIfConflict.summary">Skip when multiple contacts are found for a single social networking friend</string>
+    <string name="preferences.reverseNames">Reverse names</string>
+    <string name="preferences.reverseNames.summary">Reverse first and last name of social networking friend</string>
+    
+    <string name="preferences.loginstatus">Login Status</string>
+    <string name="preferences.notloggedin">Not logged in</string>
+    <string name="preferences.loggedin">Logged in</string>
+    
+    <string name="syncButton">Sync</string>
+    <string name="settingsButton">Settings</string>
+    <string name="resultsButton">Results</string>
+    
     <string name="app_name">SyncMyPix</string>
     <string name="syncresults">Sync Results</string>
+    
     <string name="facebooklogin">Login to Facebook</string>
     <string name="facebooklogin.urlError">Error parsing URL</string>
+    
     <string name="syncservice.started">SyncMyPix syncing started</string>
     <string name="syncservice.stopped">SyncMyPix finished syncing</string>
     <string name="syncservice.downloaderror">Error downloading from social network</string>
@@ -22,8 +41,9 @@
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.networkerror">No Internet connection available</string>
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
-    <string name="selectedName">Select a friend to view their picture and tap picture to zoom</string>
+    
     <string name="resultsList">Social Network Friends</string>
+    
     <string name="instructions">http://code.google.com/p/syncmypix/wiki/Instructions</string>
     <string name="issues">http://code.google.com/p/syncmypix/issues/list</string>
 	<string name="release_notes">http://code.google.com/p/syncmypix/wiki/ChangeLog</string>

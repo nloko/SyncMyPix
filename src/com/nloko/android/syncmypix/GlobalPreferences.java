@@ -107,7 +107,7 @@ public class GlobalPreferences extends PreferenceActivity {
         });
         
         if (MainActivity.isLoggedInFromSyncSource(getBaseContext(), MainActivity.getSyncSource(getBaseContext()))) {
-        	setLoginStatus(R.string.loginStatus_loggedin);
+        	setLoginStatus(R.string.preferences_loggedin);
         }
     }
 

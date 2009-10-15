@@ -5,54 +5,54 @@
      
      <EditTextPreference  
          android:key="loginStatus" 
-         android:title="Login Status"
-         android:summary="Not logged in"
+         android:title="@string/preferences.loginstatus"
+         android:summary="@string/preferences.notloggedin"
          android:enabled="false"  
          />  
-    <PreferenceCategory android:title="Sync Source">
+    <PreferenceCategory android:title="@string/preferences.sourceHeader" >
         <ListPreference
-            android:title="Social Network"
-            android:summary="Select the social network you wish to sync contact pictures from"
+            android:title="@string/preferences.source"
+            android:summary="@string/preferences.source.summary"
             android:key="source"
             android:defaultValue="com.nloko.android.syncmypix.facebook.FacebookSyncService"
             android:entries="@array/sources"
             android:entryValues="@array/sourceValues" />
             
         <ListPreference
-            android:title="Schedule"
-            android:summary="Select a frequency for scheduling"
+            android:title="@string/preferences.schedule"
+            android:summary="@string/preferences.schedule.summary"
             android:key="sched_freq"
             android:defaultValue="0"
             android:entries="@array/scheduleFreq"
             android:entryValues="@array/scheduleFreqValues" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Matching">
+    <PreferenceCategory android:title="@string/preferences.matchingHeader">
     	<CheckBoxPreference
-            android:title="Skip existing pictures"
+            android:title="@string/preferences.skipIfExists"
             android:defaultValue="true"
-            android:summary="Skip contact if their picture was not set by SyncMyPix"
+            android:summary="@string/preferences.skipIfExists.summary"
             android:key="skipIfExists" />
         <CheckBoxPreference
-            android:title="Skip duplicate contacts"
+            android:title="@string/preferences.skipIfConflict"
             android:defaultValue="false"
-            android:summary="Skip when multiple contacts are found for a single social networking friend"
+            android:summary="@string/preferences.skipIfConflict.summary"
             android:key="skipIfConflict" />
         <CheckBoxPreference
-            android:title="Reverse names"
+            android:title="@string/preferences.reverseNames"
             android:defaultValue="false"
-            android:summary="Reverse first and last name of social networking friend"
+            android:summary="@string/preferences.reverseNames.summary"
             android:key="reverseNames" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Pictures">
+    <PreferenceCategory android:title="@string/preferences.picturesHeader">
     	<CheckBoxPreference
-            android:title="Maximum Quality"
+            android:title="@string/preferences.maxquality"
             android:defaultValue="false"
-            android:summary="Download maximum resolution / size"
+            android:summary="@string/preferences.maxquality.summary"
             android:key="maxQuality" />
         <CheckBoxPreference
-            android:title="Crop"
+            android:title="@string/preferences.cropsquare"
             android:defaultValue="true"
-            android:summary="Crop a 96px square using midpoint of downloaded picture"
+            android:summary="@string/preferences.cropsquare.summary"
             android:key="cropSquare" />
     </PreferenceCategory>
     
