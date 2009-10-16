@@ -46,6 +46,22 @@ public final class Utils {
 
 	private Utils() {}
 	
+	public static String join(String[] array, char separator)
+	{
+		if (array == null) {
+			return null;
+		}
+		
+		StringBuffer sb = new StringBuffer();
+		
+		for(int i = 0; i < array.length; i++) {
+			sb.append(array[i]);
+			sb.append(separator);
+		}
+		
+		return sb.toString();
+	}
+	
 	public static boolean hasInternetConnection(Context context)
 	{
 		if (context == null) {

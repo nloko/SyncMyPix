@@ -50,7 +50,9 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.SystemClock;
+import android.os.PowerManager.WakeLock;
 import android.provider.Contacts.People;
 import android.widget.Toast;
 
@@ -79,20 +81,20 @@ public abstract class SyncService extends Service {
 			}
 		};
 		
-		public final Runnable finishResults = new Runnable () {
+		public final Runnable finish = new Runnable () {
 			public void run() {
 				
 				resultsList.clear();
 				
-				long time = SystemClock.elapsedRealtime() + 120 * 1000;
+/*				long time = SystemClock.elapsedRealtime() + 120 * 1000;
 				
 	            // Schedule the alarm!
 	            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
 	            am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-	                            time, alarmSender);
+	                            time, alarmSender);*/
 	
+				wakeLock.release();
 	            stopSelf();
-	
 			}
 		};
 		
@@ -172,7 +174,7 @@ public abstract class SyncService extends Service {
 			
 			Log.d(TAG, "Finished updating results at " + Long.toString(System.currentTimeMillis()));
 			
-			mainHandler.post(mainHandler.finishResults);
+			mainHandler.post(mainHandler.finish);
 		}
     }
     
@@ -430,7 +432,7 @@ public abstract class SyncService extends Service {
 	private NotificationManager notifyManager;
 	
     private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
-    private PendingIntent alarmSender;
+    //private PendingIntent alarmSender;
 	
     protected boolean skipIfExists;
     protected boolean skipIfConflict;
@@ -449,11 +451,23 @@ public abstract class SyncService extends Service {
     	cropSquare = prefs.getCropSquare();
     }
     
+    private WakeLock wakeLock;
+    
     @Override
-	public void onStart(Intent intent, int startId) {
-    	
-    	super.onStart(intent, startId);
+	public void onCreate() {
+		super.onCreate();
 		
+		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
+	}
+
+	@Override
+	public void onStart(Intent intent, int startId) {
+    	super.onStart(intent, startId);
+
+    	// keep CPU alive until we're done
+    	wakeLock.acquire();
+    	
 		executing = true;
 		started = true;
 		cancel = false;
@@ -464,10 +478,10 @@ public abstract class SyncService extends Service {
 		notifyManager.cancel(R.string.syncservice_stopped);
 		
 		showNotification(R.string.syncservice_started, android.R.drawable.stat_sys_download);
-		launchProgress();
+		//launchProgress();
 		
-		alarmSender = PendingIntent.getService(getBaseContext(),
-                0, new Intent(getBaseContext(), HashUpdateService.class), 0);
+//		alarmSender = PendingIntent.getService(getBaseContext(),
+//                0, new Intent(getBaseContext(), HashUpdateService.class), 0);
 
 	}
 
@@ -511,11 +525,11 @@ public abstract class SyncService extends Service {
         notifyManager.notify(msg, notification);
     }
     
-    private void launchProgress()
+/*    private void launchProgress()
     {
     	Intent i = new Intent(this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    }
+    }*/
     
     private void showError (int msg)
     {
