@@ -30,6 +30,7 @@ import android.app.AlarmManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -69,6 +70,22 @@ public class GlobalPreferences extends PreferenceActivity {
     	addPreferencesFromResource(R.layout.preferences);	
     	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
 
+    	final CheckBoxPreference intelliMatch = (CheckBoxPreference) findPreference("intelliMatch");
+    	final CheckBoxPreference firstNames = (CheckBoxPreference) findPreference("firstNames");
+    	if (intelliMatch.isChecked()) {
+    		firstNames.setEnabled(true);
+    	}
+    	
+    	intelliMatch.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+
+			public boolean onPreferenceChange(Preference preference,
+					Object newValue) {
+				firstNames.setEnabled((Boolean)newValue);
+				return true;
+			}
+    		
+    	});
+    	
     	int freq = getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
     	

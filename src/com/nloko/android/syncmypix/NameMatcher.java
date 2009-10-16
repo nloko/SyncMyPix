@@ -36,63 +36,97 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
 
-import android.util.Log;
+import android.content.Context;
+import android.database.Cursor;
+import android.provider.Contacts.People;
 
 public class NameMatcher {
+	
+	public final class PhoneContact implements Comparable<PhoneContact> {
+		
+		public PhoneContact(String id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+		
+		String id;
+		String name;
+		
+		public int compareTo(PhoneContact another) {
+			return name.compareTo(another.name);
+		}
+	}
+	
     static private final String TAG = "NameMatcher";
     
-    private TreeMap<String, ArrayList<SocialNetworkUser>> mFirstNames, mLastNames;
-    private HashMap<Object, ArrayList<SocialNetworkUser>> mNickNames;
+    private TreeMap<String, ArrayList<PhoneContact>> mFirstNames, mLastNames;
+    private HashMap<Object, ArrayList<PhoneContact>> mNickNames;
     private HashMap<String, Object> mDiminutives;
     
-    private static void log(String s) {
-        if (false) Log.i(TAG, s);
-    }
-    
-    public NameMatcher(List<SocialNetworkUser> users, InputStream diminutives) throws Exception {
-    	this((SocialNetworkUser[])users.toArray(), diminutives);
-    }
-    
-    public NameMatcher(SocialNetworkUser[] users, InputStream diminutives) throws Exception {
+    public NameMatcher(Context context, InputStream diminutives) throws Exception {
         loadDiminutives(diminutives);
         // Build data structures for the first and last names, so we can
         // efficiently do partial matches (eg "Rob" -> "Robert").
-        mFirstNames = new TreeMap<String, ArrayList<SocialNetworkUser>>();
-        mLastNames = new TreeMap<String, ArrayList<SocialNetworkUser>>();
-        mNickNames = new HashMap<Object, ArrayList<SocialNetworkUser>>();
-        for (int i = 0; i < users.length; i++) {
-            if (users[i] == null)
-                throw new Exception("Internal error: user " + i + " was null in NameMatcher c'tor");
-            String name = normalizeName( users[i].name);
-            String[] components = name.split(" ");
+        
+		Cursor cursor = context.getContentResolver().query(People.CONTENT_URI, 
+				new String[] { People._ID, People.NAME }, 
+				null, 
+				null, 
+				null);
+		
+
+		
+        mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();
+        mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();
+        mNickNames = new HashMap<Object, ArrayList<PhoneContact>>();
+        
+        while(cursor.moveToNext()) {
+        	
+    		String id = cursor.getString(cursor.getColumnIndex(People._ID));
+    		String name = cursor.getString(cursor.getColumnIndex(People.NAME));
+    		
+    		PhoneContact contact = new PhoneContact(id, name);
+    		
+//            if (users[i] == null)
+//                throw new Exception("Internal error: user " + i + " was null in NameMatcher c'tor");
+            
+    		name = normalizeName(name);
+    		if (name == null) {
+    			continue;
+    		}
+            
+    		String[] components = name.split(" ");
             String fname = components[0];
             String lname = components[components.length - 1];
             
             if (mFirstNames.get(fname) == null)
-                mFirstNames.put(fname, new ArrayList<SocialNetworkUser>(3));
-            mFirstNames.get(fname).add(users[i]);
-            log("added " + fname + " to mFirstNames = " + users[i]);
+                mFirstNames.put(fname, new ArrayList<PhoneContact>(3));
+            mFirstNames.get(fname).add(contact);
+            Log.d(TAG, "added " + fname + " to mFirstNames = " + contact.name);
             
             if (mLastNames.get(lname) == null)
-                mLastNames.put(lname, new ArrayList<SocialNetworkUser>(3));
-            mLastNames.get(lname).add(users[i]);
+                mLastNames.put(lname, new ArrayList<PhoneContact>(3));
+            mLastNames.get(lname).add(contact);
             
             // See below for a description of sentinels and diminutives.
             Object sentinel = mDiminutives.get(fname);
             if (sentinel != null) {
                 if (mNickNames.get(sentinel) == null) {
-                    mNickNames.put(sentinel, new ArrayList<SocialNetworkUser>(3));
+                    mNickNames.put(sentinel, new ArrayList<PhoneContact>(3));
                 }
-                log("linking " + sentinel + " with " + users[i].name);
-                mNickNames.get(sentinel).add(users[i]);
+                Log.d(TAG, "linking " + sentinel + " with " + contact.name);
+                mNickNames.get(sentinel).add(contact);
             }
         }
     }
@@ -144,7 +178,7 @@ public class NameMatcher {
                         // This happens if a name is shared between more than two
                         // lines. This is rare so just merge them down to two by 
                         // hand.
-                        log("THREE LINE CONFLICT  " + sentinel + " " + mDiminutives.get(names[i]));
+                        Log.d(TAG, "THREE LINE CONFLICT  " + sentinel + " " + mDiminutives.get(names[i]));
                     } else {
                         mDiminutives.put(names[i], sentinel);
                     }
@@ -170,6 +204,10 @@ public class NameMatcher {
         // Lower case the name, and replace non-English characters with their
         // English equivalents, as some people won't bother to type accents in
         // their friends names. Also strip stuff in brackets and delete commas.
+    	if (name == null) {
+    		return null;
+    	}
+    	
         StringBuffer newName = new StringBuffer(name.toLowerCase().trim());
         final String badChars  = "���������������������������,";
         final String goodChars = "aeiouaeiouaeiouaeiounoacsoa ";
@@ -201,89 +239,144 @@ public class NameMatcher {
         return newName.toString();
     }
     
-
+    private String[] reverse(String[] components) {
+    	String[] reversedComponents = new String[components.length];
+        for (int i = 0; i < components.length; i++)
+            reversedComponents[i] = components[components.length - 1 - i];
+        return reversedComponents;
+    }
+    
+    public PhoneContact exactMatch(String name) {
+    	return exactMatch(name, false);
+    }
+    
+    private PhoneContact exactMatch(String name, boolean reverse) {
+    	if (name == null) {
+    		return null;
+    	}
+    	
+    	String[] components = normalizeName(name).split(" ");
+    	
+        if (reverse) {
+            components = reverse(components);
+        }
+        
+        ArrayList<PhoneContact> possibilities = mFirstNames.get(components[0]);
+        if (possibilities != null) {
+            Log.d(TAG, "prefix match from " + components[0] + " to ");
+            for (PhoneContact u : possibilities) {
+                Log.d(TAG, "   " + u.name);
+                
+                String[] matchParts = normalizeName(u.name).split(" ");
+                String lname = matchParts[matchParts.length - 1];
+                
+                if (lname != null && lname.equals(components[components.length - 1])) {
+                	return u;
+                }
+            }
+        }
+        
+        if (!reverse) {
+        	return exactMatch(name, true);
+        }
+        
+        return null;
+    }
+    
     // Takes a name from the local contact list and tries to find the right
-    // SocialNetworkUser for it.
-    public SocialNetworkUser match(String name, boolean firstNameOnlyMatches) {
+    // PhoneContact for it.
+    public PhoneContact match(String name, boolean firstNameOnlyMatches) {
         return match(name, firstNameOnlyMatches, false);
     }
     
-    private SocialNetworkUser match(String name, boolean firstNameOnlyMatches, boolean reverse) {
+    private PhoneContact match(String name, boolean firstNameOnlyMatches, boolean reverse) {
+    	if (name == null) {
+    		return null;
+    	}
+    	
         // Select exact first/last name matches
         String[] components = normalizeName(name).split(" ");
         
         if (reverse) {
-            String[] reversedComponents = new String[components.length];
-            for (int i = 0; i < components.length; i++)
-                reversedComponents[i] = components[components.length - 1 - i];
-            components = reversedComponents;
+            components = reverse(components);
         }
         
-        log("Trying to match: " + Utils.join(components, ' '));
+        Log.d(TAG, "Trying to match: " + Utils.join(components, ' '));
         
         // Compile all the possibilities based on first name match only.
-        HashSet<SocialNetworkUser> possibilities = new HashSet<SocialNetworkUser>(5);
-        possibilities.addAll(prefixMatch(components[0], mFirstNames));
-        if (possibilities.size() > 0) {
-            log("prefix match from " + components[0] + " to ");
-            for (SocialNetworkUser u : possibilities) 
-                log("   " + u.name);
+        //TreeSet<PhoneContact> possibilities = getRecycledTreeSet();
+        //possibilities.addAll(prefixMatch(components[0], mFirstNames));
+        ArrayList<PhoneContact> fnameMatches = mFirstNames.get(components[0]);
+        if (fnameMatches == null) {
+        	fnameMatches = new ArrayList<PhoneContact>(3);
         }
         
-        ArrayList<SocialNetworkUser> matches = nicknameMatch(components[0]);
+        //possibilities.addAll(fnameMatches);
+        TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(fnameMatches);
+        if (possibilities.size() > 0) {
+            Log.d(TAG, "prefix match from " + components[0] + " to ");
+            for (PhoneContact u : possibilities) 
+                Log.d(TAG, "   " + u.name);
+        }
+        
+        ArrayList<PhoneContact> matches = nicknameMatch(components[0]);
         if (matches != null) { 
             if (matches.size() > 1) {
-                log("multiple nickname matches:");
-                for (SocialNetworkUser temp : matches) log("   " + temp.name);
+                Log.d(TAG, "multiple nickname matches:");
+                for (PhoneContact temp : matches) Log.d(TAG, "   " + temp.name);
             } else if (matches.size() == 1) {
-                log("nickname matched " + components[0] + " to " + matches.get(0).name);
+                Log.d(TAG, "nickname matched " + components[0] + " to " + matches.get(0).name);
             } 
             possibilities.addAll(matches);
         } else 
-            log("no nickname matches");
+            Log.d(TAG, "no nickname matches");
         
         if (possibilities.size() > 0) {
             // We have at least one match on first name.
             if (components.length > 1) {
                 // Pick the first which does not violate the last name.
-                for (SocialNetworkUser possibility : possibilities) {
+                for (PhoneContact possibility : possibilities) {
                     String[] matchParts = normalizeName(possibility.name).split(" ");
                     String lname = matchParts[matchParts.length - 1];
-                    if (lname.startsWith(components[components.length - 1])) {
-                        log("matched " + name + " to " + possibility.name);
+                    if (lname.startsWith(components[components.length - 1]) ||
+                    		components[components.length - 1].startsWith(lname)) {
+                        Log.d(TAG, "matched " + name + " to " + possibility.name);
                         return possibility;
                     }
                 }
-                log("all inexact first name matches violated last name constraints");
-            } else if (firstNameOnlyMatches) {
+                Log.d(TAG, "all inexact first name matches violated last name constraints");
+            } if (firstNameOnlyMatches) {
                 if (possibilities.size() == 1) {
                     // We only have a first name in the contacts list, but 
                     // only one possibility from Facebook. So that's our answer.
-                    SocialNetworkUser answer = possibilities.iterator().next(); 
-                    log("only one possibility, matched " + name + " to " + answer.name);
-                    return answer;
+                    PhoneContact answer = possibilities.iterator().next(); 
+                    // only return if no last name
+                    if (answer.name.split(" ").length == 1) {
+                    	Log.d(TAG, "only one possibility, matched " + name + " to " + answer.name);
+                    	return answer;
+                    }
                 } else {
                     // Check for an exact first name match.
                     // Otherwise we can't match "Mike" -> "Mike Hearn" if there
                     // is also a "Michael Douglas" in the friends list, because
                     // "Mike" will be expanded to match both people, even though
                     // it's probably the first friend.
-                    ArrayList<SocialNetworkUser> exactMatches;
+/*                    ArrayList<PhoneContact> exactMatches;
                     exactMatches = mFirstNames.get(components[0]);
                     if (exactMatches != null && exactMatches.size() == 1) {
-                        log("exact first name match " + components[0] + " to " + exactMatches.get(0).name);
+                        Log.d(TAG, "exact first name match " + components[0] + " to " + exactMatches.get(0).name);
                         return exactMatches.get(0);
                     }
-                    log("first name matched multiple people and there is no disambiguating last name");
+                    Log.d(TAG, "first name matched multiple people and there is no disambiguating last name");*/
                 }
             }
         }
         
         // Accept only a last name, eg "Dunlop" -> "Paul Dunlop" when unambiguous.
         if (components.length == 1) {
-            ArrayList<SocialNetworkUser> users = mLastNames.get(components[0]);
+            ArrayList<PhoneContact> users = mLastNames.get(components[0]);
             if (users != null && users.size() == 1) {
-                log("exact last name match: " + users.get(0).name);
+                Log.d(TAG, "exact last name match: " + users.get(0).name);
                 return users.get(0);
             }
         } else if (!reverse) {
@@ -292,11 +385,24 @@ public class NameMatcher {
             return match(name, firstNameOnlyMatches, true);
         }
         
-        log("No match found for " + name);
+        Log.d(TAG, "No match found for " + name);
         return null;
     }
     
-    private ArrayList<SocialNetworkUser> nicknameMatch(String nickname) {
+    // HACK...not even sure if this helps any
+    private TreeSet<PhoneContact> mPossibilities;
+    private TreeSet<PhoneContact> getRecycledTreeSet() {
+    	if (mPossibilities == null) {
+    		mPossibilities = new TreeSet<PhoneContact>();
+    	}
+    	else {
+    		mPossibilities.clear();
+    	}
+    	
+    	return mPossibilities;
+    }
+    
+    private ArrayList<PhoneContact> nicknameMatch(String nickname) {
         Object sentinel = mDiminutives.get(nickname);
         if (sentinel == null) 
             return null;
@@ -305,18 +411,18 @@ public class NameMatcher {
     }
     
     // Tries to use prefix matching to find a match, eg "rob" -> "robert".
-    private ArrayList<SocialNetworkUser> prefixMatch(String part, TreeMap<String, ArrayList<SocialNetworkUser>> map) {
-        ArrayList<SocialNetworkUser> results = new ArrayList<SocialNetworkUser>(3);
+    private ArrayList<PhoneContact> prefixMatch(String part, TreeMap<String, ArrayList<PhoneContact>> map) {
+        ArrayList<PhoneContact> results = new ArrayList<PhoneContact>(3);
         String startKey = part;
         StringBuffer endKey = new StringBuffer(startKey);
         endKey.setCharAt(startKey.length() - 1, (char) (startKey.charAt(startKey.length() - 1) + 1));
         // eg, select from "mike" to "mikf"
-        SortedMap<String, ArrayList<SocialNetworkUser>> selection = map.subMap(startKey, endKey.toString());
+        SortedMap<String, ArrayList<PhoneContact>> selection = map.subMap(startKey, endKey.toString());
         for (String s : selection.keySet()) {
             if (s.startsWith(part)) {
                 results.addAll(selection.get(s));
             } else {
-                log("unexpected: " + s + ", " + part);
+                Log.d(TAG, "unexpected: " + s + ", " + part);
             }
         }
         return results;
@@ -324,27 +430,27 @@ public class NameMatcher {
     
     
 /*    // TODO: Convert this to a JUnit test when figured out how.
-    static private void test(NameMatcher m, String name, SocialNetworkUser user) {
-        SocialNetworkUser res = m.match(name, true); 
+    static private void test(NameMatcher m, String name, PhoneContact user) {
+        PhoneContact res = m.match(name, true); 
         if (res != user) 
             System.out.println(" **** Failed NameMatcher test: " + name + " should have been " + (user == null ? "null" : user.name) + " but was actually " + (res == null ? "null" : res.name));
     }
     static public void unitTest(InputStream diminutivesFile) {
-        SocialNetworkUser theresia = new SocialNetworkUser("1", "Theresia Paul", "", "");
-        SocialNetworkUser alejandro = new SocialNetworkUser("2", "Alejandro Cuervo", "", "");
-        SocialNetworkUser tala = new SocialNetworkUser("3", "Tala von Daniken", "", "");
-        SocialNetworkUser paul = new SocialNetworkUser("4", "Paul Dunlop", "", "");
-        SocialNetworkUser andre = new SocialNetworkUser("5", "Andrea Beltr�n", "", "");
-        SocialNetworkUser joanna1 = new SocialNetworkUser("6", "Joanna Frisch", "", "");
-        SocialNetworkUser joanna2 = new SocialNetworkUser("7", "Joanna Something", "", "");
-        SocialNetworkUser stribb = new SocialNetworkUser("8", "Andrew Stribblehill", "", "");
-        SocialNetworkUser rob = new SocialNetworkUser("9", "Robert Cook", "", "");
-        SocialNetworkUser prince = new SocialNetworkUser("10", "Prince", "", "");
-        SocialNetworkUser rob2 = new SocialNetworkUser("11", "Robert Second", "", "");
-        SocialNetworkUser rob3 = new SocialNetworkUser("12", "John Robert", "", "");
-        SocialNetworkUser alex1 = new SocialNetworkUser("13", "Alexandra One", "", "");
-        SocialNetworkUser ellie = new SocialNetworkUser("14", "Ellie Two", "", "");
-        SocialNetworkUser[] users = { theresia, alejandro, tala, paul, andre, 
+        PhoneContact theresia = new PhoneContact("1", "Theresia Paul", "", "");
+        PhoneContact alejandro = new PhoneContact("2", "Alejandro Cuervo", "", "");
+        PhoneContact tala = new PhoneContact("3", "Tala von Daniken", "", "");
+        PhoneContact paul = new PhoneContact("4", "Paul Dunlop", "", "");
+        PhoneContact andre = new PhoneContact("5", "Andrea Beltr�n", "", "");
+        PhoneContact joanna1 = new PhoneContact("6", "Joanna Frisch", "", "");
+        PhoneContact joanna2 = new PhoneContact("7", "Joanna Something", "", "");
+        PhoneContact stribb = new PhoneContact("8", "Andrew Stribblehill", "", "");
+        PhoneContact rob = new PhoneContact("9", "Robert Cook", "", "");
+        PhoneContact prince = new PhoneContact("10", "Prince", "", "");
+        PhoneContact rob2 = new PhoneContact("11", "Robert Second", "", "");
+        PhoneContact rob3 = new PhoneContact("12", "John Robert", "", "");
+        PhoneContact alex1 = new PhoneContact("13", "Alexandra One", "", "");
+        PhoneContact ellie = new PhoneContact("14", "Ellie Two", "", "");
+        PhoneContact[] users = { theresia, alejandro, tala, paul, andre, 
                                  joanna1, joanna2, stribb, rob, prince,
                                  rob2, rob3, alex1, ellie };
         

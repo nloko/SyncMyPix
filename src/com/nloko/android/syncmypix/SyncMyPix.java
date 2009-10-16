@@ -40,7 +40,8 @@ public final class SyncMyPix {
 		SKIPPED_UNCHANGED (4, R.string.resultsdescription_skippedunchanged),
 		MULTIPLEPROCESSED (5, R.string.resultsdescription_multipleprocessed),
 		DOWNLOAD_FAILED (6, R.string.resultsdescription_downloadfailed),
-		ERROR (7, R.string.resultsdescription_error);
+		ERROR (7, R.string.resultsdescription_error),
+		PICNOTFOUND (8, R.string.resultsdescription_picnotfound);
 		
 		private final int index;
 		private final int msg;

@@ -8,7 +8,7 @@ alejo,alejandro
 alf,alfred,alfredo,alfie
 alison,alice,allie
 andy,andrew,andrea,andie,drew
-angie,angelia
+angie,angela,angelia
 annie,anne,annette
 babette,barbara,elizabeth,babs,barbara
 barney,barnaby,bernard,barnie
@@ -19,7 +19,7 @@ belle,isabelle
 ben,benjamin,benny
 bessie,elizabeth,beth,betsy,betty
 bill,william,billie,billy
-bob,robert,bobbie,bobby
+bob,robert,bobbie,bobby,rob
 brad,bradley
 cal,calvin
 carrie,caroline,carolyn

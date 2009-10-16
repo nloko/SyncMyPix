@@ -19,6 +19,10 @@
     <string name="preferences.skipIfConflict.summary">Skip when multiple contacts are found for a single social networking friend</string>
     <string name="preferences.reverseNames">Reverse names</string>
     <string name="preferences.reverseNames.summary">Reverse first and last name of social networking friend</string>
+    <string name="preferences.intelliMatch">Smart name matching</string>
+    <string name="preferences.intelliMatch.summary">Use heuristics ie. common names, last initial, reverse names, etc.</string>
+    <string name="preferences.firstNames">First name only</string>
+    <string name="preferences.firstNames.summary">Match on first name only, if unambiguous</string>
     
     <string name="preferences.loginstatus">Login Status</string>
     <string name="preferences.notloggedin">Not logged in</string>
@@ -70,11 +74,14 @@
     <string name="resultsdescription.multipleprocessed">Multiple contacts processed; verify results</string>
     <string name="resultsdescription.downloadfailed">Picture download failed</string>
     <string name="resultsdescription.error">Error occurred during processing</string>
+    <string name="resultsdescription.picnotfound">Picture not found</string>
     
+    <string name="contributors">http://code.google.com/p/syncmypix/wiki/Contributors</string>
     <string name="instructions">http://code.google.com/p/syncmypix/wiki/Instructions</string>
     <string name="issues">http://code.google.com/p/syncmypix/issues/list</string>
 	<string name="release_notes">http://code.google.com/p/syncmypix/wiki/ChangeLog</string>
 	<string name="faq">http://code.google.com/p/syncmypix/wiki/FAQ</string>
 	<string name="results_help_msg"><b>Select</b> a friend to view their profile picture, or <b>long press</b> for more options</string>
 	<string name="about_info">Press <b>MENU</b> for other actions</string>
+	
 </resources>

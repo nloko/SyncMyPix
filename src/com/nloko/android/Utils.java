@@ -25,8 +25,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -227,6 +227,9 @@ public final class Utils {
 	
 	public static Bitmap downloadPictureAsBitmap (String url) throws IOException
 	{
+		// quit after a minute
+		final int timeout = 30000;
+		
 		if (url == null) {
     		throw new IllegalArgumentException ("url");
     	}
@@ -234,9 +237,11 @@ public final class Utils {
     	Bitmap image = null;
     	try {
 	    	URL fetchUrl = new URL(url);
-	    	HttpURLConnection conn = (HttpURLConnection) fetchUrl.openConnection();
-	    	InputStream stream = conn.getInputStream();
+	    	URLConnection conn = (URLConnection) fetchUrl.openConnection();
+	    	conn.setConnectTimeout(timeout);
+	    	conn.setReadTimeout(timeout);
 	    	
+	    	InputStream stream = conn.getInputStream();
 	    	image = BitmapFactory.decodeStream(stream);
     	}
 	    catch (IOException ex) {

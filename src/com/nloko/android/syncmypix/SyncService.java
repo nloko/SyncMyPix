@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
+import com.nloko.android.syncmypix.NameMatcher.PhoneContact;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
@@ -183,9 +184,9 @@ public abstract class SyncService extends Service {
     	private final SyncMyPixDbHelper dbHelper = new SyncMyPixDbHelper(getBaseContext());
     	
     	private final ContentResolver resolver = getContentResolver();
-    	private final StringBuilder sb = new StringBuilder();
+    	//private final StringBuilder sb = new StringBuilder();
     	    	
-        private void processUser(SocialNetworkUser user, Uri sync) 
+        private void processUser(SocialNetworkUser user, String contactId, Uri sync) 
         {
     		if (user == null) {
     			throw new IllegalArgumentException ("user");
@@ -195,39 +196,47 @@ public abstract class SyncService extends Service {
     			throw new IllegalArgumentException ("sync");
     		}
     		
-    		sb.delete(0, sb.length());
+    		/*sb.delete(0, sb.length());
     		sb.append(user.firstName);
     		sb.append(" ");
     		sb.append(user.lastName);
     		
     		// escape single quotes for SQL
-    		final String name = sb.toString().replace("'", "''");
-    		Log.d(TAG, String.format("%s %s", name, user.picUrl));
+    		final String name = sb.toString().replace("'", "''"); */
+    		Log.d(TAG, String.format("%s %s", user.name, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
     		
-    		ContentValues values = createResult(syncId, name, user.picUrl);
+    		ContentValues values = createResult(syncId, user.name, user.picUrl);
     		
     		if (user.picUrl == null) {
-    			values.put(Results.DESCRIPTION, "Picture not found");
+    			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(getBaseContext()));
     			resultsList.add(values);
     			return;
     		}
     		
-    		final String selection;
+    		if (contactId == null) {
+    			Log.d(TAG, "Contact not found in database.");
+    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getBaseContext()));
+    			resultsList.add(values);
+    			return;
+    		}
+    		
+/*    		final String selection;
     		if (!reverseNames) {
     			selection = Utils.buildNameSelection(People.NAME, user.firstName, user.lastName);
     		}
     		else {
     			selection = Utils.buildNameSelection(People.NAME, user.lastName, user.firstName);
-    		}
+    		}*/
     		
-    		final Cursor cur = ContactServices.getContact(resolver, selection);
-    		if (!cur.moveToFirst()) {
+    		//final Cursor cur = ContactServices.getContact(resolver, selection);
+    		/* if (!cur.moveToFirst()) {
     			Log.d(TAG, "Contact not found in database.");
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getBaseContext()));
     			resultsList.add(values);
     		}
+    		
     		else {
     			boolean ok = true;
     			
@@ -239,89 +248,87 @@ public abstract class SyncService extends Service {
     					resultsList.add(values);
     					ok = false;
     				}
-    			}
+    			}*/
     			
-    			if (ok) {
+    			//if (ok) {
     				
-    				InputStream is = null;
-    				Bitmap bitmap = null;
-    				byte[] image = null;
-    				
-    				String contactHash = null;
-    				String hash = null;
+    		InputStream is = null;
+    		Bitmap bitmap = null;
+    		byte[] image = null;
 
-    				do {
-    					//ContentValues is an immutable object
-    					ContentValues valuesCopy = new ContentValues(values);
-    					
-    					try {
-	    					String id = cur.getString(cur.getColumnIndex(People._ID));
-	    					DBHashes hashes = dbHelper.getHashes(id);
-	    					
-	    					Uri contact = Uri.withAppendedPath(People.CONTENT_URI, id);
-	    	        		is = People.openContactPhotoInputStream(resolver, contact);
-	    	        		// photo is set, so let's get its hash
-	    	        		if (is != null) {
-	    	        			contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
-	    	        		}
-	    	        		
-	    					if (dbHelper.isSyncablePicture(id, hashes.updatedHash, contactHash, skipIfExists)) {
-	    							
-	    						if (image == null) {
-	    							try {
-	    								bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
-	    								image = Utils.bitmapToJpeg(bitmap, 100);
-	    								hash = Utils.getMd5Hash(image);
-	    							}
-	    							catch (Exception e) {}
-	    						}
-	    	
-	    						if (image != null) {
-	    							// picture is a new one and we should sync it
-	    							if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
-	    								
-	    								String updatedHash = hash;
-	    								
-	    								if (cropSquare) {
-	    									bitmap = Utils.centerCrop(bitmap, 96, 96);
-	    									image = Utils.bitmapToJpeg(bitmap, 100);
-	    									updatedHash = Utils.getMd5Hash(image);
-	    								}
-	    								
-		    							ContactServices.updateContactPhoto(getContentResolver(), image, id);
-		    							dbHelper.updateHashes(id, hash, updatedHash);
-	    							}
-	    							else {
-	    								valuesCopy.put(Results.DESCRIPTION, 
-	    										ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()));
-	    							}
-	    							
-	    							valuesCopy.put(Results.CONTACT_ID, id);
-	    						}
-	    						else {
-	    							valuesCopy.put(Results.DESCRIPTION, 
-	    									ResultsDescription.DOWNLOAD_FAILED.getDescription(getBaseContext()));
-	    							break;
-	    						}
-	    					}
-	    					else {
-	    						valuesCopy.put(Results.DESCRIPTION, 
-	    								ResultsDescription.SKIPPED_EXISTS.getDescription(getBaseContext()));
-	    					}
+    		String contactHash = null;
+    		String hash = null;
 
-    					}
-    					catch (Exception e) {
-    						valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(getBaseContext()));
-    					}
-    					finally {
-    						resultsList.add(valuesCopy);
-    					}
-    					 
-    				} while (cur.moveToNext());
+    		//do {
+    		//ContentValues is an immutable object
+    		ContentValues valuesCopy = new ContentValues(values);
+
+    		try {
+    			//String id = cur.getString(cur.getColumnIndex(People._ID));
+    			DBHashes hashes = dbHelper.getHashes(contactId);
+
+    			Uri contact = Uri.withAppendedPath(People.CONTENT_URI, contactId);
+    			is = People.openContactPhotoInputStream(resolver, contact);
+    			// photo is set, so let's get its hash
+    			if (is != null) {
+    				contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     			}
+
+    			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, skipIfExists)) {
+
+    				if (image == null) {
+    					try {
+    						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+    						image = Utils.bitmapToJpeg(bitmap, 100);
+    						hash = Utils.getMd5Hash(image);
+    					}
+    					catch (Exception e) {}
+    				}
+
+    				if (image != null) {
+    					// picture is a new one and we should sync it
+    					if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
+
+    						String updatedHash = hash;
+
+    						if (cropSquare) {
+    							bitmap = Utils.centerCrop(bitmap, 96, 96);
+    							image = Utils.bitmapToJpeg(bitmap, 100);
+    							updatedHash = Utils.getMd5Hash(image);
+    						}
+
+    						ContactServices.updateContactPhoto(getContentResolver(), image, contactId);
+    						dbHelper.updateHashes(contactId, hash, updatedHash);
+    					}
+    					else {
+    						valuesCopy.put(Results.DESCRIPTION, 
+    								ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()));
+    					}
+
+    					valuesCopy.put(Results.CONTACT_ID, contactId);
+    				}
+    				else {
+    					valuesCopy.put(Results.DESCRIPTION, 
+    							ResultsDescription.DOWNLOAD_FAILED.getDescription(getBaseContext()));
+    					//break;
+    				}
+    			}
+    			else {
+    				valuesCopy.put(Results.DESCRIPTION, 
+    						ResultsDescription.SKIPPED_EXISTS.getDescription(getBaseContext()));
+    			}
+
+    		}
+    		catch (Exception e) {
+    			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(getBaseContext()));
+    		}
+    		finally {
+    			resultsList.add(valuesCopy);
     		}
 
-    		cur.close();
+    		//} while (cur.moveToNext());
+
+    		//cur.close();
     	}
 
         private ContentValues createResult(String id, String name, String url)
@@ -347,13 +354,24 @@ public abstract class SyncService extends Service {
 			synchronized(syncLock) {
 				
 				try {
+					NameMatcher matcher = new NameMatcher(getBaseContext(), getResources().openRawResource(R.raw.diminutives));
+					
 					// clear previous results, if any
 					resolver.delete(Sync.CONTENT_URI, null, null);
 					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
 	
 					index = 1;
-					for (SocialNetworkUser user : userList) {
-						processUser(user, sync);
+					for(SocialNetworkUser user : userList) {
+						PhoneContact contact = null;
+						if (intelliMatch) {
+							contact = matcher.match(user.name, firstNames);
+						}
+						else {
+							contact = matcher.exactMatch(user.name);
+						}
+						
+						processUser(user, contact == null ? null : contact.id, sync);
+						
 						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
 	
 						if (cancel) {
@@ -397,7 +415,10 @@ public abstract class SyncService extends Service {
 		protected void onPostExecute(Long result) {
 			if (result > 0 && !cancel) {
 				cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
-				showNotification(R.string.syncservice_stopped, android.R.drawable.stat_sys_download_done, true);
+				showNotification(R.string.syncservice_stopped, 
+						android.R.drawable.stat_sys_download_done, 
+						new Intent(getBaseContext(), SyncResults.class),
+						true);
 			}
 			else {
 				cancelNotification(R.string.syncservice_started);
@@ -439,6 +460,8 @@ public abstract class SyncService extends Service {
     protected boolean reverseNames;
     protected boolean maxQuality;
     protected boolean cropSquare;
+    protected boolean intelliMatch;
+    protected boolean firstNames;
     
     private void getPreferences()
     {
@@ -447,8 +470,17 @@ public abstract class SyncService extends Service {
 		skipIfConflict = prefs.getSkipIfConflict();
 		reverseNames = prefs.getReverseNames();
 		maxQuality = prefs.getMaxQuality();
+		cropSquare = prefs.getCropSquare();
     	skipIfExists = prefs.getSkipIfExists();
-    	cropSquare = prefs.getCropSquare();
+    	intelliMatch = prefs.getIntelliMatch();
+    	firstNames = prefs.getFirstNames();
+    	
+    	Log.d(TAG, "skipIfConfict " + skipIfConflict);
+    	Log.d(TAG, "maxQuality " + maxQuality);
+    	Log.d(TAG, "cropSquare " + cropSquare);
+    	Log.d(TAG, "skipIfExists " + skipIfExists);
+    	Log.d(TAG, "intelliMatch " + intelliMatch);
+    	Log.d(TAG, "firstNames " + firstNames);
     }
     
     private WakeLock wakeLock;
@@ -503,7 +535,17 @@ public abstract class SyncService extends Service {
     
     private void showNotification(int msg, int icon, boolean autoCancel) 
     {
-        CharSequence text = getText(msg);
+        // The PendingIntent to launch our activity if the user selects this notification
+        Intent i = new Intent(this, MainActivity.class);
+        //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        
+        showNotification(msg, icon, i, autoCancel);
+    }
+    
+    private void showNotification(int msg, int icon, Intent i, boolean autoCancel) 
+    {
+    	CharSequence text = getText(msg);
         Notification notification = new Notification(icon, text,
                 System.currentTimeMillis());
         
@@ -511,10 +553,7 @@ public abstract class SyncService extends Service {
         	notification.flags = Notification.FLAG_AUTO_CANCEL;
         }
 
-        // The PendingIntent to launch our activity if the user selects this notification
-        Intent i = new Intent(this, MainActivity.class);
-        //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+   
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 i, 0);
 
@@ -524,7 +563,6 @@ public abstract class SyncService extends Service {
 
         notifyManager.notify(msg, notification);
     }
-    
 /*    private void launchProgress()
     {
     	Intent i = new Intent(this, MainActivity.class);
