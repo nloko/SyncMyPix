@@ -209,8 +209,8 @@ public class NameMatcher {
     	}
     	
         StringBuffer newName = new StringBuffer(name.toLowerCase().trim());
-        final String badChars  = "���������������������������,";
-        final String goodChars = "aeiouaeiouaeiouaeiounoacsoa ";
+        final String badChars  = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ,";
+        final String goodChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy ";
         int bracket = 0;
         int newNameLength = newName.length();
         for (int i = 0; i < newNameLength; i++) {
