@@ -72,9 +72,7 @@ public class FacebookLoginWebView extends Activity {
     		public void onProgressChanged(WebView view, int newProgress) {
     			// TODO Auto-generated method stub
     			super.onProgressChanged(view, newProgress);
-    		
     			setProgress(newProgress);
-    			
         	}
     		
     		private void setProgress(int progress)
@@ -141,7 +139,7 @@ public class FacebookLoginWebView extends Activity {
 
                     if (page.getPath().equals(login.getNextUrl().getPath())) {
                     	login.setResponseFromExternalBrowser(page);
-                        Toast.makeText(getBaseContext(), "Thank you for logging in", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getBaseContext(), R.string.login_thankyou, Toast.LENGTH_LONG).show();
                         
                         if (login.isLoggedIn()) {
                         	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "session_key", login.getSessionKey());
@@ -192,7 +190,7 @@ public class FacebookLoginWebView extends Activity {
 			case AUTH_DIALOG:
 				authDialog = new ProgressDialog(this);
 				authDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				authDialog.setMessage("Please wait while verifying application authorization...");
+				authDialog.setMessage(getString(R.string.login_authorization));
 				authDialog.setCancelable(true);
 				return authDialog;
 		}

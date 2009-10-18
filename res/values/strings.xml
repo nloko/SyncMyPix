@@ -37,6 +37,9 @@
     
     <string name="syncprogress">Syncing contacts...</string>
     
+    <string name="login.thankyou">Thank you for logging in</string>
+    <string name="login.authorization">Please wait while verifying application authorization...</string>
+    
     <string name="app_name">SyncMyPix</string>
     <string name="syncresults">Sync Results</string>
     <string name="syncresults.started">Started</string>
