@@ -34,7 +34,8 @@
     <string name="main.logoutButton">Logout</string>
     <string name="main.aboutButton">About</string>
     <string name="main.friendsDialog">Getting friends from social network...</string>
-    <string name="main.syncDialog">Syncing contacts...</string>
+    
+    <string name="syncprogress">Syncing contacts...</string>
     
     <string name="app_name">SyncMyPix</string>
     <string name="syncresults">Sync Results</string>

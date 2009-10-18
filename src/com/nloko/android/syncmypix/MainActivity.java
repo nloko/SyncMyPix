@@ -195,8 +195,6 @@ public class MainActivity extends Activity {
     	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "session_key", null);
     	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "secret", null);
     	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "uid", null);
-    	
-		//setLoginStatus(R.string.loginStatus_notloggedin);
     }  
     
     private void sync()
@@ -206,13 +204,14 @@ public class MainActivity extends Activity {
     		return;
     	}
     	
-   		showDialog(FRIENDS_PROGRESS);
+   		//showDialog(FRIENDS_PROGRESS);
     	
     	Intent i = new Intent(MainActivity.this, getSyncSource(getBaseContext()));
     	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
     	
     	if (syncService == null || !syncService.isExecuting()) {
     		startService(i);
+    		startActivity(new Intent(MainActivity.this, SyncProgressActivity.class));
     	}
     }
     
@@ -222,77 +221,32 @@ public class MainActivity extends Activity {
     	startActivity(i);
     }
 
-    private void hideDialogs(boolean remove)
-	{
-		if (!remove) {
-			if (progress != null) {
-				progress.setProgress(0);
-				dismissDialog(SYNC_PROGRESS);
-			}
-			if (friendsProgress != null) {
-				dismissDialog(FRIENDS_PROGRESS);
-			}
-		}
-		else {
-			if (progress != null) {
-				removeDialog(SYNC_PROGRESS);
-				progress = null;
-			}
-			if (friendsProgress != null) {
-				removeDialog(FRIENDS_PROGRESS);
-				friendsProgress = null;
-			}
-		}
-	}
-	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
-		/*if (isLoggedInFromSyncSource(getBaseContext(), getSyncSource(getBaseContext()))) {
-			setLoginStatus(R.string.loginStatus_loggedin);
-		}*/
 		
 		if (!syncServiceConnected) {
 			Intent i = new Intent(MainActivity.this, getSyncSource(getBaseContext()));
 			bindService(i, syncServiceConn, 0);
 		}
 		
-		if (syncService != null && !syncService.isExecuting()) {
-			hideDialogs(true);
+		if (syncService != null && syncService.isExecuting()) {
+			startActivity(new Intent(MainActivity.this, SyncProgressActivity.class));
 		}
 	}
     
     @Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
 		unbindService(syncServiceConn);
-		//unbindService(hashServiceConn);
 	}
     
-    
-    @Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		
-		if (progress != null && progress.isShowing()) {
-			outState.putInt("DIALOG", SYNC_PROGRESS);
-		}
-		else if (friendsProgress != null && friendsProgress.isShowing()) {
-			outState.putInt("DIALOG", FRIENDS_PROGRESS);
-		}
-	}
-
-
 	private final int MENU_LOGOUT = 3;
     private final int MENU_ABOUT = 4;
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
     	MenuItem item;
-    	//item = menu.add(0, MENU_LOGIN, 0, "Login");
-    	//item.setIcon(android.R.drawable.ic_menu_myplaces);
     	
     	item = menu.add(0, MENU_LOGOUT, 0, R.string.main_logoutButton);
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
@@ -306,9 +260,6 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			//case MENU_LOGIN:
-				//login();
-				//return true;
 			case MENU_LOGOUT:
 				logout();
 				return true;
@@ -320,40 +271,12 @@ public class MainActivity extends Activity {
 	    return false;
 	}
 
-	private final int SYNC_PROGRESS = 0;
-	private final int FRIENDS_PROGRESS = 1;
 	private final int ABOUT_DIALOG = 2;
 	private final int CONFIRM_DIALOG = 3;
-	
-	private ProgressDialog progress;
-	private ProgressDialog friendsProgress;
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch(id) {
-			case SYNC_PROGRESS:
-				progress = new ProgressDialog(MainActivity.this);
-				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				progress.setMessage(getString(R.string.main_syncDialog));
-				progress.setCancelable(false);
-				progress.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-					
-					public void onClick(DialogInterface dialog, int which) {
-						
-						if (syncService != null && syncService.isExecuting()) {
-							syncService.cancelOperation();
-						}
-					}
-				});
-				
-				return progress;
-			case FRIENDS_PROGRESS:
-				friendsProgress = new ProgressDialog(MainActivity.this);
-				friendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				friendsProgress.setMessage(getString(R.string.main_friendsDialog));
-				friendsProgress.setCancelable(false);
-				return friendsProgress;
-				
 			case ABOUT_DIALOG:
 				return createAboutDialog();
 				
@@ -412,38 +335,7 @@ public class MainActivity extends Activity {
         public void onServiceConnected(ComponentName className, IBinder service) {
         	
         	syncServiceConnected = true;
-        	
         	syncService = ((SyncService.LocalBinder)service).getService();
-        	syncService.setListener(new SyncServiceListener () {
-
-				public void updateUI(int percentage, int index, int total) {
-	
-					if (friendsProgress != null && friendsProgress.isShowing()) {
-						hideDialogs(true);
-					}
-					
-					// catch and ignore stupid "Is activity running?" exception
-					try {
-						showDialog(SYNC_PROGRESS);
-					}
-					catch (Exception ex) {}
-					
-					if (progress != null) {
-						if (percentage < 100) {
-							progress.setMax(total);
-							progress.setProgress(index);
-						}
-						else if (progress.isShowing()) {
-					    	hideDialogs(true);
-						}
-					}
-				}
-				
-				public void error (int id) {
-					hideDialogs(false);
-				}
-            });
-
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -451,8 +343,6 @@ public class MainActivity extends Activity {
         	syncServiceConnected = false;
         	syncService.unsetListener();
         	syncService = null;
-        	
-        	hideDialogs(true);
         }
     };
 }

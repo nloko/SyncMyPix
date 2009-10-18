@@ -32,7 +32,13 @@ public final class R {
         public static final int sync_button=0x7f02000c;
     }
     public static final class id {
+        public static final int ImageView01=0x7f07002c;
+        public static final int ImageView02=0x7f07002d;
         public static final int LinearLayout01=0x7f07001b;
+        public static final int NameTextSwitcher=0x7f070028;
+        public static final int PhotoImageSwitcher=0x7f07002b;
+        public static final int TextView01=0x7f070029;
+        public static final int TextView02=0x7f07002a;
         public static final int about_layout=0x7f070000;
         public static final int completed=0x7f07001f;
         public static final int completedLabel=0x7f07001e;
@@ -65,6 +71,8 @@ public final class R {
         public static final int started=0x7f07001d;
         public static final int startedLabel=0x7f07001c;
         public static final int syncButton=0x7f070015;
+        public static final int syncCancel=0x7f07002f;
+        public static final int syncProgress=0x7f07002e;
         public static final int syncTitle=0x7f070016;
         public static final int syncmypix_title=0x7f070025;
         public static final int text1=0x7f070024;
@@ -72,7 +80,7 @@ public final class R {
         public static final int title=0x7f070027;
         public static final int title_icon=0x7f070026;
         public static final int webview=0x7f070013;
-        public static final int zoomed_layout=0x7f070028;
+        public static final int zoomed_layout=0x7f070030;
     }
     public static final class layout {
         public static final int about=0x7f030000;
@@ -83,7 +91,8 @@ public final class R {
         public static final int results=0x7f030005;
         public static final int resultslistitem=0x7f030006;
         public static final int syncmypix_title=0x7f030007;
-        public static final int zoomedpic=0x7f030008;
+        public static final int syncprogress=0x7f030008;
+        public static final int zoomedpic=0x7f030009;
     }
     public static final class raw {
         public static final int diminutives=0x7f040000;
@@ -103,7 +112,6 @@ public final class R {
         public static final int main_resultsButton=0x7f06001a;
         public static final int main_settingsButton=0x7f060019;
         public static final int main_syncButton=0x7f060018;
-        public static final int main_syncDialog=0x7f06001e;
         public static final int preferences_cropsquare=0x7f060003;
         public static final int preferences_cropsquare_summary=0x7f060004;
         public static final int preferences_firstNames=0x7f060013;
@@ -139,6 +147,7 @@ public final class R {
         public static final int resultsdescription_skippedmultiplefound=0x7f06003d;
         public static final int resultsdescription_skippedunchanged=0x7f06003e;
         public static final int resultsdescription_updated=0x7f06003b;
+        public static final int syncprogress=0x7f06001e;
         public static final int syncresults=0x7f060020;
         public static final int syncresults_completed=0x7f060022;
         public static final int syncresults_deleteButton=0x7f060029;

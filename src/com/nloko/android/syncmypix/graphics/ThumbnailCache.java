@@ -24,7 +24,10 @@ package com.nloko.android.syncmypix.graphics;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.nloko.android.Utils;
@@ -35,7 +38,8 @@ import android.graphics.Bitmap.CompressFormat;
 
 public class ThumbnailCache {
 
-	private final Map <String, Bitmap> images = new HashMap <String, Bitmap> (); 
+	private final Map <String, SoftReference<Bitmap>> images = new HashMap <String, SoftReference<Bitmap>> ();
+	private final ImageDownloader downloader = new ImageDownloader();
 	private final Object lock = new Object();
 	
 	private ThumbnailCache() {}
@@ -48,6 +52,12 @@ public class ThumbnailCache {
 		}
 		
 		return instance;
+	}
+	
+	private Bitmap defaultImage = null;
+	public void setDefaultImage(Bitmap defaultImage)
+	{
+		this.defaultImage = defaultImage;
 	}
 	
 	public void destroy()
@@ -79,6 +89,11 @@ public class ThumbnailCache {
 	
 	public void add(String key, Bitmap bitmap, boolean resize)
 	{
+		add(key, bitmap, resize, false);
+	}
+	
+	private void add(String key, Bitmap bitmap, boolean resize, boolean notify)
+	{
 		if (bitmap == null) {
 			throw new IllegalArgumentException("bitmap");
 		}
@@ -99,7 +114,10 @@ public class ThumbnailCache {
 		}
 		
 		synchronized(lock) {
-			images.put(key, bitmap);
+			images.put(key, new SoftReference<Bitmap>(bitmap));
+			if (notify && listener != null) {
+				listener.onImageReady(key);
+			}
 		}
 	}
 	
@@ -117,12 +135,111 @@ public class ThumbnailCache {
 	
 	public Bitmap get(String key) 
 	{
+		Bitmap image = null;
+		
 		synchronized(lock) {
 			if (images.containsKey(key)) {
-				return images.get(key);
+				image = images.get(key).get();
+				if (image == null) {
+					if (defaultImage != null) {
+						images.put(key, new SoftReference<Bitmap>(defaultImage));
+						image = defaultImage;
+					}
+					if (provider == null) {
+						downloader.download(key);
+					}
+					else {
+						images.remove(key);
+						provider.onImageRequired(key);
+					}
+				}
 			}
 		}
 		
-		return null;
+		return image;
+	}
+	
+	public void togglePauseOnDownloader(boolean value)
+	{
+		downloader.setPause(value);
+	}
+	
+	private ImageListener listener = null;
+	public void setImageListener(ImageListener listener)
+	{
+		synchronized(lock) {
+			this.listener = listener;
+		}
+	}
+	
+	private ImageProvider provider = null;
+	public void setImageProvider(ImageProvider provider)
+	{
+		synchronized(lock) {
+			this.provider = provider;
+		}
+	}
+	
+	public interface ImageListener {
+		void onImageReady(String url);
+	}
+	
+	public interface ImageProvider {
+		boolean onImageRequired(String url);
+	}
+	
+	private class ImageDownloader {
+		
+		private final LinkedList<String> urlQueue = new LinkedList<String>();
+		private Thread downloadThread;
+		private boolean paused = false;
+		
+		public ImageDownloader()
+		{
+			setupThread();
+		}
+
+		private void setupThread()
+		{
+			downloadThread = new Thread(new Runnable() {
+				public void run() {
+					String url;
+					while (!paused) {
+						while((url = urlQueue.poll()) != null) {
+							Bitmap image;
+							try {
+								image = Utils.downloadPictureAsBitmap(url);
+								add(url, image, true, true);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			});
+			
+			downloadThread.start();
+		}
+		
+		public void setPause(boolean value)
+		{
+			if (paused == value) {
+				return;
+			}
+			
+			paused = value;
+			if (!paused) {
+				setupThread();
+			}
+		}
+		
+		public void download(String url)
+		{
+			if (url == null) {
+				return;
+			}
+			
+			urlQueue.add(url);
+		}
 	}
 }

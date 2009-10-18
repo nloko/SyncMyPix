@@ -32,11 +32,7 @@
             android:defaultValue="true"
             android:summary="@string/preferences.skipIfExists.summary"
             android:key="skipIfExists" />
-        <CheckBoxPreference
-            android:title="@string/preferences.skipIfConflict"
-            android:defaultValue="false"
-            android:summary="@string/preferences.skipIfConflict.summary"
-            android:key="skipIfConflict" />
+
         <CheckBoxPreference
             android:title="@string/preferences.intelliMatch"
             android:defaultValue="false"

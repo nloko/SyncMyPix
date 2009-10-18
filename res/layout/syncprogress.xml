@@ -1,0 +1,75 @@
+<LinearLayout android:id="@+id/LinearLayout01" 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	android:orientation="vertical"
+	android:background="@drawable/background"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<TextSwitcher 
+		android:layout_height="wrap_content" 
+		android:id="@+id/NameTextSwitcher" 
+		android:layout_centerHorizontal="true" 
+		android:layout_width="fill_parent" 
+		android:outAnimation="@android:anim/fade_out" 
+		android:inAnimation="@android:anim/fade_in">
+		
+		<TextView android:id="@+id/TextView01" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:textColor="#FFFFFF"
+			android:layout_gravity="center_horizontal" 
+			android:textSize="26dip" />
+		<TextView android:id="@+id/TextView02" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:layout_gravity="center_horizontal" 
+			android:textColor="#FFFFFF"
+			android:textSize="26dip" />
+			
+	</TextSwitcher>
+	
+	<ImageSwitcher 
+ 		android:layout_weight="0.5"
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/PhotoImageSwitcher" 
+		android:inAnimation="@android:anim/slide_in_left"
+		android:outAnimation="@android:anim/slide_out_right"
+		android:layout_gravity="center">
+	
+		<ImageView android:id="@+id/ImageView01"
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:layout_gravity="center" 
+			android:adjustViewBounds="true"
+			android:scaleType="centerCrop" />
+		<ImageView android:id="@+id/ImageView02"
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:adjustViewBounds="true"
+			android:layout_gravity="center" 
+			android:scaleType="centerCrop" />
+			
+	</ImageSwitcher>
+		
+	<ProgressBar android:id="@+id/syncProgress" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:layout_margin="6dip"
+		android:visibility="invisible"
+		android:layout_gravity="center_horizontal" 
+		android:indeterminateOnly="false" 
+    	android:progressDrawable="@android:drawable/progress_horizontal" 
+    	android:indeterminateDrawable="@android:drawable/progress_indeterminate_horizontal" 
+    	android:minHeight="20dip" 
+    	android:maxHeight="20dip" />
+    	
+	<Button android:text="Cancel" 
+		android:layout_marginTop="6dip"
+		android:padding="16dip"
+		android:id="@+id/syncCancel" 
+		android:visibility="invisible"
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:layout_gravity="center_horizontal" />
+</LinearLayout>

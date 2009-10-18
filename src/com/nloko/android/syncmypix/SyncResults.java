@@ -22,17 +22,18 @@
 
 package com.nloko.android.syncmypix;
 
-import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Date;
 
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.graphics.CropImage;
 import com.nloko.android.syncmypix.graphics.ThumbnailCache;
+import com.nloko.android.syncmypix.graphics.ThumbnailCache.ImageListener;
+import com.nloko.android.syncmypix.graphics.ThumbnailCache.ImageProvider;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,6 +48,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
@@ -66,7 +68,6 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -83,6 +84,7 @@ public class SyncResults extends Activity {
 	Handler mainHandler;
 	Looper downloadLooper;
 	DownloadImageHandler downloadHandler;
+	LoadThumbnailsThread thumbnailThread;
 	Bitmap contactImage;
 
 	ThumbnailCache cache;
@@ -90,8 +92,6 @@ public class SyncResults extends Activity {
 	private static final String TAG = "SyncResults";
 	
 	private static final int UNKNOWN_HOST_ERROR = 2;
-	
-	
 	
 	private String[] projection = { 
     				Results._ID, 
@@ -113,12 +113,13 @@ public class SyncResults extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		showDialog(LOADING_DIALOG);
+		
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
 		
-		showDialog(LOADING_DIALOG);
-	
 		cache = ThumbnailCache.create();
+		cache.setDefaultImage(BitmapFactory.decodeResource(getResources(), R.drawable.smiley_face));
 		
 		dbHelper = new SyncMyPixDbHelper(getBaseContext());
 		
@@ -126,14 +127,56 @@ public class SyncResults extends Activity {
         
         listview = (ListView) findViewById(R.id.resultList);
         
-		ListAdapter adapter = new ResultsListAdapter(
+		final SimpleCursorAdapter adapter = new ResultsListAdapter(
                 this, 
                 R.layout.resultslistitem,  
                 cursor,                                    
                 new String[] {Results.NAME, Results.DESCRIPTION },
                 new int[] { R.id.text1, R.id.text2 } );    
 
-        listview.setAdapter(adapter);      
+		
+        listview.setAdapter(adapter);
+/*        cache.setImageListener(new ImageListener() {
+			public void onImageReady(String url) {
+				Log.d(TAG, url + " downloaded");
+				runOnUiThread(new Runnable() {
+					public void run() {
+						adapter.notifyDataSetChanged();
+					}
+				});
+			}
+        });*/
+        
+        cache.setImageProvider(new ImageProvider() {
+			public boolean onImageRequired(String url) {
+				/*String[] projection = { 
+		        		Results.CONTACT_ID,
+		        		Results.PIC_URL };
+		        
+		        Cursor cursor = managedQuery(Results.CONTENT_URI, 
+		        		projection, 
+		        		Results.PIC_URL + "='" + url + "'", 
+		        		null, 
+		        		Results.DEFAULT_SORT_ORDER);
+		        
+		        if (cursor.moveToFirst()) {
+		        	long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
+					
+					if (id > 0) {
+						return People.loadContactPhoto(getBaseContext(), 
+								Uri.withAppendedPath(People.CONTENT_URI, Long.toString(id)), 
+								0, null);
+					}
+		        }*/
+		        
+				if (thumbnailThread != null) {
+					Log.d(TAG, "restarting thumbnail thread");
+					thumbnailThread.restart();
+					return true;
+				}
+		        return false;
+			}
+        });
         
         listview.setOnItemLongClickListener(new OnItemLongClickListener() {
 
@@ -226,20 +269,33 @@ public class SyncResults extends Activity {
         downloadHandler = new DownloadImageHandler(downloadLooper, mainHandler);
         
         new InitializeResultsThread(Looper.myQueue()).start();
-        new LoadThumbnailsThread().start();
 	}
 
-	 private final int MENU_HELP = 0;
-	 private final int MENU_FILTER = 1;
-	 private final int MENU_FILTER_ALL = 2;
-	 private final int MENU_FILTER_NOTFOUND = 3;
-	 private final int MENU_FILTER_UPDATED = 4;
-	 private final int MENU_FILTER_SKIPPED = 5;
-	 private final int MENU_FILTER_ERROR = 6;
-	 private final int MENU_DELETE = 7;
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		cache.togglePauseOnDownloader(true);
+	}
 	 
-	 @Override
-	 public boolean onCreateOptionsMenu(Menu menu) {
+	@Override
+	protected void onResume() {
+		super.onResume();
+		cache.togglePauseOnDownloader(false);
+	}
+
+
+	private final int MENU_HELP = 0;
+	private final int MENU_FILTER = 1;
+	private final int MENU_FILTER_ALL = 2;
+	private final int MENU_FILTER_NOTFOUND = 3;
+	private final int MENU_FILTER_UPDATED = 4;
+	private final int MENU_FILTER_SKIPPED = 5;
+	private final int MENU_FILTER_ERROR = 6;
+	private final int MENU_DELETE = 7;
+	 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
 		 MenuItem item;
 
 		 item = menu.add(0, MENU_HELP, 0, "Help");
@@ -379,7 +435,7 @@ public class SyncResults extends Activity {
 						null, 
 						null);
 				
-				SimpleCursorAdapter adapter = (SimpleCursorAdapter)listview.getAdapter();
+				ResultsListAdapter adapter = (ResultsListAdapter)listview.getAdapter();
 				
 				if (cursor.moveToFirst()) {
 					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
@@ -548,17 +604,14 @@ public class SyncResults extends Activity {
 			Matrix m = new Matrix();
 			m.postScale((float)newWidth / (float)width, (float)newHeight / (float)height);
 			image.setImageMatrix(m);
-			//image.invalidate();
 			
 			zoomedDialog.getWindow().setLayout(newWidth, newHeight);
 		}
 		
 		zoomedDialog.setOnCancelListener(new OnCancelListener() {
-
 			public void onCancel(DialogInterface dialog) {
 				removeDialog(ZOOM_PIC);
 			}
-			
 		});
 		
 		return zoomedDialog;
@@ -615,22 +668,18 @@ public class SyncResults extends Activity {
 				               showDialog(DELETING);
 				               dbHelper.deleteAllPictures(new DbHelperNotifier() {
 
-								public void onUpdateComplete() {
-									
-									runOnUiThread(new Runnable() {
-
-										public void run() {
-											dismissDialog(DELETING);
-											Toast.makeText(SyncResults.this,
+				            	   public void onUpdateComplete() {
+				            		   runOnUiThread(new Runnable() {
+				            			   public void run() {
+				            				   dismissDialog(DELETING);
+				            				   Toast.makeText(SyncResults.this,
 													R.string.syncresults_deleted, 
 													Toast.LENGTH_LONG).show();
 											
-											finish();
-										}
-									});
-									
-								}
-				            	   
+				            				   finish();
+				            			   }
+				            		   });
+				            	   }
 				               });
 				           }
 				       })
@@ -707,6 +756,9 @@ public class SyncResults extends Activity {
 						label1.setVisibility(View.VISIBLE);
 						label2.setVisibility(View.VISIBLE);
 				
+						thumbnailThread = new LoadThumbnailsThread();
+				        thumbnailThread.start();
+				        
 				        removeDialog(LOADING_DIALOG);
 						return false;
 					}
@@ -721,6 +773,7 @@ public class SyncResults extends Activity {
 	
 	private class LoadThumbnailsThread extends Thread
 	{
+		//private final Object lock = new Object();
 		private Cursor cursor;
 		private final String where = Results.DESCRIPTION + " IN ('" +
 			ResultsDescription.UPDATED.getDescription(getBaseContext()) + "','" +
@@ -742,20 +795,21 @@ public class SyncResults extends Activity {
 	        		null, 
 	        		Results.DEFAULT_SORT_ORDER);
 	        
-	        cursor.registerContentObserver(new ContentObserver(new Handler()) {
-
+/*	        cursor.registerContentObserver(new ContentObserver(new Handler()) {
 				@Override
 				public void onChange(boolean selfChange) {
-					
 					super.onChange(selfChange);
-					notified = true;
-					run();
+					restart();
 				}
-	        	
-	        });
-
+	        });*/
 		}
 		
+		public void restart()
+		{
+			notified = true;
+			run();
+		}
+
 		private void refreshCursor()
 		{
 			cursor.requery();
@@ -764,28 +818,44 @@ public class SyncResults extends Activity {
 		
 		public void run()
 		{
+			boolean wasNotified = false;
 			boolean updated = false;
 			Bitmap bitmap = null;
 			String url = null;
-			long id = 0;
+			String id = null;
+			long contactId = 0;
 			
 			if (notified) {
 				refreshCursor();
 				notified = false;
+				wasNotified = true;
 			}
 			
 			while(!notified && cursor.moveToNext()) {
 				
-				id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
+				id = cursor.getString(cursor.getColumnIndex(Results._ID));
+				contactId = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 				url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				
-				if (!cache.contains(url) && id > 0) {
+				if (!cache.contains(url) && contactId > 0) {
 					bitmap = People.loadContactPhoto(getBaseContext(), 
-							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(id)), 
+							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(contactId)), 
 							0, null);
 					
 					if (bitmap != null) {
 						cache.add(url, bitmap);
+						Log.d(TAG, "added back " + url + " to cache");
+						
+						if (wasNotified) {
+							// HACK to force notifyDatasetUpdated() to be honoured
+							ContentValues values = new ContentValues();
+							values.put(Results.PIC_URL, url);
+							getContentResolver().update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
+									values, 
+									null, 
+									null);
+						}
+						
 						updated = true;
 					}
 				}
@@ -796,8 +866,8 @@ public class SyncResults extends Activity {
 				runOnUiThread(new Runnable() {
 	
 					public void run() {
-						((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
-						
+						Log.d(TAG, "listview notified");
+						((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
 					}
 					
 				});
@@ -863,8 +933,8 @@ public class SyncResults extends Activity {
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
-			
 			if (cache.contains(url)) {
+				Log.d(TAG, "bindView resetting " + url);
 				image.setImageBitmap(cache.get(url));
 			}
 			else if (description.equals(ResultsDescription.NOTFOUND.getDescription(getBaseContext()))) {

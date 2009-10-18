@@ -87,13 +87,6 @@ public abstract class SyncService extends Service {
 				
 				resultsList.clear();
 				
-/*				long time = SystemClock.elapsedRealtime() + 120 * 1000;
-				
-	            // Schedule the alarm!
-	            AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
-	            am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-	                            time, alarmSender);*/
-	
 				wakeLock.release();
 	            stopSelf();
 			}
@@ -101,8 +94,10 @@ public abstract class SyncService extends Service {
 		
 		public void handleError(int msg)
 		{
+			executing = false;
+			
 			if (listener != null) {
-				listener.error(msg);
+				listener.onError(msg);
 			}
 			
 			showError(msg);
@@ -184,9 +179,8 @@ public abstract class SyncService extends Service {
     	private final SyncMyPixDbHelper dbHelper = new SyncMyPixDbHelper(getBaseContext());
     	
     	private final ContentResolver resolver = getContentResolver();
-    	//private final StringBuilder sb = new StringBuilder();
     	    	
-        private void processUser(SocialNetworkUser user, String contactId, Uri sync) 
+        private void processUser(final SocialNetworkUser user, String contactId, Uri sync) 
         {
     		if (user == null) {
     			throw new IllegalArgumentException ("user");
@@ -196,17 +190,9 @@ public abstract class SyncService extends Service {
     			throw new IllegalArgumentException ("sync");
     		}
     		
-    		/*sb.delete(0, sb.length());
-    		sb.append(user.firstName);
-    		sb.append(" ");
-    		sb.append(user.lastName);
-    		
-    		// escape single quotes for SQL
-    		final String name = sb.toString().replace("'", "''"); */
     		Log.d(TAG, String.format("%s %s", user.name, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
-    		
     		ContentValues values = createResult(syncId, user.name, user.picUrl);
     		
     		if (user.picUrl == null) {
@@ -222,36 +208,6 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-/*    		final String selection;
-    		if (!reverseNames) {
-    			selection = Utils.buildNameSelection(People.NAME, user.firstName, user.lastName);
-    		}
-    		else {
-    			selection = Utils.buildNameSelection(People.NAME, user.lastName, user.firstName);
-    		}*/
-    		
-    		//final Cursor cur = ContactServices.getContact(resolver, selection);
-    		/* if (!cur.moveToFirst()) {
-    			Log.d(TAG, "Contact not found in database.");
-    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getBaseContext()));
-    			resultsList.add(values);
-    		}
-    		
-    		else {
-    			boolean ok = true;
-    			
-    			if (cur.getCount() > 1) {
-    				Log.d(TAG, String.format("Multiple contacts found %d", cur.getCount()));
-    				
-    				if (skipIfConflict) {
-    					values.put(Results.DESCRIPTION, ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(getBaseContext()));
-    					resultsList.add(values);
-    					ok = false;
-    				}
-    			}*/
-    			
-    			//if (ok) {
-    				
     		InputStream is = null;
     		Bitmap bitmap = null;
     		byte[] image = null;
@@ -259,7 +215,6 @@ public abstract class SyncService extends Service {
     		String contactHash = null;
     		String hash = null;
 
-    		//do {
     		//ContentValues is an immutable object
     		ContentValues valuesCopy = new ContentValues(values);
 
@@ -279,6 +234,16 @@ public abstract class SyncService extends Service {
     				if (image == null) {
     					try {
     						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+    						
+    						// send picture to listener for progress display
+    						final Bitmap tmp = bitmap;
+    						mainHandler.post(new Runnable() {
+								public void run() {
+									if (listener != null) {
+		    							listener.onPictureDownloaded(user.name, tmp);
+		    						}
+								}
+    						});
     						image = Utils.bitmapToJpeg(bitmap, 100);
     						hash = Utils.getMd5Hash(image);
     					}
@@ -325,10 +290,6 @@ public abstract class SyncService extends Service {
     		finally {
     			resultsList.add(valuesCopy);
     		}
-
-    		//} while (cur.moveToNext());
-
-    		//cur.close();
     	}
 
         private ContentValues createResult(String id, String name, String url)
@@ -371,7 +332,6 @@ public abstract class SyncService extends Service {
 						}
 						
 						processUser(user, contact == null ? null : contact.id, sync);
-						
 						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
 	
 						if (cancel) {
@@ -407,17 +367,23 @@ public abstract class SyncService extends Service {
 		@Override
 		protected void onProgressUpdate(Integer... values) {
 			if (listener != null) {
-				listener.updateUI(values[0], values[1], values[2]);
+				listener.onSyncProgress(values[0], values[1], values[2]);
 			}
 		}
 
 		@Override
 		protected void onPostExecute(Long result) {
 			if (result > 0 && !cancel) {
+				if (listener != null) {
+					listener.onSyncCompleted();
+				}
+				
+				Intent i = new Intent(getBaseContext(), SyncResults.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 				cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
 				showNotification(R.string.syncservice_stopped, 
 						android.R.drawable.stat_sys_download_done, 
-						new Intent(getBaseContext(), SyncResults.class),
+						i,
 						true);
 			}
 			else {
@@ -453,7 +419,6 @@ public abstract class SyncService extends Service {
 	private NotificationManager notifyManager;
 	
     private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
-    //private PendingIntent alarmSender;
 	
     protected boolean skipIfExists;
     protected boolean skipIfConflict;
@@ -510,11 +475,6 @@ public abstract class SyncService extends Service {
 		notifyManager.cancel(R.string.syncservice_stopped);
 		
 		showNotification(R.string.syncservice_started, android.R.drawable.stat_sys_download);
-		//launchProgress();
-		
-//		alarmSender = PendingIntent.getService(getBaseContext(),
-//                0, new Intent(getBaseContext(), HashUpdateService.class), 0);
-
 	}
 
     @Override
@@ -536,7 +496,7 @@ public abstract class SyncService extends Service {
     private void showNotification(int msg, int icon, boolean autoCancel) 
     {
         // The PendingIntent to launch our activity if the user selects this notification
-        Intent i = new Intent(this, MainActivity.class);
+        Intent i = new Intent(this, SyncProgressActivity.class);
         //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         
@@ -563,11 +523,6 @@ public abstract class SyncService extends Service {
 
         notifyManager.notify(msg, notification);
     }
-/*    private void launchProgress()
-    {
-    	Intent i = new Intent(this, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    }*/
     
     private void showError (int msg)
     {
