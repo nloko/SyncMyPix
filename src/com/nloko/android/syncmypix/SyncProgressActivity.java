@@ -126,7 +126,6 @@ public class SyncProgressActivity extends Activity {
 				public void onSyncProgress(int percentage, int index, int total) {
 					if (friendsProgress != null && friendsProgress.isShowing()) {
 						dismissDialog(FRIENDS_PROGRESS);
-						imageSwitcher.setVisibility(View.VISIBLE);
 						progress.setVisibility(View.VISIBLE);
 						cancelButton.setVisibility(View.VISIBLE);
 					}
@@ -148,6 +147,9 @@ public class SyncProgressActivity extends Activity {
 					
 					textSwitcher.setText(name);
 					imageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
+					if (imageSwitcher.getVisibility() != View.VISIBLE) {
+						imageSwitcher.setVisibility(View.VISIBLE);
+					}
 				}
 
 				public void onSyncCompleted() {
