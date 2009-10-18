@@ -26,14 +26,14 @@ import java.net.UnknownHostException;
 import java.util.Date;
 
 import com.nloko.android.Log;
+import com.nloko.android.ThumbnailCache;
 import com.nloko.android.Utils;
+import com.nloko.android.ThumbnailCache.ImageListener;
+import com.nloko.android.ThumbnailCache.ImageProvider;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.graphics.CropImage;
-import com.nloko.android.syncmypix.graphics.ThumbnailCache;
-import com.nloko.android.syncmypix.graphics.ThumbnailCache.ImageListener;
-import com.nloko.android.syncmypix.graphics.ThumbnailCache.ImageProvider;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -136,39 +136,9 @@ public class SyncResults extends Activity {
 
 		
         listview.setAdapter(adapter);
-/*        cache.setImageListener(new ImageListener() {
-			public void onImageReady(String url) {
-				Log.d(TAG, url + " downloaded");
-				runOnUiThread(new Runnable() {
-					public void run() {
-						adapter.notifyDataSetChanged();
-					}
-				});
-			}
-        });*/
         
         cache.setImageProvider(new ImageProvider() {
 			public boolean onImageRequired(String url) {
-				/*String[] projection = { 
-		        		Results.CONTACT_ID,
-		        		Results.PIC_URL };
-		        
-		        Cursor cursor = managedQuery(Results.CONTENT_URI, 
-		        		projection, 
-		        		Results.PIC_URL + "='" + url + "'", 
-		        		null, 
-		        		Results.DEFAULT_SORT_ORDER);
-		        
-		        if (cursor.moveToFirst()) {
-		        	long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
-					
-					if (id > 0) {
-						return People.loadContactPhoto(getBaseContext(), 
-								Uri.withAppendedPath(People.CONTENT_URI, Long.toString(id)), 
-								0, null);
-					}
-		        }*/
-		        
 				if (thumbnailThread != null) {
 					Log.d(TAG, "restarting thumbnail thread");
 					thumbnailThread.restart();
@@ -179,17 +149,14 @@ public class SyncResults extends Activity {
         });
         
         listview.setOnItemLongClickListener(new OnItemLongClickListener() {
-
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
 				return false;
 			}
-        	
         });
         
         listview.setOnItemClickListener(new OnItemClickListener () {
-
 			public void onItemClick(AdapterView<?> parent, View view, int position,
 					long id) {
 				
@@ -206,7 +173,6 @@ public class SyncResults extends Activity {
 					downloadHandler.sendMessage(msg);
 				}
 			}
-        	
         });
 
         listview.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
@@ -236,7 +202,6 @@ public class SyncResults extends Activity {
         });
    
         mainHandler = new Handler () {
-
 			@Override
 			public void handleMessage(Message msg) {
 				Bitmap bitmap = (Bitmap) msg.obj;
@@ -249,11 +214,9 @@ public class SyncResults extends Activity {
 				
 				setProgressBarIndeterminateVisibility(false);
 				handleWhat(msg);
-
 			}
 			
 			private void handleWhat(Message msg) {
-				
 				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
 						Toast.makeText(SyncResults.this, R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
@@ -271,10 +234,10 @@ public class SyncResults extends Activity {
         new InitializeResultsThread(Looper.myQueue()).start();
 	}
 
-	
 	@Override
 	protected void onPause() {
 		super.onPause();
+		// save battery life by killing downloader thread
 		cache.togglePauseOnDownloader(true);
 	}
 	 
@@ -859,20 +822,16 @@ public class SyncResults extends Activity {
 						updated = true;
 					}
 				}
-				
 			}
 			
 			if (updated) {
 				runOnUiThread(new Runnable() {
-	
 					public void run() {
 						Log.d(TAG, "listview notified");
 						((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
 					}
-					
 				});
 			}
-			
 		}
 	}
 	
@@ -936,6 +895,10 @@ public class SyncResults extends Activity {
 			if (cache.contains(url)) {
 				Log.d(TAG, "bindView resetting " + url);
 				image.setImageBitmap(cache.get(url));
+			}
+			else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext())) ||
+					description.equals(ResultsDescription.UPDATED.getDescription(getBaseContext()))) {
+				image.setImageResource(R.drawable.smiley_face);
 			}
 			else if (description.equals(ResultsDescription.NOTFOUND.getDescription(getBaseContext()))) {
 				image.setImageResource(R.drawable.neutral_face);

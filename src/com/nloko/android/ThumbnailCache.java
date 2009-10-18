@@ -1,26 +1,25 @@
 //
-//    ThumbnailCache.java is part of SyncMyPix
+//  ThumbnailCache.java
 //
-//    Authors:
-//        Neil Loknath <neil.loknath@gmail.com>
+//  Authors:
+// 		Neil Loknath <neil.loknath@gmail.com>
 //
-//    Copyright (c) 2009 Neil Loknath
+//  Copyright 2009 Neil Loknath
 //
-//    SyncMyPix is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
+//  Licensed under the Apache License, Version 2.0 (the "License"); 
+//  you may not use this file except in compliance with the License. 
+//  You may obtain a copy of the License at 
 //
-//    SyncMyPix is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
+//  http://www.apache.org/licenses/LICENSE-2.0 
 //
-//    You should have received a copy of the GNU General Public License
-//    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
+//  Unless required by applicable law or agreed to in writing, software 
+//  distributed under the License is distributed on an "AS IS" BASIS, 
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+//  See the License for the specific language governing permissions and 
+//  limitations under the License. 
 //
 
-package com.nloko.android.syncmypix.graphics;
+package com.nloko.android;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import com.nloko.android.Utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -38,6 +36,10 @@ import android.graphics.Bitmap.CompressFormat;
 
 public class ThumbnailCache {
 
+	// use SoftReference so Android can free memory, if needed
+	// ThumbnailCache can notify if a download is required or use the built-in 
+	// ImageDownloader.
+	// See setImageListener and setImageProvider
 	private final Map <String, SoftReference<Bitmap>> images = new HashMap <String, SoftReference<Bitmap>> ();
 	private final ImageDownloader downloader = new ImageDownloader();
 	private final Object lock = new Object();
@@ -92,7 +94,7 @@ public class ThumbnailCache {
 		add(key, bitmap, resize, false);
 	}
 	
-	private void add(String key, Bitmap bitmap, boolean resize, boolean notify)
+	protected void add(String key, Bitmap bitmap, boolean resize, boolean notify)
 	{
 		if (bitmap == null) {
 			throw new IllegalArgumentException("bitmap");
@@ -159,6 +161,9 @@ public class ThumbnailCache {
 		return image;
 	}
 	
+	// this can be used in onPause and onResume to conserve
+	// battery life by terminating the looping downloader
+	// thread
 	public void togglePauseOnDownloader(boolean value)
 	{
 		downloader.setPause(value);
@@ -204,15 +209,13 @@ public class ThumbnailCache {
 			downloadThread = new Thread(new Runnable() {
 				public void run() {
 					String url;
-					while (!paused) {
-						while((url = urlQueue.poll()) != null) {
-							Bitmap image;
-							try {
-								image = Utils.downloadPictureAsBitmap(url);
-								add(url, image, true, true);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+					while(!paused && (url = urlQueue.poll()) != null) {
+						Bitmap image;
+						try {
+							image = Utils.downloadPictureAsBitmap(url);
+							add(url, image, true, true);
+						} catch (IOException e) {
+							e.printStackTrace();
 						}
 					}
 				}
