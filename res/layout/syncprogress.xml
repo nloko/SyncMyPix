@@ -35,17 +35,24 @@
 		android:id="@+id/PhotoImageSwitcher" 
 		android:inAnimation="@android:anim/slide_in_left"
 		android:outAnimation="@android:anim/slide_out_right"
-		android:layout_gravity="center">
+		android:layout_gravity="center"
+		android:visibility="invisible">
 	
 		<ImageView android:id="@+id/ImageView01"
+			android:background="#999999"
+			android:padding="4dip"
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
+			android:layout_margin="10dip"
 			android:layout_gravity="center" 
 			android:adjustViewBounds="true"
 			android:scaleType="centerCrop" />
 		<ImageView android:id="@+id/ImageView02"
+			android:background="#999999"
+			android:padding="4dip"
 			android:layout_width="wrap_content" 
-			android:layout_height="wrap_content" 
+			android:layout_height="wrap_content"
+			android:layout_margin="10dip" 
 			android:adjustViewBounds="true"
 			android:layout_gravity="center" 
 			android:scaleType="centerCrop" />
