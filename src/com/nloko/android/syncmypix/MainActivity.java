@@ -123,7 +123,7 @@ public class MainActivity extends Activity {
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
         }
-        else if (!getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
+        else if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
         	showDialog(ABOUT_DIALOG);
         }
         
@@ -146,7 +146,7 @@ public class MainActivity extends Activity {
         settings.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				Intent i = new Intent(MainActivity.this, GlobalPreferences.class);
+				Intent i = new Intent(MainActivity.this, SettingsActivity.class);
 				startActivity(i);
 			}
         	
@@ -192,9 +192,9 @@ public class MainActivity extends Activity {
     // TODO This is needless filler, REMOVE
     private void logout()
     {
-    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "session_key", null);
-    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "secret", null);
-    	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "uid", null);
+    	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "session_key", null);
+    	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "secret", null);
+    	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "uid", null);
     }  
     
     private void sync()
@@ -217,7 +217,7 @@ public class MainActivity extends Activity {
     
     private void showResults()
     {
-    	Intent i = new Intent(this, SyncResults.class);
+    	Intent i = new Intent(this, SyncResultsActivity.class);
     	startActivity(i);
     }
 
@@ -314,13 +314,13 @@ public class MainActivity extends Activity {
 		});
 		
 		CheckBox show = (CheckBox)about.findViewById(R.id.do_not_show_about);
-		show.setChecked(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
+		show.setChecked(getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
 		show.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
 
-				Utils.setBoolean(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "do_not_show_about", isChecked);
+				Utils.setBoolean(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "do_not_show_about", isChecked);
 			}
 			
 		});

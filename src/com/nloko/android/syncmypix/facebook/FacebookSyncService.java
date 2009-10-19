@@ -26,7 +26,7 @@ import java.util.List;
 
 import com.nloko.android.Log;
 import com.nloko.android.syncmypix.SyncService;
-import com.nloko.android.syncmypix.GlobalPreferences;
+import com.nloko.android.syncmypix.SettingsActivity;
 import com.nloko.android.syncmypix.SocialNetworkUser;
 import com.nloko.android.syncmypix.R;
 import com.nloko.simplyfacebook.net.FacebookRestClient;
@@ -54,9 +54,9 @@ public class FacebookSyncService extends SyncService {
 			
 			try {
 				client = new FacebookRestClient(FacebookApi.API_KEY, 
-							getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getString("uid", null),
-							getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getString("session_key", null),
-							getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getString("secret", null));
+							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("uid", null),
+							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("session_key", null),
+							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("secret", null));
 				
 				FacebookApi api = new FacebookApi (client);
 				List<SocialNetworkUser> userList = api.getUserInfo(api.getFriends(), maxQuality);
@@ -101,7 +101,7 @@ public class FacebookSyncService extends SyncService {
     // the below methods hide the corresponding ones from SyncService
 	public static boolean isLoggedIn (Context context)
     {
-    	SharedPreferences settings = context.getSharedPreferences(GlobalPreferences.PREFS_NAME, 0);
+    	SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
 		String session_key = settings.getString("session_key", null);
 		String secret = settings.getString("secret", null);
 		String uid = settings.getString("uid", null);

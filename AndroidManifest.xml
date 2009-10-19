@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GlobalPreferences"
+        <activity android:name=".SettingsActivity"
                   android:label="@string/app_name"
                   android:configChanges="keyboardHidden|orientation">
         </activity>
@@ -52,7 +52,7 @@
         <activity android:name="com.nloko.android.syncmypix.graphics.CropImage"
                   android:label="Crop Picture">
         </activity>
-        <activity android:name=".SyncResults"
+        <activity android:name=".SyncResultsActivity"
                   android:label="@string/syncresults" 
                   android:screenOrientation="portrait">
         </activity>

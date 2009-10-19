@@ -47,7 +47,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		
 		else if (action.equals(Intent.ACTION_PACKAGE_REPLACED)) {
 			// show about dialog on upgrades
-			Utils.setBoolean(context.getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "do_not_show_about", false);
+			Utils.setBoolean(context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "do_not_show_about", false);
 			
 			rescheduleAlarm(context);
 		}
@@ -59,14 +59,14 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 	
 	private void rescheduleAlarm(Context context)
 	{
-		SharedPreferences settings = context.getSharedPreferences(GlobalPreferences.PREFS_NAME, 0);
+		SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
 		int freq = settings.getInt("sched_freq", 0);
 		long time = settings.getLong("sched_time", 0);
-		long interval = GlobalPreferences.getScheduleInterval(freq);
+		long interval = SettingsActivity.getScheduleInterval(freq);
 		
 		if (time < System.currentTimeMillis()) {
 			time += interval;
-			Utils.setLong(context.getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "sched_time", time);
+			Utils.setLong(context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "sched_time", time);
 		}
 		
 		if (interval > 0) {

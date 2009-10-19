@@ -38,7 +38,7 @@ import android.widget.Toast;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.GlobalPreferences;
+import com.nloko.android.syncmypix.SettingsActivity;
 import com.nloko.android.syncmypix.R;
 import com.nloko.simplyfacebook.net.login.FacebookLogin;
 
@@ -142,9 +142,9 @@ public class FacebookLoginWebView extends Activity {
                         Toast.makeText(getBaseContext(), R.string.login_thankyou, Toast.LENGTH_LONG).show();
                         
                         if (login.isLoggedIn()) {
-                        	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "session_key", login.getSessionKey());
-                        	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "secret", login.getSecret());
-                        	Utils.setString(getSharedPreferences(GlobalPreferences.PREFS_NAME, 0), "uid", login.getUid());
+                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "session_key", login.getSessionKey());
+                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "secret", login.getSecret());
+                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "uid", login.getUid());
                         }
                         
                         setResult(Activity.RESULT_OK);

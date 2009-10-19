@@ -153,7 +153,7 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onSyncCompleted() {
-					startActivity(new Intent(SyncProgressActivity.this, SyncResults.class));
+					startActivity(new Intent(SyncProgressActivity.this, SyncResultsActivity.class));
 					finish();
 				}
             });

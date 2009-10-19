@@ -76,7 +76,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 
-public class SyncResults extends Activity {
+public class SyncResultsActivity extends Activity {
 
 	SyncMyPixDbHelper dbHelper;
 	ListView listview;
@@ -219,7 +219,7 @@ public class SyncResults extends Activity {
 			private void handleWhat(Message msg) {
 				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
-						Toast.makeText(SyncResults.this, R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
+						Toast.makeText(SyncResultsActivity.this, R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
 						break;
 				}
 			}
@@ -524,7 +524,7 @@ public class SyncResults extends Activity {
 	private Dialog showZoomDialog()
 	{
 		
-		Dialog zoomedDialog = new Dialog(SyncResults.this);
+		Dialog zoomedDialog = new Dialog(SyncResultsActivity.this);
 		zoomedDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		zoomedDialog.setContentView(R.layout.zoomedpic);
 		zoomedDialog.setCancelable(true);
@@ -635,7 +635,7 @@ public class SyncResults extends Activity {
 				            		   runOnUiThread(new Runnable() {
 				            			   public void run() {
 				            				   dismissDialog(DELETING);
-				            				   Toast.makeText(SyncResults.this,
+				            				   Toast.makeText(SyncResultsActivity.this,
 													R.string.syncresults_deleted, 
 													Toast.LENGTH_LONG).show();
 											
