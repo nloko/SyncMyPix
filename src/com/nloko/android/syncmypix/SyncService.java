@@ -228,7 +228,7 @@ public abstract class SyncService extends Service {
     		}
     		
     		InputStream is = null;
-    		Bitmap bitmap = null;
+    		Bitmap bitmap = null, originalBitmap = null;
     		byte[] image = null;
 
     		String contactHash = null;
@@ -253,8 +253,7 @@ public abstract class SyncService extends Service {
     				if (image == null) {
     					try {
     						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
-    						
-    						
+    						originalBitmap = bitmap;
     						image = Utils.bitmapToJpeg(bitmap, 100);
     						hash = Utils.getMd5Hash(image);
     					}
@@ -282,7 +281,7 @@ public abstract class SyncService extends Service {
     					}
 
     					// send picture to listener for progress display
-						final Bitmap tmp = bitmap;
+						final Bitmap tmp = originalBitmap;
 						mainHandler.post(new Runnable() {
 							public void run() {
 								if (listener != null) {
