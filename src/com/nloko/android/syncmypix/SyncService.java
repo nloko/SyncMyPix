@@ -63,6 +63,23 @@ public abstract class SyncService extends Service {
 	
 	public final static Object syncLock = new Object();
 	
+	public enum SyncServiceStatus {
+		IDLE,
+		GETTING_FRIENDS,
+		SYNCING
+	}
+	
+	private SyncServiceStatus status = SyncServiceStatus.IDLE;
+	public SyncServiceStatus getStatus()
+	{
+		return status;
+	}
+	
+	protected void updateStatus(SyncServiceStatus status)
+	{
+		this.status = status;
+	}
+	
 	private final MainHandler mainHandler = new MainHandler ();
 	public MainHandler getMainHandler()
 	{
@@ -79,6 +96,7 @@ public abstract class SyncService extends Service {
 		public final Runnable resetExecuting = new Runnable () {
 			public void run() {
 				executing = false;
+				updateStatus(SyncServiceStatus.IDLE);
 			}
 		};
 		
@@ -94,7 +112,7 @@ public abstract class SyncService extends Service {
 		
 		public void handleError(int msg)
 		{
-			executing = false;
+			post(resetExecuting);
 			
 			if (listener != null) {
 				listener.onError(msg);
@@ -106,6 +124,7 @@ public abstract class SyncService extends Service {
 		@SuppressWarnings("unchecked")
 		public void startSync(List<SocialNetworkUser> users)
 		{
+			updateStatus(SyncServiceStatus.SYNCING);
 			new SyncTask().execute(users);
 		}
 
@@ -125,7 +144,7 @@ public abstract class SyncService extends Service {
 	}
 	
 	// This listener is used for communication of sync results to other activities
-    private SyncServiceListener listener;
+    protected SyncServiceListener listener;
     public void setListener (SyncServiceListener listener)
     {
     	if (listener == null) {
@@ -367,7 +386,7 @@ public abstract class SyncService extends Service {
 		@Override
 		protected void onProgressUpdate(Integer... values) {
 			if (listener != null) {
-				listener.onSyncProgress(values[0], values[1], values[2]);
+				listener.onSyncProgressUpdated(values[0], values[1], values[2]);
 			}
 		}
 
@@ -464,6 +483,7 @@ public abstract class SyncService extends Service {
 		started = true;
 		cancel = false;
 
+		updateStatus(SyncServiceStatus.GETTING_FRIENDS);
 		getPreferences();
 		
 		notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);

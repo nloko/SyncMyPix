@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix;
 
 import com.nloko.android.Log;
+import com.nloko.android.syncmypix.SyncService.SyncServiceStatus;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -115,20 +116,22 @@ public class SyncProgressActivity extends Activity {
 	
     private ServiceConnection syncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-        	
-        	showDialog(FRIENDS_PROGRESS);
-        	
         	syncServiceConnected = true;
         	
         	syncService = ((SyncService.LocalBinder)service).getService();
-        	syncService.setListener(new SyncServiceListener () {
+        	if (syncService.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
+            	showDialog(FRIENDS_PROGRESS);
+        	}
+        	
+        	syncService.setListener(new SyncServiceListener() {
 
-				public void onSyncProgress(int percentage, int index, int total) {
+				public void onSyncProgressUpdated(int percentage, int index, int total) {
 					if (friendsProgress != null && friendsProgress.isShowing()) {
 						dismissDialog(FRIENDS_PROGRESS);
-						progress.setVisibility(View.VISIBLE);
-						cancelButton.setVisibility(View.VISIBLE);
 					}
+					
+					progress.setVisibility(View.VISIBLE);
+					cancelButton.setVisibility(View.VISIBLE);
 					
 					if (progress != null) {
 						if (percentage < 100) {
@@ -155,6 +158,12 @@ public class SyncProgressActivity extends Activity {
 				public void onSyncCompleted() {
 					startActivity(new Intent(SyncProgressActivity.this, SyncResultsActivity.class));
 					finish();
+				}
+
+				public void onFriendsDownloadStarted() {
+					if (friendsProgress == null || !friendsProgress.isShowing()) {
+						showDialog(FRIENDS_PROGRESS);
+					}
 				}
             });
 

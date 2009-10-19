@@ -46,6 +46,9 @@ public class FacebookSyncService extends SyncService {
 		public FacebookLogin(MainHandler handler)
 		{
 			this.handler = handler;
+			if (listener != null) {
+				listener.onFriendsDownloadStarted();
+			}
 		}
 		
 		public void run()

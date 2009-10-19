@@ -25,8 +25,8 @@ package com.nloko.android.syncmypix;
 import android.graphics.Bitmap;
 
 public interface SyncServiceListener {
-
-	void onSyncProgress(int progress, int index, int total);
+	void onFriendsDownloadStarted();
+	void onSyncProgressUpdated(int progress, int index, int total);
 	void onSyncCompleted();
 	void onPictureDownloaded(String name, Bitmap bitmap);
 	void onError(int id);
