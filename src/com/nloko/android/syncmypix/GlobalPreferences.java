@@ -40,29 +40,24 @@ import android.preference.Preference.OnPreferenceChangeListener;
 public class GlobalPreferences extends PreferenceActivity {
 	
 	private static final String TAG = "GlobalConfig";
-	
 	public static final String PREFS_NAME = "SyncMyPixPrefs";
 	
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	
     	//requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         super.onCreate(savedInstanceState);
-        
         setupViews(savedInstanceState);
     }
     
     @Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		
 		setupViews(null);
 	}
 
     private void setupViews(Bundle savedInstanceState)
     {
-        
     	getWindow().setBackgroundDrawableResource(R.drawable.background);
     	getListView().setBackgroundColor(Color.TRANSPARENT);
     	getListView().setCacheColorHint(Color.TRANSPARENT);
@@ -70,7 +65,7 @@ public class GlobalPreferences extends PreferenceActivity {
     	addPreferencesFromResource(R.layout.preferences);	
     	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
 
-    	final CheckBoxPreference intelliMatch = (CheckBoxPreference) findPreference("intelliMatch");
+/*    	final CheckBoxPreference intelliMatch = (CheckBoxPreference) findPreference("intelliMatch");
     	final CheckBoxPreference firstNames = (CheckBoxPreference) findPreference("firstNames");
     	if (intelliMatch.isChecked()) {
     		firstNames.setEnabled(true);
@@ -84,7 +79,7 @@ public class GlobalPreferences extends PreferenceActivity {
 				return true;
 			}
     		
-    	});
+    	});*/
     	
     	int freq = getSharedPreferences(GlobalPreferences.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
@@ -96,7 +91,6 @@ public class GlobalPreferences extends PreferenceActivity {
     	}
     	
         schedule.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-
 			public boolean onPreferenceChange(Preference preference,
 					Object newValue) {
 
@@ -120,7 +114,6 @@ public class GlobalPreferences extends PreferenceActivity {
 				}
 				return true;
 			}
-        	
         });
         
         if (MainActivity.isLoggedInFromSyncSource(getBaseContext(), MainActivity.getSyncSource(getBaseContext()))) {

@@ -325,7 +325,7 @@ public abstract class SyncService extends Service {
 					for(SocialNetworkUser user : userList) {
 						PhoneContact contact = null;
 						if (intelliMatch) {
-							contact = matcher.match(user.name, firstNames);
+							contact = matcher.match(user.name, true);
 						}
 						else {
 							contact = matcher.exactMatch(user.name);
@@ -422,30 +422,25 @@ public abstract class SyncService extends Service {
 	
     protected boolean skipIfExists;
     protected boolean skipIfConflict;
-    protected boolean reverseNames;
     protected boolean maxQuality;
     protected boolean cropSquare;
     protected boolean intelliMatch;
-    protected boolean firstNames;
     
     private void getPreferences()
     {
 		SyncMyPixPreferences prefs = new SyncMyPixPreferences(getBaseContext());
 		
 		skipIfConflict = prefs.getSkipIfConflict();
-		reverseNames = prefs.getReverseNames();
 		maxQuality = prefs.getMaxQuality();
 		cropSquare = prefs.getCropSquare();
     	skipIfExists = prefs.getSkipIfExists();
     	intelliMatch = prefs.getIntelliMatch();
-    	firstNames = prefs.getFirstNames();
     	
     	Log.d(TAG, "skipIfConfict " + skipIfConflict);
     	Log.d(TAG, "maxQuality " + maxQuality);
     	Log.d(TAG, "cropSquare " + cropSquare);
     	Log.d(TAG, "skipIfExists " + skipIfExists);
     	Log.d(TAG, "intelliMatch " + intelliMatch);
-    	Log.d(TAG, "firstNames " + firstNames);
     }
     
     private WakeLock wakeLock;

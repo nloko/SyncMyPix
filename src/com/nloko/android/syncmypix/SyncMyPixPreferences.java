@@ -55,12 +55,6 @@ public final class SyncMyPixPreferences {
 		return skipIfConflict;
 	}
     
-    private boolean reverseNames;
-    public boolean getReverseNames()
-	{
-		return reverseNames;
-	}
-    
     private boolean maxQuality;
     public boolean getMaxQuality()
 	{
@@ -77,12 +71,6 @@ public final class SyncMyPixPreferences {
     public boolean getIntelliMatch()
 	{
 		return intelliMatch;
-	}
-    
-    private boolean firstNames;
-    public boolean getFirstNames()
-	{
-		return firstNames;
 	}
     
     private String source;
@@ -115,11 +103,9 @@ public final class SyncMyPixPreferences {
 		source = getSocialNetworkName(MainActivity.getSyncSource(context));
 		
 		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
-		//reverseNames = prefs.getBoolean("reverseNames", false);
 		maxQuality = prefs.getBoolean("maxQuality", false);
     	skipIfExists = prefs.getBoolean("skipIfExists", true);
     	cropSquare = prefs.getBoolean("cropSquare", true);
-    	intelliMatch = prefs.getBoolean("intelliMatch", false);
-    	firstNames = prefs.getBoolean("firstNames", false);
+    	intelliMatch = prefs.getBoolean("intelliMatch", true);
     }
 }

@@ -312,7 +312,8 @@ public class NameMatcher {
         }
         
         //possibilities.addAll(fnameMatches);
-        TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(fnameMatches);
+        //TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(fnameMatches);
+        TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(prefixMatch(components[0], mFirstNames));
         if (possibilities.size() > 0) {
             Log.d(TAG, "prefix match from " + components[0] + " to ");
             for (PhoneContact u : possibilities) 
@@ -351,7 +352,7 @@ public class NameMatcher {
                     // only one possibility from Facebook. So that's our answer.
                     PhoneContact answer = possibilities.iterator().next(); 
                     // only return if no last name
-                    if (answer.name.split(" ").length == 1) {
+                    if (getWordCount(answer.name) == 1) {
                     	Log.d(TAG, "only one possibility, matched " + name + " to " + answer.name);
                     	return answer;
                     }
@@ -361,13 +362,15 @@ public class NameMatcher {
                     // is also a "Michael Douglas" in the friends list, because
                     // "Mike" will be expanded to match both people, even though
                     // it's probably the first friend.
-/*                    ArrayList<PhoneContact> exactMatches;
+                    ArrayList<PhoneContact> exactMatches;
                     exactMatches = mFirstNames.get(components[0]);
-                    if (exactMatches != null && exactMatches.size() == 1) {
+                    if (exactMatches != null 
+                    		&& exactMatches.size() == 1 
+                    		&& getWordCount(exactMatches.get(0).name) == 1) {
                         Log.d(TAG, "exact first name match " + components[0] + " to " + exactMatches.get(0).name);
                         return exactMatches.get(0);
                     }
-                    Log.d(TAG, "first name matched multiple people and there is no disambiguating last name");*/
+                    Log.d(TAG, "first name matched multiple people and there is no disambiguating last name");
                 }
             }
         }
@@ -387,19 +390,6 @@ public class NameMatcher {
         
         Log.d(TAG, "No match found for " + name);
         return null;
-    }
-    
-    // HACK...not even sure if this helps any
-    private TreeSet<PhoneContact> mPossibilities;
-    private TreeSet<PhoneContact> getRecycledTreeSet() {
-    	if (mPossibilities == null) {
-    		mPossibilities = new TreeSet<PhoneContact>();
-    	}
-    	else {
-    		mPossibilities.clear();
-    	}
-    	
-    	return mPossibilities;
     }
     
     private ArrayList<PhoneContact> nicknameMatch(String nickname) {
@@ -428,6 +418,13 @@ public class NameMatcher {
         return results;
     }
     
+    private int getWordCount(String phrase) {
+    	if (phrase == null) {
+    		return 0;
+    	}
+    	
+    	return phrase.split(" ").length;
+    }
     
 /*    // TODO: Convert this to a JUnit test when figured out how.
     static private void test(NameMatcher m, String name, PhoneContact user) {

@@ -49,7 +49,7 @@ public final class ConfirmSyncDialog extends AlertDialog {
 		String msg = "Social Network: " + prefs.getSource() + "\n" +
 					 "Skip if non-SyncMyPix picture: " + translateBool(prefs.getSkipIfExists()) + "\n" +
 					 "Skip if multiple contacts: " + translateBool(prefs.getSkipIfConflict()) + "\n" +
-					 "Reverse social network friends' names when matching: " + translateBool(prefs.getReverseNames()) + "\n" +
+					 "Smart name matching: " + translateBool(prefs.getIntelliMatch()) + "\n" +
 					 "Use maximum resolution available: " + translateBool(prefs.getMaxQuality())  + "\n" +
 					 "Crop 96px square: " + translateBool(prefs.getCropSquare())  + "\n";
 		

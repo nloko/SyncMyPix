@@ -35,15 +35,9 @@
 
         <CheckBoxPreference
             android:title="@string/preferences.intelliMatch"
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:summary="@string/preferences.intelliMatch.summary"
             android:key="intelliMatch" />
-        <CheckBoxPreference
-        	android:enabled="false"
-            android:title="@string/preferences.firstNames"
-            android:defaultValue="false"
-            android:summary="@string/preferences.firstNames.summary"
-            android:key="firstNames" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences.picturesHeader">
     	<CheckBoxPreference
