@@ -71,8 +71,9 @@ public final class R {
         public static final int started=0x7f07001d;
         public static final int startedLabel=0x7f07001c;
         public static final int syncButton=0x7f070015;
-        public static final int syncCancel=0x7f07002f;
-        public static final int syncProgress=0x7f07002e;
+        public static final int syncCancel=0x7f070030;
+        public static final int syncProgress=0x7f07002f;
+        public static final int syncStatusSwitcher=0x7f07002e;
         public static final int syncTitle=0x7f070016;
         public static final int syncmypix_title=0x7f070025;
         public static final int text1=0x7f070024;
@@ -80,7 +81,7 @@ public final class R {
         public static final int title=0x7f070027;
         public static final int title_icon=0x7f070026;
         public static final int webview=0x7f070013;
-        public static final int zoomed_layout=0x7f070030;
+        public static final int zoomed_layout=0x7f070031;
     }
     public static final class layout {
         public static final int about=0x7f030000;

@@ -58,6 +58,29 @@
 			
 	</ImageSwitcher>
 		
+		<TextSwitcher 
+		android:layout_height="wrap_content" 
+		android:id="@+id/syncStatusSwitcher" 
+		android:layout_centerHorizontal="true" 
+		android:layout_width="fill_parent" 
+		android:outAnimation="@android:anim/fade_out" 
+		android:inAnimation="@android:anim/fade_in">
+		
+		<TextView android:id="@+id/TextView01" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:textColor="#FFFFFF"
+			android:layout_gravity="center_horizontal" 
+			android:textSize="16dip" />
+		<TextView android:id="@+id/TextView02" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:layout_gravity="center_horizontal" 
+			android:textColor="#FFFFFF"
+			android:textSize="16dip" />
+			
+	</TextSwitcher>
+	
 	<ProgressBar android:id="@+id/syncProgress" 
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content" 

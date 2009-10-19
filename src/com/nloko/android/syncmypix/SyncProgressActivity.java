@@ -39,6 +39,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager.BadTokenException;
 import android.widget.Button;
 import android.widget.ImageSwitcher;
 import android.widget.ProgressBar;
@@ -49,6 +50,7 @@ public class SyncProgressActivity extends Activity {
 	private ProgressBar progress;
 	private ImageSwitcher imageSwitcher;
 	private TextSwitcher textSwitcher;
+	private TextSwitcher statusSwitcher;
 	private Button cancelButton;
 	
 	private static final String TAG = "SyncProgressActivity";
@@ -62,6 +64,7 @@ public class SyncProgressActivity extends Activity {
 		progress = (ProgressBar) findViewById(R.id.syncProgress);
 		imageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
 		textSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
+		statusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
 		cancelButton = (Button) findViewById(R.id.syncCancel);
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -124,7 +127,6 @@ public class SyncProgressActivity extends Activity {
         	}
         	
         	syncService.setListener(new SyncServiceListener() {
-
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
 					if (friendsProgress != null && friendsProgress.isShowing()) {
 						dismissDialog(FRIENDS_PROGRESS);
@@ -145,10 +147,11 @@ public class SyncProgressActivity extends Activity {
 					finish();
 				}
 
-				public void onPictureDownloaded(String name, Bitmap bitmap) {
+				public void onContactSynced(String name, Bitmap bitmap, String status) {
 					Log.d(TAG, String.format("onPictureDownloaded for %s", name));
 					
 					textSwitcher.setText(name);
+					statusSwitcher.setText(status);
 					imageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
 					if (imageSwitcher.getVisibility() != View.VISIBLE) {
 						imageSwitcher.setVisibility(View.VISIBLE);
@@ -161,16 +164,19 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					if (friendsProgress == null || !friendsProgress.isShowing()) {
-						showDialog(FRIENDS_PROGRESS);
+					// catch stupid exception
+					try {
+						if (friendsProgress == null || !friendsProgress.isShowing()) {
+							showDialog(FRIENDS_PROGRESS);
+						}
+					}
+					catch (BadTokenException e) {
 					}
 				}
             });
-
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            
         	syncServiceConnected = false;
         	syncService.unsetListener();
         	syncService = null;

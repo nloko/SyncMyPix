@@ -235,7 +235,7 @@ public abstract class SyncService extends Service {
     		String hash = null;
 
     		//ContentValues is an immutable object
-    		ContentValues valuesCopy = new ContentValues(values);
+    		final ContentValues valuesCopy = new ContentValues(values);
 
     		try {
     			//String id = cur.getString(cur.getColumnIndex(People._ID));
@@ -254,15 +254,7 @@ public abstract class SyncService extends Service {
     					try {
     						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
     						
-    						// send picture to listener for progress display
-    						final Bitmap tmp = bitmap;
-    						mainHandler.post(new Runnable() {
-								public void run() {
-									if (listener != null) {
-		    							listener.onPictureDownloaded(user.name, tmp);
-		    						}
-								}
-    						});
+    						
     						image = Utils.bitmapToJpeg(bitmap, 100);
     						hash = Utils.getMd5Hash(image);
     					}
@@ -289,6 +281,16 @@ public abstract class SyncService extends Service {
     								ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()));
     					}
 
+    					// send picture to listener for progress display
+						final Bitmap tmp = bitmap;
+						mainHandler.post(new Runnable() {
+							public void run() {
+								if (listener != null) {
+	    							listener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
+	    						}
+							}
+						});
+						
     					valuesCopy.put(Results.CONTACT_ID, contactId);
     				}
     				else {

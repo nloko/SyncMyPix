@@ -28,6 +28,6 @@ public interface SyncServiceListener {
 	void onFriendsDownloadStarted();
 	void onSyncProgressUpdated(int progress, int index, int total);
 	void onSyncCompleted();
-	void onPictureDownloaded(String name, Bitmap bitmap);
+	void onContactSynced(String name, Bitmap bitmap, String status);
 	void onError(int id);
 }
