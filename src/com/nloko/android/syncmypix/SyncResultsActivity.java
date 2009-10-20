@@ -119,7 +119,7 @@ public class SyncResultsActivity extends Activity {
 		setContentView(R.layout.results);	
 		
 		cache = ThumbnailCache.create();
-		cache.setDefaultImage(BitmapFactory.decodeResource(getResources(), R.drawable.smiley_face));
+		cache.setDefaultImage(BitmapFactory.decodeResource(getResources(), R.drawable.default_face));
 		
 		dbHelper = new SyncMyPixDbHelper(getBaseContext());
 		
@@ -898,7 +898,7 @@ public class SyncResultsActivity extends Activity {
 			}
 			else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext())) ||
 					description.equals(ResultsDescription.UPDATED.getDescription(getBaseContext()))) {
-				image.setImageResource(R.drawable.smiley_face);
+				image.setImageResource(R.drawable.default_face);
 			}
 			else if (description.equals(ResultsDescription.NOTFOUND.getDescription(getBaseContext()))) {
 				image.setImageResource(R.drawable.neutral_face);
