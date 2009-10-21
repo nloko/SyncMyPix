@@ -96,6 +96,7 @@ public class SyncProgressActivity extends Activity {
 	}
     
     private final int FRIENDS_PROGRESS = 0;
+    private final int CANCELLING_DIALOG = 1;
     
     private ProgressDialog friendsProgress;
     
@@ -109,6 +110,12 @@ public class SyncProgressActivity extends Activity {
 				friendsProgress.setMessage(getString(R.string.main_friendsDialog));
 				friendsProgress.setCancelable(false);
 				return friendsProgress;
+			case CANCELLING_DIALOG:
+				ProgressDialog cancelling = new ProgressDialog(this);
+				cancelling.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				cancelling.setCancelable(false);
+				cancelling.setMessage("Cancelling sync...");
+				return cancelling;
 		}
 		
 		return super.onCreateDialog(id);
@@ -172,6 +179,10 @@ public class SyncProgressActivity extends Activity {
 					}
 					catch (BadTokenException e) {
 					}
+				}
+
+				public void onSyncCancelled() {
+					showDialog(CANCELLING_DIALOG);
 				}
             });
         }

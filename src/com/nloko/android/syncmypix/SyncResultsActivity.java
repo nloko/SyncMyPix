@@ -807,7 +807,7 @@ public class SyncResultsActivity extends Activity {
 					
 					if (bitmap != null) {
 						cache.add(url, bitmap);
-						Log.d(TAG, "added back " + url + " to cache");
+						//Log.d(TAG, "added back " + url + " to cache");
 						
 						if (wasNotified) {
 							// HACK to force notifyDatasetUpdated() to be honoured
@@ -893,7 +893,7 @@ public class SyncResultsActivity extends Activity {
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
 			if (cache.contains(url)) {
-				Log.d(TAG, "bindView resetting " + url);
+				//Log.d(TAG, "bindView resetting " + url);
 				image.setImageBitmap(cache.get(url));
 			}
 			else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext())) ||

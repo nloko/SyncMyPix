@@ -125,7 +125,8 @@ public abstract class SyncService extends Service {
 		public void startSync(List<SocialNetworkUser> users)
 		{
 			updateStatus(SyncServiceStatus.SYNCING);
-			new SyncTask().execute(users);
+			syncOperation = new SyncTask();
+			syncOperation.execute(users);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -192,6 +193,8 @@ public abstract class SyncService extends Service {
 			mainHandler.post(mainHandler.finish);
 		}
     }
+    
+    private SyncTask syncOperation;
     
     private class SyncTask extends AsyncTask <List<SocialNetworkUser>, Integer, Long>
     {
@@ -420,6 +423,9 @@ public abstract class SyncService extends Service {
     public void cancelOperation()
     {
     	if (isExecuting()) {
+    		if (listener != null) {
+    			listener.onSyncCancelled();
+    		}
     		cancel = true;
     	}
     }

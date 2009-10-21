@@ -29,5 +29,6 @@ public interface SyncServiceListener {
 	void onSyncProgressUpdated(int progress, int index, int total);
 	void onSyncCompleted();
 	void onContactSynced(String name, Bitmap bitmap, String status);
+	void onSyncCancelled();
 	void onError(int id);
 }
