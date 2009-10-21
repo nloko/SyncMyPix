@@ -114,7 +114,7 @@ public class SyncProgressActivity extends Activity {
 				ProgressDialog cancelling = new ProgressDialog(this);
 				cancelling.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				cancelling.setCancelable(false);
-				cancelling.setMessage("Cancelling sync...");
+				cancelling.setMessage(getString(R.string.syncprogress_cancel));
 				return cancelling;
 		}
 		
