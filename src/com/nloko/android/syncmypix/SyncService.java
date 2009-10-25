@@ -402,7 +402,7 @@ public abstract class SyncService extends Service {
 				}
 				
 				Intent i = new Intent(getBaseContext(), SyncResultsActivity.class);
-				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
 				showNotification(R.string.syncservice_stopped, 
 						android.R.drawable.stat_sys_download_done, 

@@ -166,7 +166,9 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onSyncCompleted() {
-					startActivity(new Intent(SyncProgressActivity.this, SyncResultsActivity.class));
+					Intent i = new Intent(getBaseContext(), SyncResultsActivity.class);
+					i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+					startActivity(i);
 					finish();
 				}
 

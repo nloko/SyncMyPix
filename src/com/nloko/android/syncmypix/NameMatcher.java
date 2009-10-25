@@ -306,10 +306,10 @@ public class NameMatcher {
         // Compile all the possibilities based on first name match only.
         //TreeSet<PhoneContact> possibilities = getRecycledTreeSet();
         //possibilities.addAll(prefixMatch(components[0], mFirstNames));
-        ArrayList<PhoneContact> fnameMatches = mFirstNames.get(components[0]);
+/*        ArrayList<PhoneContact> fnameMatches = mFirstNames.get(components[0]);
         if (fnameMatches == null) {
         	fnameMatches = new ArrayList<PhoneContact>(3);
-        }
+        }*/
         
         //possibilities.addAll(fnameMatches);
         //TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(fnameMatches);
