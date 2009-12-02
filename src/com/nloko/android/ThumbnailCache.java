@@ -28,6 +28,10 @@ import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 import android.graphics.Bitmap;
@@ -195,7 +199,7 @@ public class ThumbnailCache {
 	
 	private class ImageDownloader {
 		
-		private final LinkedList<String> urlQueue = new LinkedList<String>();
+		private final BlockingQueue<String> urlQueue = new LinkedBlockingQueue<String>();
 		private Thread downloadThread;
 		private boolean paused = false;
 		
@@ -209,11 +213,13 @@ public class ThumbnailCache {
 			downloadThread = new Thread(new Runnable() {
 				public void run() {
 					String url;
-					while(!paused && (url = urlQueue.poll()) != null) {
-						Bitmap image;
+					while(!paused) {
 						try {
+							url = urlQueue.take();
+							Bitmap image;
 							image = Utils.downloadPictureAsBitmap(url);
 							add(url, image, true, true);
+						} catch (InterruptedException e) {
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -227,6 +233,7 @@ public class ThumbnailCache {
 		public void setPause(boolean value)
 		{
 			if (paused == value) {
+				downloadThread.interrupt();
 				return;
 			}
 			
@@ -242,7 +249,11 @@ public class ThumbnailCache {
 				return;
 			}
 			
-			urlQueue.add(url);
+			try {
+				urlQueue.put(url);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
