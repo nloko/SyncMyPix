@@ -61,7 +61,7 @@ public abstract class SyncService extends Service {
 
 	private final static String TAG = "SyncService";
 	
-	public final static Object syncLock = new Object();
+	public static Object syncLock = new Object();
 	
 	public enum SyncServiceStatus {
 		IDLE,
@@ -379,6 +379,7 @@ public abstract class SyncService extends Service {
 							0));
 	
 				} finally {
+					syncLock = null;
 					mainHandler.post(mainHandler.resetExecuting);
 				}
 				

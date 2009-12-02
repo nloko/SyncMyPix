@@ -85,6 +85,8 @@ public class SyncResultsActivity extends Activity {
 	Looper downloadLooper;
 	DownloadImageHandler downloadHandler;
 	LoadThumbnailsThread thumbnailThread;
+	InitializeResultsThread initResultsThread;
+	
 	Bitmap contactImage;
 
 	ThumbnailCache cache;
@@ -209,7 +211,9 @@ public class SyncResultsActivity extends Activity {
 					((SimpleCursorAdapter)listview.getAdapter()).notifyDataSetChanged();
 					
 					contactImage = bitmap;
-					showDialog(ZOOM_PIC);
+					try {
+						showDialog(ZOOM_PIC);
+					} catch (Exception e) {} 
 				}
 				
 				setProgressBarIndeterminateVisibility(false);
@@ -231,7 +235,8 @@ public class SyncResultsActivity extends Activity {
         downloadLooper = downloadThread.getLooper();
         downloadHandler = new DownloadImageHandler(downloadLooper, mainHandler);
         
-        new InitializeResultsThread(Looper.myQueue()).start();
+        initResultsThread = new InitializeResultsThread(Looper.myQueue());
+        initResultsThread.start();
 	}
 
 	@Override
@@ -674,29 +679,57 @@ public class SyncResultsActivity extends Activity {
 		downloadLooper.quit();
 		cache.destroy();
 		
-		// TODO Auto-generated method stub
+		if (thumbnailThread != null) {
+			thumbnailThread.stopRunning();
+			thumbnailThread.closeQuery();
+		}
+		
+		if (initResultsThread != null) {
+			initResultsThread.stopRunning();
+			initResultsThread.closeQuery();
+		}
+		
 		super.onDestroy();
 
 	}
 		
 	private class InitializeResultsThread extends Thread
 	{
+		private boolean running = true;
 		private MessageQueue queue;
 		private Cursor cursor;
 		InitializeResultsThread (MessageQueue queue)
 		{
 			this.queue = queue;
-			
-			cursor = managedQuery(Results.CONTENT_URI, 
+			ensureQuery();
+		}
+		
+		private void ensureQuery()
+		{
+			cursor = getContentResolver().query(Results.CONTENT_URI, 
 					new String[] { Sync.DATE_STARTED, Sync.DATE_COMPLETED }, 
 					null, 
 					null, 
 					null);
 		}
 		
+		public void closeQuery()
+		{
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+		
+		public void stopRunning ()
+		{
+			running = false;
+		}
+		
 		public void run()
 		{
-			if (cursor.moveToFirst()) {
+			ensureQuery();
+			
+			if (running && cursor.moveToFirst()) {
 				long started = cursor.getLong(cursor.getColumnIndex(Sync.DATE_STARTED));
 				long completed = cursor.getLong(cursor.getColumnIndex(Sync.DATE_COMPLETED));
 				
@@ -736,7 +769,7 @@ public class SyncResultsActivity extends Activity {
 	
 	private class LoadThumbnailsThread extends Thread
 	{
-		//private final Object lock = new Object();
+		private boolean running = true;
 		private Cursor cursor;
 		private final String where = Results.DESCRIPTION + " IN ('" +
 			ResultsDescription.UPDATED.getDescription(getBaseContext()) + "','" +
@@ -747,24 +780,30 @@ public class SyncResultsActivity extends Activity {
 		
 		public LoadThumbnailsThread()
 		{
-	        String[] projection = { 
+	        ensureQuery();
+		}
+		
+		private void ensureQuery()
+		{
+			String[] projection = { 
 	        		Results._ID, 
 	        		Results.CONTACT_ID,
 	        		Results.PIC_URL };
-	        
-	        cursor = managedQuery(Results.CONTENT_URI, 
-	        		projection, 
-	        		where, 
-	        		null, 
-	        		Results.DEFAULT_SORT_ORDER);
-	        
-/*	        cursor.registerContentObserver(new ContentObserver(new Handler()) {
-				@Override
-				public void onChange(boolean selfChange) {
-					super.onChange(selfChange);
-					restart();
-				}
-	        });*/
+			
+			if (cursor == null || cursor.isClosed()) {
+				cursor = getContentResolver().query(Results.CONTENT_URI, 
+		        		projection, 
+		        		where, 
+		        		null, 
+		        		Results.DEFAULT_SORT_ORDER);
+			}
+		}
+		
+		public void closeQuery()
+		{
+			if (cursor != null) {
+				cursor.close();
+			}
 		}
 		
 		public void restart()
@@ -773,8 +812,14 @@ public class SyncResultsActivity extends Activity {
 			run();
 		}
 
+		public void stopRunning()
+		{
+			running = false;
+		}
+		
 		private void refreshCursor()
 		{
+			ensureQuery();
 			cursor.requery();
 			cursor.moveToPosition(-1);
 		}
@@ -792,9 +837,11 @@ public class SyncResultsActivity extends Activity {
 				refreshCursor();
 				notified = false;
 				wasNotified = true;
+			} else {
+				ensureQuery();
 			}
 			
-			while(!notified && cursor.moveToNext()) {
+			while(running && !notified && cursor.moveToNext()) {
 				
 				id = cursor.getString(cursor.getColumnIndex(Results._ID));
 				contactId = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
