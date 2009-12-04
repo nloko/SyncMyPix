@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix;
 
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
@@ -41,18 +42,11 @@ public class SyncMyPixDbHelper {
 
 	private static final String TAG = "SyncMyPixDbHelper";
 	
-	private final ContentResolver mResolver;
-	
-	@SuppressWarnings("unused")
-	private SyncMyPixDbHelper()
-	{
-		mResolver = null;
-	}
+	private final WeakReference<ContentResolver> mResolver;
 	
 	public SyncMyPixDbHelper(Context context)
 	{
-		super();
-		mResolver = context.getContentResolver();
+		mResolver = new WeakReference<ContentResolver>(context.getContentResolver());
 	}
 
 	public void deleteAllPictures()
@@ -62,7 +56,12 @@ public class SyncMyPixDbHelper {
 	
 	public void deleteAllPictures(final DbHelperNotifier notifier)
 	{
-		final Cursor cursor = mResolver.query(Contacts.CONTENT_URI, 
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
+		final Cursor cursor = resolver.query(Contacts.CONTENT_URI, 
 				new String[] { Contacts._ID, Contacts.PHOTO_HASH },
 				null,
 				null, 
@@ -72,25 +71,25 @@ public class SyncMyPixDbHelper {
 			
 			public void run() {
 				
-				synchronized(SyncService.syncLock) {
+				synchronized(SyncService.mSyncLock) {
 					
 					while(cursor.moveToNext()) {
 						String id  = cursor.getString(cursor.getColumnIndex(Contacts._ID));
 						String dbHash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
 						Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
 						
-						InputStream stream = People.openContactPhotoInputStream(mResolver, uri);
+						InputStream stream = People.openContactPhotoInputStream(resolver, uri);
 						if (stream != null) {
 							String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
 							if (dbHash.equals(hash)) {
-								ContactServices.updateContactPhoto(mResolver, null, id);
+								ContactServices.updateContactPhoto(resolver, null, id);
 							}
 						}
 					}
 					
-					mResolver.delete(Contacts.CONTENT_URI, null, null);
-					mResolver.delete(Results.CONTENT_URI, null, null);
-					mResolver.delete(Sync.CONTENT_URI, null, null);
+					resolver.delete(Contacts.CONTENT_URI, null, null);
+					resolver.delete(Results.CONTENT_URI, null, null);
+					resolver.delete(Sync.CONTENT_URI, null, null);
 
 				}
 				
@@ -124,8 +123,13 @@ public class SyncMyPixDbHelper {
 	
 	public void updateHashes(String id, String networkHash, String updatedHash)
 	{
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
 		Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
-		Cursor cursor = mResolver.query(uri,
+		Cursor cursor = resolver.query(uri,
 						new String[] { Contacts._ID }, 
 						null, 
 						null, 
@@ -142,11 +146,11 @@ public class SyncMyPixDbHelper {
 		}
 		
 		if (cursor.moveToFirst()) {
-			mResolver.update(uri, values, null, null);
+			resolver.update(uri, values, null, null);
 		}
 		else {
 			values.put(Contacts._ID, id);
-			mResolver.insert(Contacts.CONTENT_URI, values);
+			resolver.insert(Contacts.CONTENT_URI, values);
 		}
 		
 		if (cursor != null) {
@@ -160,9 +164,14 @@ public class SyncMyPixDbHelper {
     		throw new IllegalArgumentException("id");
     	}
     	
+    	final ContentResolver resolver = mResolver.get();
+    	if (resolver == null) {
+    		return null;
+    	}
+    	
     	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
 		
-    	Cursor syncC = mResolver.query(syncUri, 
+    	Cursor syncC = resolver.query(syncUri, 
 				new String[] { SyncMyPix.Contacts._ID,
 				SyncMyPix.Contacts.PHOTO_HASH,
 				SyncMyPix.Contacts.NETWORK_PHOTO_HASH }, 
@@ -188,8 +197,13 @@ public class SyncMyPixDbHelper {
     		throw new IllegalArgumentException("id");
     	}
     	
+    	final ContentResolver resolver = mResolver.get();
+    	if (resolver == null) {
+    		return false;
+    	}
+    	
     	boolean ok = true;
-
+    	
     	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
     	    	
     	if (skipIfExists) {
@@ -206,7 +220,7 @@ public class SyncMyPixDbHelper {
 
     			// hashes do not match, so we don't need to track this hash anymore
     			if (!contactHash.equals(dbHash)) {
-   					mResolver.delete(syncUri, null, null);
+   					resolver.delete(syncUri, null, null);
     				ok = false;
     			}
     		}

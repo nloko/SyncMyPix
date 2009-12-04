@@ -46,12 +46,18 @@ import android.widget.ProgressBar;
 import android.widget.TextSwitcher;
 
 public class SyncProgressActivity extends Activity {
+	private SyncService mSyncService;
+	private ProgressDialog mFriendsProgress;
+	private ProgressBar mProgress;
+	private ImageSwitcher mImageSwitcher;
+	private TextSwitcher mTextSwitcher;
+	private TextSwitcher mStatusSwitcher;
+	private Button mCancelButton;
 
-	private ProgressBar progress;
-	private ImageSwitcher imageSwitcher;
-	private TextSwitcher textSwitcher;
-	private TextSwitcher statusSwitcher;
-	private Button cancelButton;
+    private final int FRIENDS_PROGRESS = 0;
+    private final int CANCELLING_DIALOG = 1;
+	
+	private boolean mSyncServiceBound = false;
 	
 	private static final String TAG = "SyncProgressActivity";
 	
@@ -61,55 +67,52 @@ public class SyncProgressActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.syncprogress);
 		
-		progress = (ProgressBar) findViewById(R.id.syncProgress);
-		imageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
-		textSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
-		statusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
-		cancelButton = (Button) findViewById(R.id.syncCancel);
-		cancelButton.setOnClickListener(new OnClickListener() {
+		mProgress = (ProgressBar) findViewById(R.id.syncProgress);
+		mImageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
+		mTextSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
+		mStatusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
+		mCancelButton = (Button) findViewById(R.id.syncCancel);
+		mCancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (syncService != null && syncService.isExecuting()) {
-					syncService.cancelOperation();
+				if (mSyncService != null && mSyncService.isExecuting()) {
+					mSyncService.cancelOperation();
 				}
 			}
 		});
 	}
 
-	
     @Override
 	protected void onResume() {
 		super.onResume();
-		if (!syncServiceConnected) {
+		if (!mSyncServiceBound) {
 			Intent i = new Intent(SyncProgressActivity.this, MainActivity.getSyncSource(getBaseContext()));
-			bindService(i, syncServiceConn, 0);
-		}
-		else if (syncService != null && !syncService.isExecuting()) {
-			finish();
+			mSyncServiceBound = bindService(i, mSyncServiceConn, 0);
 		}
 	}
-
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		unbindService(syncServiceConn);
+	protected void onPause() {
+		super.onPause();
+		unbindService(mSyncServiceConn);
+		mSyncServiceBound = false;
+		mSyncService = null;
 	}
-    
-    private final int FRIENDS_PROGRESS = 0;
-    private final int CANCELLING_DIALOG = 1;
-    
-    private ProgressDialog friendsProgress;
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
     
     @Override
 	protected Dialog onCreateDialog(int id) {
 		switch(id) {
-
 			case FRIENDS_PROGRESS:
-				friendsProgress = new ProgressDialog(this);
-				friendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				friendsProgress.setMessage(getString(R.string.main_friendsDialog));
-				friendsProgress.setCancelable(false);
-				return friendsProgress;
+				mFriendsProgress = new ProgressDialog(this);
+				mFriendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				mFriendsProgress.setMessage(getString(R.string.main_friendsDialog));
+				mFriendsProgress.setCancelable(false);
+				return mFriendsProgress;
 			case CANCELLING_DIALOG:
 				ProgressDialog cancelling = new ProgressDialog(this);
 				cancelling.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -117,35 +120,29 @@ public class SyncProgressActivity extends Activity {
 				cancelling.setMessage(getString(R.string.syncprogress_cancel));
 				return cancelling;
 		}
-		
 		return super.onCreateDialog(id);
     }
 				
-	private SyncService syncService;
-	private boolean syncServiceConnected = false;
-	
-    private ServiceConnection syncServiceConn = new ServiceConnection() {
+    private ServiceConnection mSyncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-        	syncServiceConnected = true;
-        	
-        	syncService = ((SyncService.LocalBinder)service).getService();
-        	if (syncService.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
+        	mSyncService = ((SyncService.LocalBinder)service).getService();
+        	if (mSyncService.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
             	showDialog(FRIENDS_PROGRESS);
         	}
         	
-        	syncService.setListener(new SyncServiceListener() {
+        	mSyncService.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
-					if (friendsProgress != null && friendsProgress.isShowing()) {
+					if (mFriendsProgress != null && mFriendsProgress.isShowing()) {
 						dismissDialog(FRIENDS_PROGRESS);
 					}
 					
-					progress.setVisibility(View.VISIBLE);
-					cancelButton.setVisibility(View.VISIBLE);
+					mProgress.setVisibility(View.VISIBLE);
+					mCancelButton.setVisibility(View.VISIBLE);
 					
-					if (progress != null) {
+					if (mProgress != null) {
 						if (percentage < 100) {
-							progress.setMax(total);
-							progress.setProgress(index);
+							mProgress.setMax(total);
+							mProgress.setProgress(index);
 						}
 					}
 				}
@@ -157,11 +154,11 @@ public class SyncProgressActivity extends Activity {
 				public void onContactSynced(String name, Bitmap bitmap, String status) {
 					Log.d(TAG, String.format("onPictureDownloaded for %s", name));
 					
-					textSwitcher.setText(name);
-					statusSwitcher.setText(status);
-					imageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
-					if (imageSwitcher.getVisibility() != View.VISIBLE) {
-						imageSwitcher.setVisibility(View.VISIBLE);
+					mTextSwitcher.setText(name);
+					mStatusSwitcher.setText(status);
+					mImageSwitcher.setImageDrawable(new BitmapDrawable(bitmap));
+					if (mImageSwitcher.getVisibility() != View.VISIBLE) {
+						mImageSwitcher.setVisibility(View.VISIBLE);
 					}
 				}
 
@@ -173,13 +170,8 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					// catch stupid exception
-					try {
-						if (friendsProgress == null || !friendsProgress.isShowing()) {
-							showDialog(FRIENDS_PROGRESS);
-						}
-					}
-					catch (BadTokenException e) {
+					if (mFriendsProgress == null || !mFriendsProgress.isShowing()) {
+						showDialog(FRIENDS_PROGRESS);
 					}
 				}
 
@@ -190,10 +182,9 @@ public class SyncProgressActivity extends Activity {
         }
 
         public void onServiceDisconnected(ComponentName className) {
-        	syncServiceConnected = false;
-        	syncService.unsetListener();
-        	syncService = null;
-        	
+        	Log.d(TAG, "onServiceDisconnected");
+        	mSyncService.unsetListener();
+        	mSyncService = null;
         	finish();
         }
     };

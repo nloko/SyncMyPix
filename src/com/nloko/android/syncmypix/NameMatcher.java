@@ -131,6 +131,22 @@ public class NameMatcher {
         }
     }
     
+    public void destroy()
+    {
+    	if (mFirstNames != null) {
+    		mFirstNames.clear();
+    	}
+    	if (mLastNames != null) {
+    		mLastNames.clear();
+    	}
+    	if (mNickNames != null) {
+    		mNickNames.clear();
+    	}
+    	if (mDiminutives != null) {
+    		mDiminutives.clear();
+    	}
+    }
+    
     private void loadDiminutives(InputStream diminutivesFile) {
         // Names are comma separated, across multiple lines. Names on a line
         // are deemed to be equivalent. The same name can appear on multiple

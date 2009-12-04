@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix;
 
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +44,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -52,7 +52,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.provider.Contacts.People;
 import android.widget.Toast;
@@ -60,8 +59,27 @@ import android.widget.Toast;
 public abstract class SyncService extends Service {
 
 	private final static String TAG = "SyncService";
+	public final static Object mSyncLock = new Object();
 	
-	public static Object syncLock = new Object();
+	private SyncServiceStatus mStatus = SyncServiceStatus.IDLE;
+	private SyncTask mSyncOperation;
+	private NotificationManager mNotifyManager;
+	private WakeLock mWakeLock;
+    
+	private boolean mCancel = false;
+    private boolean mExecuting = false;
+    private boolean mStarted = false;
+	
+    protected boolean mSkipIfExists;
+    protected boolean mSkipIfConflict;
+    protected boolean mMaxQuality;
+    protected boolean mCropSquare;
+    protected boolean mIntelliMatch;
+    protected SyncServiceListener mListener;
+	
+	private final MainHandler mMainHandler = new MainHandler(this);
+	private final IBinder mBinder = new LocalBinder();
+	private final List <ContentValues> mResultsList = new ArrayList<ContentValues> ();
 	
 	public enum SyncServiceStatus {
 		IDLE,
@@ -69,64 +87,76 @@ public abstract class SyncService extends Service {
 		SYNCING
 	}
 	
-	private SyncServiceStatus status = SyncServiceStatus.IDLE;
 	public SyncServiceStatus getStatus()
 	{
-		return status;
+		return mStatus;
 	}
 	
 	protected void updateStatus(SyncServiceStatus status)
 	{
-		this.status = status;
+		mStatus = status;
 	}
 	
-	private final MainHandler mainHandler = new MainHandler ();
 	public MainHandler getMainHandler()
 	{
-		return mainHandler;
+		return mMainHandler;
 	}
 	
-	protected class MainHandler extends Handler
+	protected static class MainHandler extends Handler
 	{
+		private final WeakReference<SyncService> mSyncService;
 		public static final int START_SYNC = 0;
 		public static final int SHOW_ERROR = 1;
 		
-		MainHandler() {}
+		MainHandler(SyncService service) 
+		{
+			mSyncService = new WeakReference<SyncService>(service);
+		}
 		
 		public final Runnable resetExecuting = new Runnable () {
 			public void run() {
-				executing = false;
-				updateStatus(SyncServiceStatus.IDLE);
+				final SyncService service = mSyncService.get();
+				if (service != null) {
+					service.mExecuting = false;
+					service.updateStatus(SyncServiceStatus.IDLE);
+				}
 			}
 		};
 		
 		public final Runnable finish = new Runnable () {
 			public void run() {
-				
-				resultsList.clear();
-				
-				wakeLock.release();
-	            stopSelf();
+				final SyncService service = mSyncService.get();
+				if (service != null) {
+					service.mResultsList.clear();
+					service.mWakeLock.release();
+					service.stopSelf();
+				}
 			}
 		};
 		
 		public void handleError(int msg)
 		{
-			post(resetExecuting);
+			final SyncService service = mSyncService.get();
+			if (service != null) {
+				post(resetExecuting);
 			
-			if (listener != null) {
-				listener.onError(msg);
+				if (service.mListener != null) {
+					service.mListener.onError(msg);
+				}
+			
+				service.showError(msg);
 			}
-			
-			showError(msg);
 		}
 		
 		@SuppressWarnings("unchecked")
 		public void startSync(List<SocialNetworkUser> users)
 		{
-			updateStatus(SyncServiceStatus.SYNCING);
-			syncOperation = new SyncTask();
-			syncOperation.execute(users);
+			final SyncService service = mSyncService.get();
+			if (service != null) {
+				service.updateStatus(SyncServiceStatus.SYNCING);
+				service.mSyncOperation = new SyncTask(service);
+				service.mSyncOperation.execute(users);
+			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -145,26 +175,33 @@ public abstract class SyncService extends Service {
 	}
 	
 	// This listener is used for communication of sync results to other activities
-    protected SyncServiceListener listener;
     public void setListener (SyncServiceListener listener)
     {
     	if (listener == null) {
     		throw new IllegalArgumentException ("listener");
     	}
     	
-    	this.listener = listener;
+    	mListener = listener;
     }
     
     public void unsetListener()
     {
-    	listener = null;
+    	mListener = null;
+    }
+    
+    public SyncServiceListener getListener()
+    {
+    	return mListener;
     }
 
-    private class UpdateResultsTable extends Thread
+    private static class UpdateResultsTable extends Thread
     {
-    	private List<ContentValues> list;
-    	public UpdateResultsTable(List<ContentValues> list)
+    	final private List<ContentValues> list;
+    	final private WeakReference<SyncService> mService;
+    	
+    	public UpdateResultsTable(SyncService service, List<ContentValues> list)
     	{
+    		mService = new WeakReference<SyncService>(service);
     		this.list = list;
     	}
     	
@@ -173,35 +210,43 @@ public abstract class SyncService extends Service {
         	if (values == null) {
         		throw new IllegalArgumentException("values");
         	}
-
-        	//Log.d(TAG, String.format("Creating result for %s with contact id %s", values.getAsString(Results.NAME), values.getAsString(Results.CONTACT_ID)));
-        	ContentResolver resolver = getContentResolver();
-        	resolver.insert(Results.CONTENT_URI, values);
+        	final SyncService service = mService.get();
+			if (service != null) {
+				ContentResolver resolver = service.getContentResolver();
+				resolver.insert(Results.CONTENT_URI, values);
+			}
         }
      
 		public void run() {
 			
-			Log.d(TAG, "Started updating results at " + Long.toString(System.currentTimeMillis()));
+			Log.d(TAG, "mStarted updating results at " + Long.toString(System.currentTimeMillis()));
 			for (ContentValues values : list) {
 				if (values != null) {
 					createResult(values);
 				}
 			}
 			
+			list.clear();
 			Log.d(TAG, "Finished updating results at " + Long.toString(System.currentTimeMillis()));
 			
-			mainHandler.post(mainHandler.finish);
+			final SyncService service = mService.get();
+			if (service != null) {
+				service.mMainHandler.post(service.mMainHandler.finish);
+			}
 		}
     }
     
-    private SyncTask syncOperation;
-    
-    private class SyncTask extends AsyncTask <List<SocialNetworkUser>, Integer, Long>
+    private static class SyncTask extends AsyncTask <List<SocialNetworkUser>, Integer, Long>
     {
-    	private final SyncMyPixDbHelper dbHelper = new SyncMyPixDbHelper(getBaseContext());
+    	private final WeakReference<SyncService> mService;
+    	private final SyncMyPixDbHelper dbHelper;
+    	    	    	
+    	public SyncTask (SyncService service)
+    	{
+    		mService = new WeakReference<SyncService>(service);
+    		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
+    	}
     	
-    	private final ContentResolver resolver = getContentResolver();
-    	    	
         private void processUser(final SocialNetworkUser user, String contactId, Uri sync) 
         {
     		if (user == null) {
@@ -212,21 +257,26 @@ public abstract class SyncService extends Service {
     			throw new IllegalArgumentException ("sync");
     		}
     		
+    		final SyncService service = mService.get();
+    		if (service == null) {
+    			return;
+    		}
+    		
     		Log.d(TAG, String.format("%s %s", user.name, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
     		ContentValues values = createResult(syncId, user.name, user.picUrl);
     		
     		if (user.picUrl == null) {
-    			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(getBaseContext()));
-    			resultsList.add(values);
+    			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(service));
+    			service.mResultsList.add(values);
     			return;
     		}
     		
     		if (contactId == null) {
     			Log.d(TAG, "Contact not found in database.");
-    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getBaseContext()));
-    			resultsList.add(values);
+    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
+    			service.mResultsList.add(values);
     			return;
     		}
     		
@@ -245,13 +295,13 @@ public abstract class SyncService extends Service {
     			DBHashes hashes = dbHelper.getHashes(contactId);
 
     			Uri contact = Uri.withAppendedPath(People.CONTENT_URI, contactId);
-    			is = People.openContactPhotoInputStream(resolver, contact);
+    			is = People.openContactPhotoInputStream(service.getContentResolver(), contact);
     			// photo is set, so let's get its hash
     			if (is != null) {
     				contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     			}
 
-    			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, skipIfExists)) {
+    			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
 
     				if (image == null) {
     					try {
@@ -269,26 +319,26 @@ public abstract class SyncService extends Service {
 
     						String updatedHash = hash;
 
-    						if (cropSquare) {
+    						if (service.mCropSquare) {
     							bitmap = Utils.centerCrop(bitmap, 96, 96);
     							image = Utils.bitmapToJpeg(bitmap, 100);
     							updatedHash = Utils.getMd5Hash(image);
     						}
 
-    						ContactServices.updateContactPhoto(getContentResolver(), image, contactId);
+    						ContactServices.updateContactPhoto(service.getContentResolver(), image, contactId);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
     					}
     					else {
     						valuesCopy.put(Results.DESCRIPTION, 
-    								ResultsDescription.SKIPPED_UNCHANGED.getDescription(getBaseContext()));
+    								ResultsDescription.SKIPPED_UNCHANGED.getDescription(service));
     					}
 
     					// send picture to listener for progress display
 						final Bitmap tmp = originalBitmap;
-						mainHandler.post(new Runnable() {
+						service.mMainHandler.post(new Runnable() {
 							public void run() {
-								if (listener != null) {
-	    							listener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
+								if (service.mListener != null) {
+	    							service.mListener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
 	    						}
 							}
 						});
@@ -297,21 +347,21 @@ public abstract class SyncService extends Service {
     				}
     				else {
     					valuesCopy.put(Results.DESCRIPTION, 
-    							ResultsDescription.DOWNLOAD_FAILED.getDescription(getBaseContext()));
+    							ResultsDescription.DOWNLOAD_FAILED.getDescription(service));
     					//break;
     				}
     			}
     			else {
     				valuesCopy.put(Results.DESCRIPTION, 
-    						ResultsDescription.SKIPPED_EXISTS.getDescription(getBaseContext()));
+    						ResultsDescription.SKIPPED_EXISTS.getDescription(service));
     			}
 
     		}
     		catch (Exception e) {
-    			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(getBaseContext()));
+    			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(service));
     		}
     		finally {
-    			resultsList.add(valuesCopy);
+    			service.mResultsList.add(valuesCopy);
     		}
     	}
 
@@ -321,33 +371,40 @@ public abstract class SyncService extends Service {
     		values.put(Results.SYNC_ID, id);
     		values.put(Results.NAME, name);
     		values.put(Results.PIC_URL, url);
-    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getBaseContext()));
+    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(mService.get()));
     		
     		return values;
         }
-        
         
 		@Override
 		protected Long doInBackground(List<SocialNetworkUser>... users) {
 			
 			long total = 0;
-			int index = 0;
+			int index = 0, size = 0;
 			
 			List<SocialNetworkUser> userList = users[0];
+			NameMatcher matcher = null;
 			
-			synchronized(syncLock) {
-				
+    		final SyncService service = mService.get();
+    		if (service == null) {
+    			return 0l;
+    		}
+    		
+			synchronized(mSyncLock) {
 				try {
-					NameMatcher matcher = new NameMatcher(getBaseContext(), getResources().openRawResource(R.raw.diminutives));
+					matcher = new NameMatcher(service.getApplicationContext(), service.getResources().openRawResource(R.raw.diminutives));
 					
 					// clear previous results, if any
-					resolver.delete(Sync.CONTENT_URI, null, null);
-					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
+					service.getContentResolver().delete(Sync.CONTENT_URI, null, null);
+					Uri sync = service.getContentResolver().insert(Sync.CONTENT_URI, null);
 	
 					index = 1;
-					for(SocialNetworkUser user : userList) {
+					size = userList.size();
+					
+					for(int i=size-1; i>=0; i--) {
+						SocialNetworkUser user = userList.remove(i);
 						PhoneContact contact = null;
-						if (intelliMatch) {
+						if (service.mIntelliMatch) {
 							contact = matcher.match(user.name, true);
 						}
 						else {
@@ -355,10 +412,10 @@ public abstract class SyncService extends Service {
 						}
 						
 						processUser(user, contact == null ? null : contact.id, sync);
-						publishProgress((int) ((index++ / (float) userList.size()) * 100), index, userList.size());
+						publishProgress((int) ((index++ / (float) size) * 100), index, size);
 	
-						if (cancel) {
-							mainHandler.sendMessage(mainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
+						if (service.mCancel) {
+							service.mMainHandler.sendMessage(service.mMainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
 									R.string.syncservice_canceled, 
 									0));
 	
@@ -368,21 +425,25 @@ public abstract class SyncService extends Service {
 	
 					ContentValues syncValues = new ContentValues();
 					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
-					resolver.update(sync, syncValues, null, null);
+					service.getContentResolver().update(sync, syncValues, null, null);
 					
 					total = index;
 				
 				} catch (Exception ex) {
 					Log.e(TAG, android.util.Log.getStackTraceString(ex));
-					mainHandler.sendMessage(mainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
+					service.mMainHandler.sendMessage(service.mMainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
 							R.string.syncservice_fatalsyncerror, 
 							0));
 	
 				} finally {
-					syncLock = null;
-					mainHandler.post(mainHandler.resetExecuting);
+					if (matcher != null) {
+						matcher.destroy();
+					}
+					if (userList != null) {
+						userList.clear();
+					}
+					service.mMainHandler.post(service.mMainHandler.resetExecuting);
 				}
-				
 			}
 			
 			return total;
@@ -390,94 +451,74 @@ public abstract class SyncService extends Service {
 
 		@Override
 		protected void onProgressUpdate(Integer... values) {
-			if (listener != null) {
-				listener.onSyncProgressUpdated(values[0], values[1], values[2]);
-			}
+			final SyncService service = mService.get();
+    		if (service != null) {
+    			if (service.mListener != null) {
+    				service.mListener.onSyncProgressUpdated(values[0], values[1], values[2]);
+    			}
+    		}
 		}
 
 		@Override
 		protected void onPostExecute(Long result) {
-			if (result > 0 && !cancel) {
-				if (listener != null) {
-					listener.onSyncCompleted();
+			final SyncService service = mService.get();
+    		if (service == null) {
+    			return;
+    		}
+    		
+			if (result > 0 && !service.mCancel) {
+				if (service.mListener != null) {
+					service.mListener.onSyncCompleted();
 				}
 				
-				Intent i = new Intent(getBaseContext(), SyncResultsActivity.class);
+				Intent i = new Intent(service.getApplicationContext(), SyncResultsActivity.class);
 				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
-				showNotification(R.string.syncservice_stopped, 
+				service.cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
+				service.showNotification(R.string.syncservice_stopped, 
 						android.R.drawable.stat_sys_download_done, 
 						i,
 						true);
 			}
 			else {
-				cancelNotification(R.string.syncservice_started);
+				service.cancelNotification(R.string.syncservice_started);
 			}
 			
-			if (!resultsList.isEmpty()) {
-				new UpdateResultsTable(resultsList).start();
+			if (!service.mResultsList.isEmpty()) {
+				new UpdateResultsTable(service, service.mResultsList).start();
 			}
 		}
     }
 
-    private boolean cancel = false;
     public void cancelOperation()
     {
-    	if (isExecuting()) {
-    		if (listener != null) {
-    			listener.onSyncCancelled();
+    	if (mExecuting) {
+    		if (mListener != null) {
+    			mListener.onSyncCancelled();
     		}
-    		cancel = true;
+    		mCancel = true;
     	}
     }
     
-    private boolean executing = false;
-    public boolean isExecuting()
-    {
-    	return executing;
-    }
-    
-    private boolean started = false;
-    public boolean isStarted () 
-    {
-    	return started;
-    }
-    
-	private NotificationManager notifyManager;
-	
-    private List <ContentValues> resultsList = new ArrayList<ContentValues> ();
-	
-    protected boolean skipIfExists;
-    protected boolean skipIfConflict;
-    protected boolean maxQuality;
-    protected boolean cropSquare;
-    protected boolean intelliMatch;
+    public boolean isExecuting() { 	return mExecuting; }
+    public boolean ismStarted () { 	return mStarted; }
     
     private void getPreferences()
     {
-		SyncMyPixPreferences prefs = new SyncMyPixPreferences(getBaseContext());
+		SyncMyPixPreferences prefs = new SyncMyPixPreferences(getApplicationContext());
 		
-		skipIfConflict = prefs.getSkipIfConflict();
-		maxQuality = prefs.getMaxQuality();
-		cropSquare = prefs.getCropSquare();
-    	skipIfExists = prefs.getSkipIfExists();
-    	intelliMatch = prefs.getIntelliMatch();
-    	
-    	Log.d(TAG, "skipIfConfict " + skipIfConflict);
-    	Log.d(TAG, "maxQuality " + maxQuality);
-    	Log.d(TAG, "cropSquare " + cropSquare);
-    	Log.d(TAG, "skipIfExists " + skipIfExists);
-    	Log.d(TAG, "intelliMatch " + intelliMatch);
+		mSkipIfConflict = prefs.getSkipIfConflict();
+		mMaxQuality = prefs.getMaxQuality();
+		mCropSquare = prefs.getCropSquare();
+    	mSkipIfExists = prefs.getSkipIfExists();
+    	mIntelliMatch = prefs.getIntelliMatch();
     }
-    
-    private WakeLock wakeLock;
     
     @Override
 	public void onCreate() {
 		super.onCreate();
 		
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
 	}
 
 	@Override
@@ -485,17 +526,17 @@ public abstract class SyncService extends Service {
     	super.onStart(intent, startId);
 
     	// keep CPU alive until we're done
-    	wakeLock.acquire();
+    	mWakeLock.acquire();
     	
-		executing = true;
-		started = true;
-		cancel = false;
+		mExecuting = true;
+		mStarted = true;
+		mCancel = false;
 
 		updateStatus(SyncServiceStatus.GETTING_FRIENDS);
 		getPreferences();
 		
-		notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-		notifyManager.cancel(R.string.syncservice_stopped);
+		mNotifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		mNotifyManager.cancel(R.string.syncservice_stopped);
 		
 		showNotification(R.string.syncservice_started, android.R.drawable.stat_sys_download);
 	}
@@ -506,11 +547,20 @@ public abstract class SyncService extends Service {
     	cancelNotification(R.string.syncservice_started);
         unsetListener();
 
-        started = false;
-    	
+        mStarted = false;
+        // ensure this is released
+    	if (mWakeLock != null && mWakeLock.isHeld()) {
+    		mWakeLock.release();
+    	}
         super.onDestroy();
     }
 
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
+	
     private void showNotification(int msg, int icon)
     {
     	showNotification(msg, icon, false);
@@ -544,7 +594,7 @@ public abstract class SyncService extends Service {
         notification.setLatestEventInfo(this, getText(msg),
                        text, contentIntent);
 
-        notifyManager.notify(msg, notification);
+        mNotifyManager.notify(msg, notification);
     }
     
     private void showError (int msg)
@@ -559,8 +609,8 @@ public abstract class SyncService extends Service {
     
     private void cancelNotification (int msg, int toastMsg)
     {
-    	if (isStarted ()) {
-    		notifyManager.cancel(msg);
+    	if (mStarted) {
+    		mNotifyManager.cancel(msg);
     	}
 
         if (toastMsg >= 0) {
@@ -569,7 +619,6 @@ public abstract class SyncService extends Service {
     }
 
 	// just access directly. No IPC crap to deal with.
-    private final IBinder binder = new LocalBinder();
     public class LocalBinder extends Binder {
     	public SyncService getService() {
             return SyncService.this;
@@ -578,7 +627,7 @@ public abstract class SyncService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
+        return mBinder;
     }
     
     public static <T extends SyncService> void cancelSchedule(Context context, Class<T> cls)

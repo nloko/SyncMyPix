@@ -57,7 +57,6 @@
                   android:screenOrientation="portrait">
         </activity>
         <service android:name="com.nloko.android.syncmypix.facebook.FacebookSyncService"></service>
-        <service android:name="com.nloko.android.syncmypix.HashUpdateService"></service>
         <provider android:name="com.nloko.android.syncmypix.SyncMyPixProvider"
           android:authorities="com.nloko.provider.SyncMyPix">
 		</provider>

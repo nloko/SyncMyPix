@@ -23,6 +23,7 @@
 package com.nloko.android.syncmypix;
 
 
+import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
 
@@ -56,6 +57,12 @@ public class SettingsActivity extends PreferenceActivity {
 		setupViews(null);
 	}
 
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
+	
     private void setupViews(Bundle savedInstanceState)
     {
     	getWindow().setBackgroundDrawableResource(R.drawable.background);

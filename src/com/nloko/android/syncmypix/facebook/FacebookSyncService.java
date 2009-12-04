@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix.facebook;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import com.nloko.android.Log;
@@ -29,6 +30,7 @@ import com.nloko.android.syncmypix.SyncService;
 import com.nloko.android.syncmypix.SettingsActivity;
 import com.nloko.android.syncmypix.SocialNetworkUser;
 import com.nloko.android.syncmypix.R;
+import com.nloko.android.syncmypix.SyncServiceListener;
 import com.nloko.simplyfacebook.net.FacebookRestClient;
 
 import android.content.Context;
@@ -38,38 +40,60 @@ import android.os.Message;
 
 public class FacebookSyncService extends SyncService {
     
-	private final String TAG = "FacebookSyncService";
+	private final static String TAG = "FacebookSyncService";
+	private FacebookLogin mLoginThread;
 	
-	private class FacebookLogin extends Thread
+	private static class FacebookLogin extends Thread
 	{
+		private WeakReference<FacebookSyncService> mService;
+		private boolean running = true;
 		private MainHandler handler;
-		public FacebookLogin(MainHandler handler)
+		
+		public FacebookLogin(FacebookSyncService service, MainHandler handler)
 		{
+			mService = new WeakReference<FacebookSyncService>(service);
 			this.handler = handler;
+			
+			SyncServiceListener listener = service.getListener();
 			if (listener != null) {
 				listener.onFriendsDownloadStarted();
 			}
 		}
 		
+		public void stopRunning()
+		{
+			synchronized(this) {
+				running = false;
+			}
+		}
+		
 		public void run()
 		{
+			FacebookSyncService service = mService.get();
+			if (service == null) {
+				return;
+			}
+			
 			FacebookRestClient client = null;
 			
 			try {
 				client = new FacebookRestClient(FacebookApi.API_KEY, 
-							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("uid", null),
-							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("session_key", null),
-							getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("secret", null));
+							service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("uid", null),
+							service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("session_key", null),
+							service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("secret", null));
 				
 				FacebookApi api = new FacebookApi (client);
-				List<SocialNetworkUser> userList = api.getUserInfo(api.getFriends(), maxQuality);
-				
-				// start sync from main thread
-				Message msg = handler.obtainMessage();
-				msg.what = MainHandler.START_SYNC;
-				msg.obj = userList;
-				
-				handler.sendMessage(msg);
+				List<SocialNetworkUser> userList = api.getUserInfo(api.getFriends(), service.mMaxQuality);
+				synchronized(this) {
+					if (running) {
+						// start sync from main thread
+						Message msg = handler.obtainMessage();
+						msg.what = MainHandler.START_SYNC;
+						msg.obj = userList;
+						
+						handler.sendMessage(msg);
+					}
+				}
 			}
 			catch(Exception ex) {
 				Log.e(TAG, android.util.Log.getStackTraceString(ex));
@@ -91,14 +115,27 @@ public class FacebookSyncService extends SyncService {
 		}
 	}
 	
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
+	
     @Override
+	public void onDestroy() {
+		super.onDestroy();
+		mLoginThread.stopRunning();
+	}
+
+	@Override
 	public void onStart(Intent intent, int startId) {
 		// TODO Auto-generated method stub
 		super.onStart(intent, startId);
 		
 		Log.d(TAG, "Staring " + TAG);
 		
-		new FacebookLogin(getMainHandler()).start();
+		mLoginThread = new FacebookLogin(this, getMainHandler());
+		mLoginThread.start();
 	}
 
     // the below methods hide the corresponding ones from SyncService

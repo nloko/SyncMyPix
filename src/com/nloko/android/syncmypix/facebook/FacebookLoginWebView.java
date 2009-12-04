@@ -124,11 +124,7 @@ public class FacebookLoginWebView extends Activity {
     			super.onPageStarted(view, url, favicon);
     			
     			if (!url.equals(login.getFullLoginUrl())) {
-    				// ignore bogus BadTokenException
-    				try {
-    					showDialog(AUTH_DIALOG);
-    				}
-    				catch (Exception e) {}
+   					showDialog(AUTH_DIALOG);
     			}
     			
     			try	{
@@ -164,24 +160,35 @@ public class FacebookLoginWebView extends Activity {
     		
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				// TODO Auto-generated method stub
-				//view.loadUrl(url);
-				//return true;
-				
 				return false;
 			}
         	
         });
         
         webview.getSettings().setJavaScriptEnabled(true);
-        //webview.clearSslPreferences();                
-        
-        Log.d(TAG, login.getFullLoginUrl());
-        webview.loadUrl(login.getFullLoginUrl());
     }
     
+    @Override
+	protected void onStart() {
+		super.onStart();
+		
+		Log.d(TAG, login.getFullLoginUrl());
+		webview.loadUrl(login.getFullLoginUrl());
+	}
 
-    private final int AUTH_DIALOG = 0;
+	@Override
+	protected void onPause() {
+		super.onPause();
+		webview.stopLoading();
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
+	
+	private final int AUTH_DIALOG = 0;
     private ProgressDialog authDialog = null;
     
 	@Override

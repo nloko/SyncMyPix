@@ -57,8 +57,20 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class MainActivity extends Activity {
 
-	private static final String TAG = "MainActivity";
+	private final static String TAG = "MainActivity";
+	private final static int SOCIAL_NETWORK_LOGIN = 0;
+
+	private final int MENU_LOGOUT = 3;
+    private final int MENU_ABOUT = 4;
+
+	private final int ABOUT_DIALOG = 2;
+	private final int CONFIRM_DIALOG = 3;
+
+	private SyncService mSyncService;
 	
+	private boolean mSyncServiceBound = false;
+	private boolean mStartSync = false;
+
 	public static <T extends SyncService> Class<T> getSyncSource(Context context)
 	{
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -129,9 +141,8 @@ public class MainActivity extends Activity {
         
         ImageButton sync = (ImageButton) this.findViewById(R.id.syncButton);
         sync.setOnClickListener(new OnClickListener() {
-
 			public void onClick(View v) {
-				if (isLoggedInFromSyncSource(getBaseContext(), getSyncSource(getBaseContext()))) {
+				if (isLoggedInFromSyncSource(getApplicationContext(), getSyncSource(getApplicationContext()))) {
 					sync();
 					//showDialog(CONFIRM_DIALOG);
 				}
@@ -139,30 +150,24 @@ public class MainActivity extends Activity {
 					login();
 				}
 			}
-        	
         });
         
         ImageButton settings = (ImageButton) this.findViewById(R.id.settingsButton);
         settings.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+				Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
 				startActivity(i);
 			}
-        	
         });
         
         ImageButton results = (ImageButton) this.findViewById(R.id.resultsButton);
         results.setOnClickListener(new OnClickListener() {
-
 			public void onClick(View v) {
 				showResults();
 			}
-        	
         });
-
     }
-    
     
     @Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -179,13 +184,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
-
-	private final static int SOCIAL_NETWORK_LOGIN = 0;
-    
 	private void login()
     {
-		startActivityForResult(new Intent(MainActivity.this, 
-				getLoginClassFromSyncSource(getSyncSource(getBaseContext()))), 
+		startActivityForResult(new Intent(getApplicationContext(), 
+				getLoginClassFromSyncSource(getSyncSource(getApplicationContext()))), 
 				SOCIAL_NETWORK_LOGIN);
     }
     
@@ -199,51 +201,56 @@ public class MainActivity extends Activity {
     
     private void sync()
     {
-    	if (!Utils.hasInternetConnection(getBaseContext())) {
+    	if (!Utils.hasInternetConnection(getApplicationContext())) {
     		Toast.makeText(this, R.string.syncservice_networkerror, Toast.LENGTH_LONG).show();
     		return;
     	}
     	
-   		//showDialog(FRIENDS_PROGRESS);
+    	Intent i = new Intent(getApplicationContext(), getSyncSource(getApplicationContext()));
+    	bindService(i, mSyncServiceConn, Context.BIND_AUTO_CREATE);
     	
-    	Intent i = new Intent(MainActivity.this, getSyncSource(getBaseContext()));
-    	bindService(i, syncServiceConn, Context.BIND_AUTO_CREATE);
-    	
-    	if (syncService == null || !syncService.isExecuting()) {
+    	if (mSyncService == null || !mSyncService.isExecuting()) {
     		startService(i);
-    		startActivity(new Intent(MainActivity.this, SyncProgressActivity.class));
+    		startActivity(new Intent(getApplicationContext(), SyncProgressActivity.class));
     	}
     }
     
     private void showResults()
     {
-    	Intent i = new Intent(getBaseContext(), SyncResultsActivity.class);
+    	Intent i = new Intent(getApplicationContext(), SyncResultsActivity.class);
     	i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
     	startActivity(i);
     }
 
 	@Override
-	protected void onResume() {
-		super.onResume();
+	protected void onStart() {
+		super.onStart();
 		
-		if (!syncServiceConnected) {
-			Intent i = new Intent(MainActivity.this, getSyncSource(getBaseContext()));
-			bindService(i, syncServiceConn, 0);
+		if (!mSyncServiceBound) {
+			Intent i = new Intent(getApplicationContext(), getSyncSource(getApplicationContext()));
+			mSyncServiceBound = bindService(i, mSyncServiceConn, 0);
 		}
 		
-		if (syncService != null && syncService.isExecuting()) {
-			startActivity(new Intent(MainActivity.this, SyncProgressActivity.class));
+		if (mSyncService != null && mSyncService.isExecuting()) {
+			startActivity(new Intent(getApplicationContext(), SyncProgressActivity.class));
 		}
 	}
     
     @Override
-	protected void onDestroy() {
-		super.onDestroy();
-		unbindService(syncServiceConn);
+	protected void onStop() {
+		super.onStop();
+		if (mSyncServiceBound) {
+			Log.d(TAG, "unbinding service");
+			unbindService(mSyncServiceConn);
+			mSyncServiceBound = false;
+		}
 	}
     
-	private final int MENU_LOGOUT = 3;
-    private final int MENU_ABOUT = 4;
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
     
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -272,9 +279,6 @@ public class MainActivity extends Activity {
 	    return false;
 	}
 
-	private final int ABOUT_DIALOG = 2;
-	private final int CONFIRM_DIALOG = 3;
-	
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch(id) {
@@ -284,12 +288,9 @@ public class MainActivity extends Activity {
 			case CONFIRM_DIALOG:
 				ConfirmSyncDialog dialog = new ConfirmSyncDialog(this);
 				dialog.setProceedButtonListener(new DialogInterface.OnClickListener() {
-
 					public void onClick(DialogInterface dialog, int which) {
 						sync();
-						
 					}
-					
 				});
 				
 				dialog.setCancelButtonListener(null);
@@ -328,22 +329,16 @@ public class MainActivity extends Activity {
 		
 		return about;
 	}
-
-	private SyncService syncService;
-	private boolean syncServiceConnected = false;
 	
-    private ServiceConnection syncServiceConn = new ServiceConnection() {
+    private ServiceConnection mSyncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
+        	mSyncService = ((SyncService.LocalBinder)service).getService();
         	
-        	syncServiceConnected = true;
-        	syncService = ((SyncService.LocalBinder)service).getService();
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            
-        	syncServiceConnected = false;
-        	syncService.unsetListener();
-        	syncService = null;
+        	Log.d(TAG, "onServiceDisconnected");
+        	mSyncService = null;
         }
     };
 }

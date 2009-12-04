@@ -26,13 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
-
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -40,6 +36,7 @@ import android.graphics.Bitmap.CompressFormat;
 
 public class ThumbnailCache {
 
+	private final String TAG = "ThumbnailCache";
 	// use SoftReference so Android can free memory, if needed
 	// ThumbnailCache can notify if a download is required or use the built-in 
 	// ImageDownloader.
@@ -68,6 +65,7 @@ public class ThumbnailCache {
 	
 	public void destroy()
 	{
+		downloader.setPause(true);
 		images.clear();
 		instance = null;
 	}
@@ -220,6 +218,7 @@ public class ThumbnailCache {
 							image = Utils.downloadPictureAsBitmap(url);
 							add(url, image, true, true);
 						} catch (InterruptedException e) {
+							Log.d(TAG, "INTERRUPTED!");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -233,12 +232,14 @@ public class ThumbnailCache {
 		public void setPause(boolean value)
 		{
 			if (paused == value) {
-				downloadThread.interrupt();
 				return;
 			}
 			
+			Log.d(TAG, "setPause called with " + value);
 			paused = value;
-			if (!paused) {
+			if (paused && downloadThread != null) {
+				downloadThread.interrupt();
+			} else if (!paused) {
 				setupThread();
 			}
 		}
