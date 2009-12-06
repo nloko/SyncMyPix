@@ -140,7 +140,7 @@ public class SyncProgressActivity extends Activity {
         	s.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
 					//if (mFriendsProgress != null && mFriendsProgress.isShowing()) {
-						dismissDialog(FRIENDS_PROGRESS);
+						removeDialog(FRIENDS_PROGRESS);
 					//}
 					
 					mProgress.setVisibility(View.VISIBLE);
@@ -177,9 +177,9 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					//if (mFriendsProgress == null || !mFriendsProgress.isShowing()) {
+					if (getWindow() != null) {
 						showDialog(FRIENDS_PROGRESS);
-					//}
+					}
 				}
 
 				public void onSyncCancelled() {
