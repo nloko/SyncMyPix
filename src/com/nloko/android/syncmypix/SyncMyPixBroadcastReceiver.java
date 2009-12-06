@@ -42,14 +42,14 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 
 		String action = intent.getAction();
 		if (action.equals(Intent.ACTION_BOOT_COMPLETED) ) {
-			rescheduleAlarm(context);
+			rescheduleAlarm(context.getApplicationContext());
 		}
 		
 		else if (action.equals(Intent.ACTION_PACKAGE_REPLACED)) {
 			// show about dialog on upgrades
 			Utils.setBoolean(context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "do_not_show_about", false);
 			
-			rescheduleAlarm(context);
+			rescheduleAlarm(context.getApplicationContext());
 		}
 		
 		// this is undocumented stuff from android.content.SyncManager

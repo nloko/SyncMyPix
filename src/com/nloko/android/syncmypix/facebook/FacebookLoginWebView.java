@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix.facebook;
 
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -45,9 +46,130 @@ import com.nloko.simplyfacebook.net.login.FacebookLogin;
 public class FacebookLoginWebView extends Activity {
 
 	private final String TAG = "FacebookLoginWebView";
+	private final FacebookLogin login = new FacebookLogin();
 	
-	WebView webview;
-	final FacebookLogin login = new FacebookLogin ();
+	private final int AUTH_DIALOG = 0;
+    private ProgressDialog authDialog = null;
+    
+	private WebView webview;
+	
+	private static class ChromeClient extends WebChromeClient
+	{
+		private final WeakReference<Activity> mActivity;
+		public ChromeClient(Activity activity)
+		{
+			super();
+			mActivity = new WeakReference<Activity>(activity);
+		}
+		
+    	@Override
+		public void onProgressChanged(WebView view, int newProgress) {
+			super.onProgressChanged(view, newProgress);
+			setProgress(newProgress);
+    	}
+		
+		private void setProgress(int progress)
+	    {
+			Activity activity = mActivity.get();
+			if (activity != null) {
+				activity.setProgress(progress * 100);
+				activity.setProgressBarIndeterminateVisibility(progress < 100);
+			}
+	    }
+	}
+	
+	private static class FacebookClient extends WebViewClient
+	{
+		private final WeakReference<FacebookLoginWebView> mActivity;
+		public FacebookClient(FacebookLoginWebView activity)
+		{
+			super();
+			mActivity = new WeakReference<FacebookLoginWebView>(activity);
+		}
+		
+    	@Override
+		public void onPageFinished(WebView view, String url) {
+			super.onPageFinished(view, url);
+			FacebookLoginWebView activity = mActivity.get();
+			if (activity != null) {
+				Dialog dialog = activity.authDialog;
+				if (dialog != null && dialog.isShowing()) {
+					activity.dismissDialog(activity.AUTH_DIALOG);
+				}
+			}
+		}
+    	
+    	@Override
+		public void onReceivedError(WebView view, int errorCode,
+				String description, String failingUrl) {
+			super.onReceivedError(view, errorCode, description, failingUrl);
+			String msg = String.format("URL %s failed to load with error %d %s", failingUrl, errorCode, description);
+			
+			FacebookLoginWebView activity = mActivity.get();
+			if (activity != null) {
+				android.util.Log.e(activity.TAG, msg);
+				Toast.makeText(activity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+				
+				Dialog dialog = activity.authDialog;
+				if (dialog != null && dialog.isShowing()) {
+					activity.removeDialog(activity.AUTH_DIALOG);
+				}
+				
+				activity.setResult(Activity.RESULT_CANCELED);
+				activity.finish();
+			}
+		}
+
+		@Override
+		public void onPageStarted(WebView view, String url, Bitmap favicon) {
+			super.onPageStarted(view, url, favicon);
+			FacebookLoginWebView activity = mActivity.get();
+			if (activity == null) {
+				return;
+			}
+			
+			FacebookLogin login = activity.login;
+			if (login == null) {
+				return;
+			}
+			
+			if (!url.equals(login.getFullLoginUrl())) {
+					activity.showDialog(activity.AUTH_DIALOG);
+			}
+			
+			try	{
+            	Log.d(activity.TAG, url);
+            	Log.d(activity.TAG, login.getNextUrl().getPath());
+            	
+                URL page = new URL(URLDecoder.decode(url).trim());
+
+                if (page.getPath().equals(login.getNextUrl().getPath())) {
+                	login.setResponseFromExternalBrowser(page);
+                    Toast.makeText(activity.getApplicationContext(), R.string.login_thankyou, Toast.LENGTH_LONG).show();
+                    
+                    if (login.isLoggedIn()) {
+                    	Utils.setString(activity.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "session_key", login.getSessionKey());
+                    	Utils.setString(activity.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "secret", login.getSecret());
+                    	Utils.setString(activity.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "uid", login.getUid());
+                    }
+                    
+                    activity.setResult(Activity.RESULT_OK);
+                    activity.finish();
+                } else if (page.getPath().equals(login.getCancelUrl().getPath())) {
+                	activity.setResult(Activity.RESULT_CANCELED);
+                	activity.finish();
+                }
+            } catch (Exception ex) {
+                Toast.makeText(activity.getApplicationContext(), R.string.facebooklogin_urlError, Toast.LENGTH_LONG).show();
+                android.util.Log.getStackTraceString(ex);
+            }
+		}
+		
+		@Override
+		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			return false;
+		}
+	}
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,121 +179,17 @@ public class FacebookLoginWebView extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.facebookloginwebview);	
         
-        // Mobile page returns an auth_token. WTF?
-        /*try {
-        	login.setUrl("https://m.facebook.com/login.php");
-        }
-        catch (Exception e) {}*/
-        
         login.setAPIKey(FacebookApi.API_KEY);
         
         webview = (WebView) findViewById(R.id.webview);
-        webview.setWebChromeClient(new WebChromeClient() {
-        	
-        	@Override
-    		public void onProgressChanged(WebView view, int newProgress) {
-    			// TODO Auto-generated method stub
-    			super.onProgressChanged(view, newProgress);
-    			setProgress(newProgress);
-        	}
-    		
-    		private void setProgress(int progress)
-    	    {
-    	    	FacebookLoginWebView.this.setProgress(progress * 100);
-    	    	setProgressBarIndeterminateVisibility(progress < 100);
-    	    }
-        });
-        
-        webview.setWebViewClient(new WebViewClient() {
-
-        	@Override
-    		public void onPageFinished(WebView view, String url) {
-    			super.onPageFinished(view, url);
-    			
-    			if (authDialog != null && authDialog.isShowing()) {
-    				dismissDialog(AUTH_DIALOG);
-    			}
-    		}
-        	
-            
-/*          @Override
-            public void onReceivedSslError(
-                final WebView view, final SslErrorHandler handler, final SslError error) {
-
-            }*/
-            
-        	@Override
-    		public void onReceivedError(WebView view, int errorCode,
-    				String description, String failingUrl) {
-    			// TODO Auto-generated method stub
-    			super.onReceivedError(view, errorCode, description, failingUrl);
-    			
-    			String msg = String.format("URL %s failed to load with error %d %s", failingUrl, errorCode, description);
-    			android.util.Log.e(TAG, msg);
-    			Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-    			
-    			if (authDialog != null && authDialog.isShowing()) {
-    				removeDialog(AUTH_DIALOG);
-    			}
-    			
-    			setResult(Activity.RESULT_CANCELED);
-    			finish();
-    		}
-
-    		@Override
-    		public void onPageStarted(WebView view, String url, Bitmap favicon) {
-    			// TODO Auto-generated method stub
-    			super.onPageStarted(view, url, favicon);
-    			
-    			if (!url.equals(login.getFullLoginUrl())) {
-   					showDialog(AUTH_DIALOG);
-    			}
-    			
-    			try	{
-                	Log.d(TAG, url);
-                	Log.d(TAG, login.getNextUrl().getPath());
-                	
-                    URL page = new URL(URLDecoder.decode(url).trim());
-
-                    if (page.getPath().equals(login.getNextUrl().getPath())) {
-                    	login.setResponseFromExternalBrowser(page);
-                        Toast.makeText(getBaseContext(), R.string.login_thankyou, Toast.LENGTH_LONG).show();
-                        
-                        if (login.isLoggedIn()) {
-                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "session_key", login.getSessionKey());
-                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "secret", login.getSecret());
-                        	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "uid", login.getUid());
-                        }
-                        
-                        setResult(Activity.RESULT_OK);
-                        finish();
-                    }
-                    else if (page.getPath().equals(login.getCancelUrl().getPath())) {
-                    	setResult(Activity.RESULT_CANCELED);
-                    	finish();
-                    }
-                } 
-                catch (Exception ex) {
-                    Toast.makeText(getBaseContext(), R.string.facebooklogin_urlError, Toast.LENGTH_LONG).show();
-                    android.util.Log.getStackTraceString(ex);
-                }
-
-    		}
-    		
-			@Override
-			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				return false;
-			}
-        	
-        });
-        
+        webview.setWebChromeClient(new ChromeClient(this));
+        webview.setWebViewClient(new FacebookClient(this));        
         webview.getSettings().setJavaScriptEnabled(true);
     }
     
     @Override
 	protected void onStart() {
 		super.onStart();
-		
 		Log.d(TAG, login.getFullLoginUrl());
 		webview.loadUrl(login.getFullLoginUrl());
 	}
@@ -181,15 +199,21 @@ public class FacebookLoginWebView extends Activity {
 		super.onPause();
 		webview.stopLoading();
 	}
+	
+	@Override
+	protected void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		super.onDestroy();
+		// allow proper GC
+		authDialog = null;
+		webview = null;
+	}
 
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
 		Log.d(TAG, "FINALIZED");
 	}
-	
-	private final int AUTH_DIALOG = 0;
-    private ProgressDialog authDialog = null;
     
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -204,5 +228,4 @@ public class FacebookLoginWebView extends Activity {
 		
 		return super.onCreateDialog(id);
 	}
-    
 }

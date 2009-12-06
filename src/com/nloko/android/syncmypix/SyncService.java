@@ -76,9 +76,9 @@ public abstract class SyncService extends Service {
     protected boolean mCropSquare;
     protected boolean mIntelliMatch;
     protected SyncServiceListener mListener;
-	
-	private final MainHandler mMainHandler = new MainHandler(this);
-	private final IBinder mBinder = new LocalBinder();
+	protected final MainHandler mMainHandler = new MainHandler(this);
+
+	private final IBinder mBinder = new LocalBinder(this);
 	private final List <ContentValues> mResultsList = new ArrayList<ContentValues> ();
 	
 	public enum SyncServiceStatus {
@@ -95,11 +95,6 @@ public abstract class SyncService extends Service {
 	protected void updateStatus(SyncServiceStatus status)
 	{
 		mStatus = status;
-	}
-	
-	public MainHandler getMainHandler()
-	{
-		return mMainHandler;
 	}
 	
 	protected static class MainHandler extends Handler
@@ -139,9 +134,10 @@ public abstract class SyncService extends Service {
 			final SyncService service = mSyncService.get();
 			if (service != null) {
 				post(resetExecuting);
-			
-				if (service.mListener != null) {
-					service.mListener.onError(msg);
+
+				SyncServiceListener listener = service.mListener;
+				if (listener != null) {
+					listener.onError(msg);
 				}
 			
 				service.showError(msg);
@@ -189,11 +185,6 @@ public abstract class SyncService extends Service {
     	mListener = null;
     }
     
-    public SyncServiceListener getListener()
-    {
-    	return mListener;
-    }
-
     private static class UpdateResultsTable extends Thread
     {
     	final private List<ContentValues> list;
@@ -210,6 +201,7 @@ public abstract class SyncService extends Service {
         	if (values == null) {
         		throw new IllegalArgumentException("values");
         	}
+        	
         	final SyncService service = mService.get();
 			if (service != null) {
 				ContentResolver resolver = service.getContentResolver();
@@ -251,14 +243,16 @@ public abstract class SyncService extends Service {
         {
     		if (user == null) {
     			throw new IllegalArgumentException ("user");
-    		}
-    		
-    		if (sync == null) {
+    		} else 	if (sync == null) {
     			throw new IllegalArgumentException ("sync");
     		}
     		
     		final SyncService service = mService.get();
     		if (service == null) {
+    			return;
+    		}
+    		final ContentResolver resolver = service.getContentResolver();
+    		if (resolver == null) {
     			return;
     		}
     		
@@ -293,74 +287,64 @@ public abstract class SyncService extends Service {
     		try {
     			//String id = cur.getString(cur.getColumnIndex(People._ID));
     			DBHashes hashes = dbHelper.getHashes(contactId);
-
     			Uri contact = Uri.withAppendedPath(People.CONTENT_URI, contactId);
-    			is = People.openContactPhotoInputStream(service.getContentResolver(), contact);
+    			is = People.openContactPhotoInputStream(resolver, contact);
     			// photo is set, so let's get its hash
     			if (is != null) {
     				contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     			}
 
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
-
     				if (image == null) {
     					try {
     						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
     						originalBitmap = bitmap;
     						image = Utils.bitmapToJpeg(bitmap, 100);
     						hash = Utils.getMd5Hash(image);
-    					}
-    					catch (Exception e) {}
+    					} catch (Exception e) {}
     				}
-
     				if (image != null) {
     					// picture is a new one and we should sync it
     					if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
-
     						String updatedHash = hash;
-
     						if (service.mCropSquare) {
     							bitmap = Utils.centerCrop(bitmap, 96, 96);
     							image = Utils.bitmapToJpeg(bitmap, 100);
     							updatedHash = Utils.getMd5Hash(image);
     						}
-
-    						ContactServices.updateContactPhoto(service.getContentResolver(), image, contactId);
+    						ContactServices.updateContactPhoto(resolver, image, contactId);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
-    					}
-    					else {
+    					} else {
     						valuesCopy.put(Results.DESCRIPTION, 
     								ResultsDescription.SKIPPED_UNCHANGED.getDescription(service));
     					}
-
     					// send picture to listener for progress display
 						final Bitmap tmp = originalBitmap;
-						service.mMainHandler.post(new Runnable() {
-							public void run() {
-								if (service.mListener != null) {
-	    							service.mListener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
-	    						}
-							}
-						});
+						MainHandler handler = service.mMainHandler;
+						if (handler != null) {
+							handler.post(new Runnable() {
+								public void run() {
+									SyncServiceListener listener = service.mListener;
+									if (listener != null) {
+		    							listener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
+		    						}
+								}
+							});
+						}
 						
     					valuesCopy.put(Results.CONTACT_ID, contactId);
-    				}
-    				else {
+    				} else {
     					valuesCopy.put(Results.DESCRIPTION, 
     							ResultsDescription.DOWNLOAD_FAILED.getDescription(service));
     					//break;
     				}
-    			}
-    			else {
+    			} else {
     				valuesCopy.put(Results.DESCRIPTION, 
     						ResultsDescription.SKIPPED_EXISTS.getDescription(service));
     			}
-
-    		}
-    		catch (Exception e) {
+    		} catch (Exception e) {
     			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(service));
-    		}
-    		finally {
+    		} finally {
     			service.mResultsList.add(valuesCopy);
     		}
     	}
@@ -389,14 +373,19 @@ public abstract class SyncService extends Service {
     		if (service == null) {
     			return 0l;
     		}
+    		final ContentResolver resolver = service.getContentResolver();
+    		if (resolver == null) {
+    			return 0l;
+    		}
+    		MainHandler handler = service.mMainHandler;
     		
 			synchronized(mSyncLock) {
 				try {
 					matcher = new NameMatcher(service.getApplicationContext(), service.getResources().openRawResource(R.raw.diminutives));
 					
 					// clear previous results, if any
-					service.getContentResolver().delete(Sync.CONTENT_URI, null, null);
-					Uri sync = service.getContentResolver().insert(Sync.CONTENT_URI, null);
+					resolver.delete(Sync.CONTENT_URI, null, null);
+					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
 	
 					index = 1;
 					size = userList.size();
@@ -406,8 +395,7 @@ public abstract class SyncService extends Service {
 						PhoneContact contact = null;
 						if (service.mIntelliMatch) {
 							contact = matcher.match(user.name, true);
-						}
-						else {
+						} else {
 							contact = matcher.exactMatch(user.name);
 						}
 						
@@ -415,23 +403,24 @@ public abstract class SyncService extends Service {
 						publishProgress((int) ((index++ / (float) size) * 100), index, size);
 	
 						if (service.mCancel) {
-							service.mMainHandler.sendMessage(service.mMainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
-									R.string.syncservice_canceled, 
-									0));
-	
-							break;
+							if (handler != null) {
+								handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
+										R.string.syncservice_canceled, 
+										0));
+								break;
+							}
 						}
 					}
 	
 					ContentValues syncValues = new ContentValues();
 					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
-					service.getContentResolver().update(sync, syncValues, null, null);
+					resolver.update(sync, syncValues, null, null);
 					
 					total = index;
 				
 				} catch (Exception ex) {
 					Log.e(TAG, android.util.Log.getStackTraceString(ex));
-					service.mMainHandler.sendMessage(service.mMainHandler.obtainMessage(MainHandler.SHOW_ERROR, 
+					handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
 							R.string.syncservice_fatalsyncerror, 
 							0));
 	
@@ -442,7 +431,7 @@ public abstract class SyncService extends Service {
 					if (userList != null) {
 						userList.clear();
 					}
-					service.mMainHandler.post(service.mMainHandler.resetExecuting);
+					handler.post(handler.resetExecuting);
 				}
 			}
 			
@@ -453,8 +442,9 @@ public abstract class SyncService extends Service {
 		protected void onProgressUpdate(Integer... values) {
 			final SyncService service = mService.get();
     		if (service != null) {
-    			if (service.mListener != null) {
-    				service.mListener.onSyncProgressUpdated(values[0], values[1], values[2]);
+    			SyncServiceListener listener = service.mListener;
+    			if (listener != null) {
+    				listener.onSyncProgressUpdated(values[0], values[1], values[2]);
     			}
     		}
 		}
@@ -467,8 +457,9 @@ public abstract class SyncService extends Service {
     		}
     		
 			if (result > 0 && !service.mCancel) {
-				if (service.mListener != null) {
-					service.mListener.onSyncCompleted();
+				SyncServiceListener listener = service.mListener;
+				if (listener != null) {
+					listener.onSyncCompleted();
 				}
 				
 				Intent i = new Intent(service.getApplicationContext(), SyncResultsActivity.class);
@@ -478,8 +469,7 @@ public abstract class SyncService extends Service {
 						android.R.drawable.stat_sys_download_done, 
 						i,
 						true);
-			}
-			else {
+			} else {
 				service.cancelNotification(R.string.syncservice_started);
 			}
 			
@@ -492,8 +482,9 @@ public abstract class SyncService extends Service {
     public void cancelOperation()
     {
     	if (mExecuting) {
-    		if (mListener != null) {
-    			mListener.onSyncCancelled();
+    		SyncServiceListener listener = mListener;
+    		if (listener != null) {
+    			listener.onSyncCancelled();
     		}
     		mCancel = true;
     	}
@@ -543,7 +534,7 @@ public abstract class SyncService extends Service {
 
     @Override
     public void onDestroy() {
-
+    	Log.d(TAG, "onDestroy");
     	cancelNotification(R.string.syncservice_started);
         unsetListener();
 
@@ -614,14 +605,24 @@ public abstract class SyncService extends Service {
     	}
 
         if (toastMsg >= 0) {
-        	Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
+        	Toast.makeText(getApplicationContext(), toastMsg, Toast.LENGTH_SHORT).show();
         }
     }
 
 	// just access directly. No IPC crap to deal with.
-    public class LocalBinder extends Binder {
+    public static class LocalBinder extends Binder {
+    	private final WeakReference<SyncService> mService;
+    	public LocalBinder(SyncService service)
+    	{
+    		mService = new WeakReference<SyncService>(service);
+    	}
+    	
     	public SyncService getService() {
-            return SyncService.this;
+    		final SyncService service = mService.get(); 
+    		if (service != null) {
+    			return service;
+    		}
+    		return null;
         }
     }
 

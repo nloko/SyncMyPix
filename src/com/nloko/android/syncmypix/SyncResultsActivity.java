@@ -1,5 +1,5 @@
 //
-//    SyncResults.java is part of SyncMyPix
+//    SyncResultsActivity.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -109,8 +109,6 @@ public class SyncResultsActivity extends Activity {
 	
 	private static final String TAG = "SyncResults";
 	
-	private final int UNKNOWN_HOST_ERROR = 2;
-	
 	private final int CONTEXTMENU_CROP = 3;
 	private final int CONTEXTMENU_SELECT_CONTACT = 4;
 	private final int CONTEXTMENU_VIEW_CONTACT = 5;
@@ -219,30 +217,48 @@ public class SyncResultsActivity extends Activity {
 			}
         });
    
-        mMainHandler = new Handler () {
-			@Override
-			public void handleMessage(Message msg) {
+        mMainHandler = new MainHandler(this);
+	}
+
+	private static class MainHandler extends Handler
+	{
+		private final WeakReference<SyncResultsActivity> mActivity;
+		private final static int UNKNOWN_HOST_ERROR = 2;
+		
+		public MainHandler(SyncResultsActivity activity)
+		{
+			super();
+			mActivity = new WeakReference<SyncResultsActivity>(activity);
+		}
+		
+		@Override
+		public void handleMessage(Message msg) {
+			SyncResultsActivity activity = mActivity.get();
+			if (activity != null) {
 				Bitmap bitmap = (Bitmap) msg.obj;
 				if (bitmap != null) {
-					((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
-					mContactImage = bitmap;
-					showDialog(ZOOM_PIC);
+					((SimpleCursorAdapter)activity.mListview.getAdapter()).notifyDataSetChanged();
+					activity.mContactImage = bitmap;
+					activity.showDialog(activity.ZOOM_PIC);
 				}
 				
-				setProgressBarIndeterminateVisibility(false);
+				activity.setProgressBarIndeterminateVisibility(false);
 				handleWhat(msg);
 			}
-			
-			private void handleWhat(Message msg) {
+		}
+		
+		private void handleWhat(Message msg) {
+			SyncResultsActivity activity = mActivity.get();
+			if (activity != null) {
 				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
-						Toast.makeText(SyncResultsActivity.this, R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
+						Toast.makeText(activity.getApplicationContext(), R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
 						break;
 				}
 			}
-        };
+		}
 	}
-
+	
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
@@ -263,33 +279,32 @@ public class SyncResultsActivity extends Activity {
 	}
 	 
 	@Override
-	protected void onResume() {
-		super.onResume();
-		mCache.togglePauseOnDownloader(false);
-	}
-
-	@Override
 	protected void onStart() {
 		super.onStart();
         HandlerThread downloadThread = new HandlerThread("ImageDownload");
         downloadThread.start();
-        mDownloadHandler = new DownloadImageHandler(this, downloadThread.getLooper(), mMainHandler);
+        mDownloadHandler = new DownloadImageHandler(this, downloadThread.getLooper());
         
         if (mInitResultsThread == null) {
-        	mInitResultsThread = new InitializeResultsThread(this, Looper.myQueue());
+        	mInitResultsThread = new InitializeResultsThread(this);
         	mInitResultsThread.start();
         }
+        
+        mCache.togglePauseOnDownloader(false);
 	}
 
 	@Override
 	protected void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		super.onDestroy();
 		if (mThumbnailThread != null) {
 			mThumbnailThread.stopRunning();
 			mThumbnailThread.closeQuery();
 		}
 		
 		mCache.destroy();
-		super.onDestroy();
+		// allow proper GC
+		mListview = null;
 	}
 		
 	@Override
@@ -327,20 +342,20 @@ public class SyncResultsActivity extends Activity {
 			 adapter.getFilter().filter(null);
 			 return true;
 		 case MENU_FILTER_ERROR:
-			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription(this) + "'," +
-					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription(this) + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription(getApplicationContext()) + "'," +
+					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription(getApplicationContext()) + "'");
 			 return true;
 		 case MENU_FILTER_NOTFOUND:
-			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription(this) + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription(getApplicationContext()) + "'");
 			 return true;
 		 case MENU_FILTER_UPDATED:
-			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription(this) + "'," +
-					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription(this) + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription(getApplicationContext()) + "'," +
+					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription(getApplicationContext()) + "'");
 			 return true;
 		 case MENU_FILTER_SKIPPED:
-			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription(this) + "'," +
-					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription(this) + "'," +
-					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(this) + "'");
+			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription(getApplicationContext()) + "'," +
+					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription(getApplicationContext()) + "'," +
+					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(getApplicationContext()) + "'");
 			 return true;
 			 
 		 case MENU_DELETE:
@@ -494,17 +509,14 @@ public class SyncResultsActivity extends Activity {
 			showDialog(UPDATE_CONTACT);
 			
 			final Uri contactUri = contact;
-
 			final long id  = cursor.getLong(cursor.getColumnIndex(Results._ID));
 			final String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 		
 			Thread thread = new Thread(new Runnable() {
-
 				public void run() {
 					try {
 						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 						if (bitmap != null) {
-
 							final String contactId = contactUri.getPathSegments().get(1);
 							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
@@ -514,7 +526,7 @@ public class SyncResultsActivity extends Activity {
 							mCache.add(url, bitmap);
 							
 							ContentValues values = new ContentValues();
-							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getBaseContext()));
+							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getApplicationContext()));
 							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
 							
 							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
@@ -523,23 +535,18 @@ public class SyncResultsActivity extends Activity {
 									null);
 							
 							runOnUiThread(new Runnable() {
-
 								public void run() {
 									//((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
 									crop(contactId);
 								}
-
 							});
 
 						}
-					}
-					catch (UnknownHostException ex) {
-						mMainHandler.sendEmptyMessage(UNKNOWN_HOST_ERROR);
-					}
-					catch (Exception e) {}
+					} catch (UnknownHostException ex) {
+						mMainHandler.sendEmptyMessage(MainHandler.UNKNOWN_HOST_ERROR);
+					} catch (Exception e) {}
 					finally {
 						runOnUiThread(new Runnable() {
-
 							public void run() {
 								dismissDialog(UPDATE_CONTACT);
 							}
@@ -653,12 +660,11 @@ public class SyncResultsActivity extends Activity {
 				               
 				               showDialog(DELETING);
 				               mDbHelper.deleteAllPictures(new DbHelperNotifier() {
-
 				            	   public void onUpdateComplete() {
 				            		   runOnUiThread(new Runnable() {
 				            			   public void run() {
 				            				   dismissDialog(DELETING);
-				            				   Toast.makeText(SyncResultsActivity.this,
+				            				   Toast.makeText(getApplicationContext(),
 													R.string.syncresults_deleted, 
 													Toast.LENGTH_LONG).show();
 											
@@ -693,15 +699,15 @@ public class SyncResultsActivity extends Activity {
 	private static class InitializeResultsThread extends Thread
 	{
 		private boolean running = true;
-		private MessageQueue queue;
 		private Cursor cursor;
 		
 		private final WeakReference<SyncResultsActivity> mActivity;
+		private final MessageQueue queue;
 		
-		InitializeResultsThread (SyncResultsActivity activity, MessageQueue queue)
+		InitializeResultsThread (SyncResultsActivity activity)
 		{
 			mActivity = new WeakReference<SyncResultsActivity>(activity);
-			this.queue = queue;
+			queue = Looper.myQueue();
 			ensureQuery();
 		}
 		
@@ -739,7 +745,7 @@ public class SyncResultsActivity extends Activity {
 			if (activity == null) {
 				return;
 			}
-			
+
 			long started, completed;
 			ensureQuery();
 			
@@ -759,9 +765,7 @@ public class SyncResultsActivity extends Activity {
 				final TextView label2 = (TextView) activity.findViewById(R.id.completedLabel);
 
 				queue.addIdleHandler(new MessageQueue.IdleHandler () {
-
 					public boolean queueIdle() {
-						
 						text1.setText(dateStarted);
 						text2.setText(dateCompleted);
 						
@@ -775,8 +779,7 @@ public class SyncResultsActivity extends Activity {
 						return false;
 					}
 		        });
-			}
-			else {
+			} else {
 				activity.removeDialog(activity.LOADING_DIALOG);
 			}
 		}
@@ -808,6 +811,10 @@ public class SyncResultsActivity extends Activity {
 			if (activity == null) {
 				return;
 			}
+			final ContentResolver resolver = activity.getContentResolver();
+			if (resolver == null) {
+				return;
+			}
 			
 			String[] projection = { 
 	        		Results._ID, 
@@ -815,7 +822,7 @@ public class SyncResultsActivity extends Activity {
 	        		Results.PIC_URL };
 			
 			if (cursor == null || cursor.isClosed()) {
-				cursor = activity.getContentResolver().query(Results.CONTENT_URI, 
+				cursor = resolver.query(Results.CONTENT_URI, 
 		        		projection, 
 		        		where, 
 		        		null, 
@@ -856,6 +863,14 @@ public class SyncResultsActivity extends Activity {
 			if (activity == null) {
 				return;
 			}
+			final ContentResolver resolver = activity.getContentResolver();
+			if (resolver == null) {
+				return;
+			}
+			final Context context = activity.getApplicationContext();
+			if (context == null) {
+				return;
+			}
 			
 			boolean wasNotified = false;
 			boolean updated = false;
@@ -880,24 +895,22 @@ public class SyncResultsActivity extends Activity {
 				}
 				
 				if (!activity.mCache.contains(url) && contactId > 0) {
-					bitmap = People.loadContactPhoto(activity.getApplicationContext(), 
+					bitmap = People.loadContactPhoto(context, 
 							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(contactId)), 
 							0, null);
 					
 					if (bitmap != null) {
 						activity.mCache.add(url, bitmap);
 						//Log.d(TAG, "added back " + url + " to cache");
-						
 						if (wasNotified) {
 							// HACK to force notifyDatasetUpdated() to be honoured
 							ContentValues values = new ContentValues();
 							values.put(Results.PIC_URL, url);
-							activity.getContentResolver().update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
+							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
 									values, 
 									null, 
 									null);
 						}
-						
 						updated = true;
 					}
 				}
@@ -907,7 +920,10 @@ public class SyncResultsActivity extends Activity {
 				activity.runOnUiThread(new Runnable() {
 					public void run() {
 						Log.d(TAG, "listview notified");
-						((ResultsListAdapter)activity.mListview.getAdapter()).notifyDataSetChanged();
+						ListView listview = activity.mListview;
+						if (listview != null) {
+							((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
+						}
 					}
 				});
 			}
@@ -918,13 +934,11 @@ public class SyncResultsActivity extends Activity {
 	{
 		private final WeakReference<SyncResultsActivity> mActivity;
 		private boolean running = true;
-		private Handler mainHandler;
 		
-		DownloadImageHandler(SyncResultsActivity activity, Looper looper, Handler handler)
+		DownloadImageHandler(SyncResultsActivity activity, Looper looper)
 		{
 			super(looper);
 			mActivity = new WeakReference<SyncResultsActivity>(activity);
-			mainHandler = handler;
 		}
 		
 		public void stopRunning()
@@ -939,6 +953,14 @@ public class SyncResultsActivity extends Activity {
 		public void handleMessage(Message msg)
 		{
 			final SyncResultsActivity activity = mActivity.get();
+			if (activity == null) {
+				return;
+			}
+			final Handler handler = activity.mMainHandler;
+			if (handler == null) {
+				return;
+			}
+			
 			String url = (String) msg.obj;
 					
 			if (url != null) {
@@ -946,25 +968,22 @@ public class SyncResultsActivity extends Activity {
 					Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 					synchronized(this) {
 						if (running && bitmap != null) {
-							Message mainMsg = activity.mMainHandler.obtainMessage();
+							Message mainMsg = handler.obtainMessage();
 							
 							mainMsg.obj = bitmap;
 							mainMsg.what = msg.what;
-							activity.mMainHandler.sendMessage(mainMsg);
+							handler.sendMessage(mainMsg);
 							
 							if (!activity.mCache.contains(url)) {
 								activity.mCache.add(url, bitmap);
 							}
 						}
 					}
-				}
-				catch (UnknownHostException ex) {
-					activity.mMainHandler.sendEmptyMessage(activity.UNKNOWN_HOST_ERROR);
-				} 
-				catch (Exception e) {}
+				} catch (UnknownHostException ex) {
+					handler.sendEmptyMessage(MainHandler.UNKNOWN_HOST_ERROR);
+				} catch (Exception e) {}
 			}
 		}	
-
 	}
 	
 	private static class ResultsListAdapter extends SimpleCursorAdapter
@@ -990,23 +1009,24 @@ public class SyncResultsActivity extends Activity {
 			if (activity.mCache.contains(url)) {
 				//Log.d(TAG, "bindView resetting " + url);
 				image.setImageBitmap(activity.mCache.get(url));
-			}
-			else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(context)) ||
-					description.equals(ResultsDescription.UPDATED.getDescription(context))) {
+			} else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(context.getApplicationContext())) ||
+					description.equals(ResultsDescription.UPDATED.getDescription(context.getApplicationContext()))) {
 				image.setImageResource(R.drawable.default_face);
-			}
-			else if (description.equals(ResultsDescription.NOTFOUND.getDescription(context))) {
+			} else if (description.equals(ResultsDescription.NOTFOUND.getDescription(context.getApplicationContext()))) {
 				image.setImageResource(R.drawable.neutral_face);
-			}
-			else {
+			} else {
 				image.setImageResource(R.drawable.sad_face);
 			}
 		}
 
 		@Override
 		public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
-			SyncResultsActivity activity = mActivity.get();
+			final SyncResultsActivity activity = mActivity.get();
 			if (activity == null) {
+				return null;
+			}
+			final ContentResolver resolver = activity.getContentResolver();
+			if (resolver == null) {
 				return null;
 			}
 			
@@ -1016,7 +1036,7 @@ public class SyncResultsActivity extends Activity {
 				where = Results.DESCRIPTION + " IN (" + constraint + ")";
 			}
 			
-			return activity.getContentResolver().query(Results.CONTENT_URI, 
+			return resolver.query(Results.CONTENT_URI, 
 					activity.mProjection, 
 					where, 
 					null, 

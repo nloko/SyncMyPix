@@ -68,11 +68,8 @@ public class SyncMyPixDbHelper {
 				null);
 		
 		Thread thread = new Thread(new Runnable() {
-			
 			public void run() {
-				
 				synchronized(SyncService.mSyncLock) {
-					
 					while(cursor.moveToNext()) {
 						String id  = cursor.getString(cursor.getColumnIndex(Contacts._ID));
 						String dbHash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
@@ -99,7 +96,6 @@ public class SyncMyPixDbHelper {
 				
 				cursor.close();
 			}
-			
 		});
 		
 		thread.start();
@@ -147,8 +143,7 @@ public class SyncMyPixDbHelper {
 		
 		if (cursor.moveToFirst()) {
 			resolver.update(uri, values, null, null);
-		}
-		else {
+		} else {
 			values.put(Contacts._ID, id);
 			resolver.insert(Contacts.CONTENT_URI, values);
 		}
@@ -207,17 +202,12 @@ public class SyncMyPixDbHelper {
     	Uri syncUri = Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id);
     	    	
     	if (skipIfExists) {
-    		
     		// not tracking any hashes for contact and photo is set for contact
     		if (dbHash == null && contactHash != null) {
     			ok = false;
-    		}
-    		
-    		// we are tracking a hash and there is a photo for this contact
-    		else if (contactHash != null) {
-
+    		}else if (contactHash != null) {
+    			// we are tracking a hash and there is a photo for this contact
     			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, contactHash));
-
     			// hashes do not match, so we don't need to track this hash anymore
     			if (!contactHash.equals(dbHash)) {
    					resolver.delete(syncUri, null, null);

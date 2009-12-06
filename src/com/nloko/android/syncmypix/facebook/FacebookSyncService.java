@@ -47,14 +47,12 @@ public class FacebookSyncService extends SyncService {
 	{
 		private WeakReference<FacebookSyncService> mService;
 		private boolean running = true;
-		private MainHandler handler;
 		
-		public FacebookLogin(FacebookSyncService service, MainHandler handler)
+		public FacebookLogin(FacebookSyncService service)
 		{
 			mService = new WeakReference<FacebookSyncService>(service);
-			this.handler = handler;
 			
-			SyncServiceListener listener = service.getListener();
+			SyncServiceListener listener = service.mListener;
 			if (listener != null) {
 				listener.onFriendsDownloadStarted();
 			}
@@ -71,6 +69,10 @@ public class FacebookSyncService extends SyncService {
 		{
 			FacebookSyncService service = mService.get();
 			if (service == null) {
+				return;
+			}
+			MainHandler handler = service.mMainHandler;
+			if (handler == null) {
 				return;
 			}
 			
@@ -90,27 +92,25 @@ public class FacebookSyncService extends SyncService {
 						Message msg = handler.obtainMessage();
 						msg.what = MainHandler.START_SYNC;
 						msg.obj = userList;
-						
 						handler.sendMessage(msg);
 					}
 				}
-			}
-			catch(Exception ex) {
+			} catch(Exception ex) {
 				Log.e(TAG, android.util.Log.getStackTraceString(ex));
-				
-				if (client == null) {
-					handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
-							R.string.syncservice_sessionerror, 
-							0));
-
+				if (handler != null) {
+					if (client == null) {
+						handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
+								R.string.syncservice_sessionerror, 
+								0));
+	
+					} else {
+						handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
+								R.string.syncservice_downloaderror, 
+								0));
+					}
+					
+					handler.post(service.mMainHandler.resetExecuting);
 				}
-				else {
-					handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
-							R.string.syncservice_downloaderror, 
-							0));
-				}
-				
-				handler.post(handler.resetExecuting);
 			}
 		}
 	}
@@ -124,7 +124,9 @@ public class FacebookSyncService extends SyncService {
     @Override
 	public void onDestroy() {
 		super.onDestroy();
-		mLoginThread.stopRunning();
+		if (mLoginThread != null) {
+			mLoginThread.stopRunning();
+		}
 	}
 
 	@Override
@@ -134,7 +136,7 @@ public class FacebookSyncService extends SyncService {
 		
 		Log.d(TAG, "Staring " + TAG);
 		
-		mLoginThread = new FacebookLogin(this, getMainHandler());
+		mLoginThread = new FacebookLogin(this);
 		mLoginThread.start();
 	}
 

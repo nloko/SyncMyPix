@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 import com.nloko.android.Log;
@@ -66,10 +67,8 @@ public class MainActivity extends Activity {
 	private final int ABOUT_DIALOG = 2;
 	private final int CONFIRM_DIALOG = 3;
 
-	private SyncService mSyncService;
-	
+	private WeakReference<SyncService> mSyncService;
 	private boolean mSyncServiceBound = false;
-	private boolean mStartSync = false;
 
 	public static <T extends SyncService> Class<T> getSyncSource(Context context)
 	{
@@ -79,11 +78,9 @@ public class MainActivity extends Activity {
 		try {
 			Class<?> cls = Class.forName(source);
 			return (Class<T>) cls;
-		}
-		catch(ClassNotFoundException classException) {
+		} catch(ClassNotFoundException classException) {
 			Log.e(TAG, "Could not get class from XML. Defaulting to FacebookSyncService.class");
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -134,34 +131,31 @@ public class MainActivity extends Activity {
         
         if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
         	showDialog(savedInstanceState.getInt("DIALOG"));
-        }
-        else if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
+        } else if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
         	showDialog(ABOUT_DIALOG);
         }
         
-        ImageButton sync = (ImageButton) this.findViewById(R.id.syncButton);
+        ImageButton sync = (ImageButton) findViewById(R.id.syncButton);
         sync.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (isLoggedInFromSyncSource(getApplicationContext(), getSyncSource(getApplicationContext()))) {
 					sync();
 					//showDialog(CONFIRM_DIALOG);
-				}
-				else {
+				} else {
 					login();
 				}
 			}
         });
         
-        ImageButton settings = (ImageButton) this.findViewById(R.id.settingsButton);
+        ImageButton settings = (ImageButton) findViewById(R.id.settingsButton);
         settings.setOnClickListener(new OnClickListener() {
-
 			public void onClick(View v) {
 				Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
 				startActivity(i);
 			}
         });
         
-        ImageButton results = (ImageButton) this.findViewById(R.id.resultsButton);
+        ImageButton results = (ImageButton) findViewById(R.id.resultsButton);
         results.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				showResults();
@@ -202,15 +196,17 @@ public class MainActivity extends Activity {
     private void sync()
     {
     	if (!Utils.hasInternetConnection(getApplicationContext())) {
-    		Toast.makeText(this, R.string.syncservice_networkerror, Toast.LENGTH_LONG).show();
+    		Toast.makeText(getApplicationContext(), R.string.syncservice_networkerror, Toast.LENGTH_LONG).show();
     		return;
     	}
     	
-    	Intent i = new Intent(getApplicationContext(), getSyncSource(getApplicationContext()));
-    	bindService(i, mSyncServiceConn, Context.BIND_AUTO_CREATE);
+    	SyncService service = null;
+    	if (mSyncService != null) {
+    		service = mSyncService.get();
+    	}
     	
-    	if (mSyncService == null || !mSyncService.isExecuting()) {
-    		startService(i);
+    	if (service == null || !service.isExecuting()) {
+    		startService(new Intent(getApplicationContext(), getSyncSource(getApplicationContext())));
     		startActivity(new Intent(getApplicationContext(), SyncProgressActivity.class));
     	}
     }
@@ -228,11 +224,7 @@ public class MainActivity extends Activity {
 		
 		if (!mSyncServiceBound) {
 			Intent i = new Intent(getApplicationContext(), getSyncSource(getApplicationContext()));
-			mSyncServiceBound = bindService(i, mSyncServiceConn, 0);
-		}
-		
-		if (mSyncService != null && mSyncService.isExecuting()) {
-			startActivity(new Intent(getApplicationContext(), SyncProgressActivity.class));
+			mSyncServiceBound = bindService(i, mSyncServiceConn, Context.BIND_AUTO_CREATE);
 		}
 	}
     
@@ -246,6 +238,12 @@ public class MainActivity extends Activity {
 		}
 	}
     
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG, "onDestroy");
+	}
+
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
@@ -308,23 +306,18 @@ public class MainActivity extends Activity {
 		
 		Button ok = (Button)about.findViewById(R.id.ok);
 		ok.setOnClickListener(new OnClickListener() {
-
 			public void onClick(View v) {
 				removeDialog(ABOUT_DIALOG);
 			}
-			
 		});
 		
 		CheckBox show = (CheckBox)about.findViewById(R.id.do_not_show_about);
 		show.setChecked(getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
 		show.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
-
 				Utils.setBoolean(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "do_not_show_about", isChecked);
 			}
-			
 		});
 		
 		return about;
@@ -332,8 +325,16 @@ public class MainActivity extends Activity {
 	
     private ServiceConnection mSyncServiceConn = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-        	mSyncService = ((SyncService.LocalBinder)service).getService();
-        	
+        	Log.d(TAG, "onServiceConnected");
+        	mSyncService = new WeakReference<SyncService>(((SyncService.LocalBinder)service).getService());
+    		if (mSyncService != null) {
+    			SyncService s = mSyncService.get();
+    			if (s != null && s.isExecuting()) {
+    				Intent i = new Intent(s.getApplicationContext(), SyncProgressActivity.class);
+    				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+    				startActivity(i);
+    			}
+    		}
         }
 
         public void onServiceDisconnected(ComponentName className) {
