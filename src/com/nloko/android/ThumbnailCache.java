@@ -49,8 +49,8 @@ public class ThumbnailCache {
 	private final Object lock = new Object();
 	
 	private Bitmap mDefaultImage = null;
-	private WeakReference<ImageListener> mListener = null;
-	private WeakReference<ImageProvider> mProvider = null;
+	private ImageListener mListener = null;
+	private ImageProvider mProvider = null;
 	private ImageDownloader mDownloader = new ImageDownloader();
 	
 	private ThumbnailCache() {}
@@ -75,6 +75,8 @@ public class ThumbnailCache {
 	{
 		mDownloader.setPause(true);
 		mDownloader = null;
+		mListener = null;
+		mProvider = null;
 		mImages.clear();
 		mInstance = null;
 	}
@@ -128,11 +130,9 @@ public class ThumbnailCache {
 		
 		synchronized(lock) {
 			mImages.put(key, new SoftReference<Bitmap>(bitmap));
-			if (mListener != null) {
-				ImageListener listener = mListener.get();
-				if (notify && listener != null) {
-					listener.onImageReady(key);
-				}
+			ImageListener listener = mListener;
+			if (notify && listener != null) {
+				listener.onImageReady(key);
 			}
 		}
 	}
@@ -161,15 +161,10 @@ public class ThumbnailCache {
 						mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
 						image = mDefaultImage;
 					}
-					ImageProvider provider = null;
-					if (mProvider != null) {
-						provider = mProvider.get();
-					}
-					
+					ImageProvider provider = mProvider;
 					if (provider == null) {
 						mDownloader.download(key);
-					}
-					else {
+					} else {
 						mImages.remove(key);
 						provider.onImageRequired(key);
 					}
@@ -190,16 +185,12 @@ public class ThumbnailCache {
 	
 	public void setImageListener(ImageListener listener)
 	{
-		synchronized(lock) {
-			mListener = new WeakReference<ImageListener>(listener);
-		}
+		mListener = listener;
 	}
 	
 	public void setImageProvider(ImageProvider provider)
 	{
-		synchronized(lock) {
-			mProvider = new WeakReference<ImageProvider>(provider);
-		}
+		mProvider = provider;
 	}
 	
 	public interface ImageListener {
