@@ -1031,7 +1031,6 @@ public class SyncResultsActivity extends Activity {
 			}
 			
 			String where = null;
-			
 			if (constraint != null) {
 				where = Results.DESCRIPTION + " IN (" + constraint + ")";
 			}

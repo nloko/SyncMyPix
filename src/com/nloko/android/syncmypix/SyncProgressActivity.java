@@ -90,7 +90,6 @@ public class SyncProgressActivity extends Activity {
     @Override
 	protected void onStart() {
 		super.onStart();
-		
 	}
 
 	@Override
@@ -98,6 +97,7 @@ public class SyncProgressActivity extends Activity {
 		super.onDestroy();
 		unbindService(mSyncServiceConn);
 		mSyncServiceBound = false;
+		mSyncServiceConn = null;
 	}
 
 	@Override

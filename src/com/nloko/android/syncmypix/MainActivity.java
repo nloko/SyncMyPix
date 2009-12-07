@@ -242,6 +242,7 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
+		mSyncServiceConn = null;
 	}
 
 	@Override
