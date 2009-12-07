@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -39,41 +40,49 @@ public class ThumbnailCache {
 	private final String TAG = "ThumbnailCache";
 	// use SoftReference so Android can free memory, if needed
 	// ThumbnailCache can notify if a download is required or use the built-in 
-	// ImageDownloader.
+	// ImageDownloader
 	// See setImageListener and setImageProvider
-	private final Map <String, SoftReference<Bitmap>> images = new HashMap <String, SoftReference<Bitmap>> ();
-	private final ImageDownloader downloader = new ImageDownloader();
+	private static ThumbnailCache mInstance = null;
+	
+	private final Map <String, SoftReference<Bitmap>> mImages = new HashMap <String, SoftReference<Bitmap>> ();
+	
 	private final Object lock = new Object();
+	
+	private Bitmap mDefaultImage = null;
+	private WeakReference<ImageListener> mListener = null;
+	private WeakReference<ImageProvider> mProvider = null;
+	private ImageDownloader mDownloader = new ImageDownloader();
 	
 	private ThumbnailCache() {}
 	
-	private static ThumbnailCache instance = null;
+	
 	public static ThumbnailCache create()
 	{
-		if (instance == null) {
-			instance = new ThumbnailCache();
+		if (mInstance == null) {
+			mInstance = new ThumbnailCache();
 		}
 		
-		return instance;
+		return mInstance;
 	}
 	
-	private Bitmap defaultImage = null;
+	
 	public void setDefaultImage(Bitmap defaultImage)
 	{
-		this.defaultImage = defaultImage;
+		mDefaultImage = defaultImage;
 	}
 	
 	public void destroy()
 	{
-		downloader.setPause(true);
-		images.clear();
-		instance = null;
+		mDownloader.setPause(true);
+		mDownloader = null;
+		mImages.clear();
+		mInstance = null;
 	}
 	
 	public boolean contains(String key)
 	{
 		synchronized(lock) {
-			if (images.containsKey(key)) {
+			if (mImages.containsKey(key)) {
 				return true;
 			}
 		}
@@ -118,9 +127,12 @@ public class ThumbnailCache {
 		}
 		
 		synchronized(lock) {
-			images.put(key, new SoftReference<Bitmap>(bitmap));
-			if (notify && listener != null) {
-				listener.onImageReady(key);
+			mImages.put(key, new SoftReference<Bitmap>(bitmap));
+			if (mListener != null) {
+				ImageListener listener = mListener.get();
+				if (notify && listener != null) {
+					listener.onImageReady(key);
+				}
 			}
 		}
 	}
@@ -128,8 +140,8 @@ public class ThumbnailCache {
 	public boolean remove(String key)
 	{
 		synchronized(lock) {
-			if (images.containsKey(key)) {
-				images.remove(key);
+			if (mImages.containsKey(key)) {
+				mImages.remove(key);
 				return true;
 			}
 		}
@@ -142,18 +154,23 @@ public class ThumbnailCache {
 		Bitmap image = null;
 		
 		synchronized(lock) {
-			if (images.containsKey(key)) {
-				image = images.get(key).get();
+			if (mImages.containsKey(key)) {
+				image = mImages.get(key).get();
 				if (image == null) {
-					if (defaultImage != null) {
-						images.put(key, new SoftReference<Bitmap>(defaultImage));
-						image = defaultImage;
+					if (mDefaultImage != null) {
+						mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
+						image = mDefaultImage;
 					}
+					ImageProvider provider = null;
+					if (mProvider != null) {
+						provider = mProvider.get();
+					}
+					
 					if (provider == null) {
-						downloader.download(key);
+						mDownloader.download(key);
 					}
 					else {
-						images.remove(key);
+						mImages.remove(key);
 						provider.onImageRequired(key);
 					}
 				}
@@ -168,22 +185,20 @@ public class ThumbnailCache {
 	// thread
 	public void togglePauseOnDownloader(boolean value)
 	{
-		downloader.setPause(value);
+		mDownloader.setPause(value);
 	}
 	
-	private ImageListener listener = null;
 	public void setImageListener(ImageListener listener)
 	{
 		synchronized(lock) {
-			this.listener = listener;
+			mListener = new WeakReference<ImageListener>(listener);
 		}
 	}
 	
-	private ImageProvider provider = null;
 	public void setImageProvider(ImageProvider provider)
 	{
 		synchronized(lock) {
-			this.provider = provider;
+			mProvider = new WeakReference<ImageProvider>(provider);
 		}
 	}
 	
