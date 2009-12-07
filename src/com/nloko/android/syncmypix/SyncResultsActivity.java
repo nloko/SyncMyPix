@@ -268,14 +268,17 @@ public class SyncResultsActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mDownloadHandler.stopRunning();
+		// save battery life by killing downloader thread
+		mCache.togglePauseOnDownloader(true);
+		
+		if (mDownloadHandler != null) {
+			mDownloadHandler.stopRunning();
+		}
 		
 		if (mInitResultsThread != null) {
 			mInitResultsThread.stopRunning();
 			mInitResultsThread.closeQuery();
 		}
-		// save battery life by killing downloader thread
-		mCache.togglePauseOnDownloader(true);
 	}
 	 
 	@Override
@@ -944,8 +947,12 @@ public class SyncResultsActivity extends Activity {
 		public void stopRunning()
 		{
 			synchronized(this) {
-				getLooper().quit();
 				running = false;
+			}
+			
+			Looper looper = getLooper();
+			if (looper != null) {
+				looper.quit();
 			}
 		}
 		
@@ -969,11 +976,9 @@ public class SyncResultsActivity extends Activity {
 					synchronized(this) {
 						if (running && bitmap != null) {
 							Message mainMsg = handler.obtainMessage();
-							
 							mainMsg.obj = bitmap;
 							mainMsg.what = msg.what;
 							handler.sendMessage(mainMsg);
-							
 							if (!activity.mCache.contains(url)) {
 								activity.mCache.add(url, bitmap);
 							}
