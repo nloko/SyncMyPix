@@ -820,7 +820,19 @@ public class CropImage extends Activity {
         //    mAllImages.deactivate();
     }
 
-    private synchronized void closeProgressDialog() {
+    @Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		Log.d(TAG, "FINALIZED");
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG, "onDestroy");
+	}
+
+	private synchronized void closeProgressDialog() {
         if (mFaceDetectionDialog != null) {
             mFaceDetectionDialog.dismiss();
             mFaceDetectionDialog = null;
