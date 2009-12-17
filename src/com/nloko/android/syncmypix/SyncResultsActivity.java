@@ -269,7 +269,10 @@ public class SyncResultsActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		// save battery life by killing downloader thread
-		mCache.togglePauseOnDownloader(true);
+		if (mCache != null) {
+			mCache.togglePauseOnDownloader(true);
+			mCache.empty();
+		}
 		
 		if (mDownloadHandler != null) {
 			mDownloadHandler.stopRunning();
@@ -279,8 +282,22 @@ public class SyncResultsActivity extends Activity {
 			mInitResultsThread.stopRunning();
 			mInitResultsThread.closeQuery();
 		}
+		
+		if (mThumbnailThread != null) {
+			mThumbnailThread.stopRunning();
+			mThumbnailThread.closeQuery();
+		}
 	}
 	 
+	@Override
+	public void onLowMemory() {
+		super.onLowMemory();
+		
+		if (mCache != null) {
+			mCache.empty();
+		}
+	}
+
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -291,6 +308,9 @@ public class SyncResultsActivity extends Activity {
         if (mInitResultsThread == null) {
         	mInitResultsThread = new InitializeResultsThread(this);
         	mInitResultsThread.start();
+        } else {
+        	mThumbnailThread = new LoadThumbnailsThread(this);
+	        mThumbnailThread.start();
         }
         
         mCache.togglePauseOnDownloader(false);
@@ -947,12 +967,8 @@ public class SyncResultsActivity extends Activity {
 		public void stopRunning()
 		{
 			synchronized(this) {
+				getLooper().quit();
 				running = false;
-			}
-			
-			Looper looper = getLooper();
-			if (looper != null) {
-				looper.quit();
 			}
 		}
 		

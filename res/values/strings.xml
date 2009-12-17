@@ -70,6 +70,7 @@
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.networkerror">No Internet connection available</string>
     <string name="syncservice.fatalsyncerror">A fatal sync error has occurred and the operation was terminated</string>
+    <string name="syncservice.lowmemory">Low memory condition detected. Cancelling sync</string>
         
     <string name="resultsdescription.notfound">Contact not found</string>
     <string name="resultsdescription.updated">Picture updated</string>

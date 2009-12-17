@@ -71,6 +71,20 @@ public class ThumbnailCache {
 		mDefaultImage = defaultImage;
 	}
 	
+	public void empty ()
+	{
+		synchronized(lock) {
+			mImages.clear();
+		}
+	}
+	
+	public void clearCachedImages ()
+	{
+		synchronized(lock) {
+			mImages.values().clear();
+		}
+	}
+	
 	public void destroy()
 	{
 		mDownloader.setPause(true);
@@ -155,7 +169,9 @@ public class ThumbnailCache {
 		
 		synchronized(lock) {
 			if (mImages.containsKey(key)) {
-				image = mImages.get(key).get();
+				if (mImages.get(key) != null) {
+					image = mImages.get(key).get();
+				}
 				if (image == null) {
 					if (mDefaultImage != null) {
 						mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));

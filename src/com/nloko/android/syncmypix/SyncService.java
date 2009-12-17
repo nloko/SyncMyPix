@@ -189,11 +189,18 @@ public abstract class SyncService extends Service {
     {
     	final private List<ContentValues> list;
     	final private WeakReference<SyncService> mService;
+    	final private boolean finish;
     	
     	public UpdateResultsTable(SyncService service, List<ContentValues> list)
     	{
+    		this (service, list, true);
+    	}
+    	
+    	public UpdateResultsTable(SyncService service, List<ContentValues> list, boolean finish)
+    	{
     		mService = new WeakReference<SyncService>(service);
     		this.list = list;
+    		this.finish = finish;
     	}
     	
     	private void createResult (ContentValues values)
@@ -212,18 +219,22 @@ public abstract class SyncService extends Service {
 		public void run() {
 			
 			Log.d(TAG, "mStarted updating results at " + Long.toString(System.currentTimeMillis()));
-			for (ContentValues values : list) {
-				if (values != null) {
-					createResult(values);
+			synchronized (list) {
+				for (ContentValues values : list) {
+					if (values != null) {
+						createResult(values);
+					}
 				}
+				list.clear();
 			}
 			
-			list.clear();
 			Log.d(TAG, "Finished updating results at " + Long.toString(System.currentTimeMillis()));
 			
-			final SyncService service = mService.get();
-			if (service != null) {
-				service.mMainHandler.post(service.mMainHandler.finish);
+			if (finish) {
+				final SyncService service = mService.get();
+				if (service != null) {
+					service.mMainHandler.post(service.mMainHandler.finish);
+				}
 			}
 		}
     }
@@ -263,14 +274,14 @@ public abstract class SyncService extends Service {
     		
     		if (user.picUrl == null) {
     			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(service));
-    			service.mResultsList.add(values);
+    			addResult(values);
     			return;
     		}
     		
     		if (contactId == null) {
     			Log.d(TAG, "Contact not found in database.");
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
-    			service.mResultsList.add(values);
+    			addResult(values);
     			return;
     		}
     		
@@ -345,10 +356,20 @@ public abstract class SyncService extends Service {
     		} catch (Exception e) {
     			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(service));
     		} finally {
-    			service.mResultsList.add(valuesCopy);
+    			addResult(valuesCopy);
     		}
     	}
 
+        private void addResult (ContentValues value)
+        {
+        	final SyncService service = mService.get();
+    		if (service != null) {
+    			synchronized (service.mResultsList) {
+    				service.mResultsList.add(value);
+    			}
+    		}
+        }
+        
         private ContentValues createResult(String id, String name, String url)
         {
         	ContentValues values = new ContentValues();
@@ -505,6 +526,15 @@ public abstract class SyncService extends Service {
     }
     
     @Override
+	public void onLowMemory() {
+		super.onLowMemory();
+		// update results table and clear list
+		if (!mResultsList.isEmpty()) {
+			new UpdateResultsTable(this, mResultsList, false).start();
+		}
+	}
+
+	@Override
 	public void onCreate() {
 		super.onCreate();
 		
