@@ -81,6 +81,8 @@ public abstract class SyncService extends Service {
 	private final IBinder mBinder = new LocalBinder(this);
 	private final List <ContentValues> mResultsList = new ArrayList<ContentValues> ();
 	
+	private final int RESULTS_THRESH = 100;
+	
 	public enum SyncServiceStatus {
 		IDLE,
 		GETTING_FRIENDS,
@@ -430,6 +432,8 @@ public abstract class SyncService extends Service {
 										0));
 								break;
 							}
+						} else if (service.mResultsList.size() == service.RESULTS_THRESH) {
+							service.updateResults(false);
 						}
 					}
 	
@@ -494,9 +498,7 @@ public abstract class SyncService extends Service {
 				service.cancelNotification(R.string.syncservice_started);
 			}
 			
-			if (!service.mResultsList.isEmpty()) {
-				new UpdateResultsTable(service, service.mResultsList).start();
-			}
+			service.updateResults(true);
 		}
     }
 
@@ -525,13 +527,18 @@ public abstract class SyncService extends Service {
     	mIntelliMatch = prefs.getIntelliMatch();
     }
     
+    private void updateResults(boolean finish)
+    {
+    	if (!mResultsList.isEmpty()) {
+			new UpdateResultsTable(this, mResultsList, finish).start();
+		}
+    }
+    
     @Override
 	public void onLowMemory() {
 		super.onLowMemory();
 		// update results table and clear list
-		if (!mResultsList.isEmpty()) {
-			new UpdateResultsTable(this, mResultsList, false).start();
-		}
+		updateResults(false);
 	}
 
 	@Override
