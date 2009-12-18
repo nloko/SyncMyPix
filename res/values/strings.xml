@@ -59,6 +59,7 @@
     <string name="syncresults.deleteDialog.msg">Are you sure you want to delete all SyncMyPix pictures?</string>
     <string name="syncresults.deletingDialog">Deleting all SyncMyPix pictures...</string>
     <string name="syncresults.deleted">"All SyncMyPix pictures deleted"</string>
+    <string name="syncresults.addpicture.error">Unable to manually sync picture</string>
     
     <string name="facebooklogin">Login to Facebook</string>
     <string name="facebooklogin.urlError">Error parsing URL</string>

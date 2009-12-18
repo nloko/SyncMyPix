@@ -460,6 +460,9 @@ public class SyncResultsActivity extends Activity {
 				break;
 			
 			case REQUEST_CROP_PHOTO:  
+				if (mUriOfSelected == null) {
+					break;
+				}
 				
 				ContentResolver resolver = getContentResolver();
 				Cursor cursor = resolver.query(mUriOfSelected, 
@@ -519,6 +522,13 @@ public class SyncResultsActivity extends Activity {
 	
 	private void updateContactWithSelection(Uri contact)
 	{
+		if (contact == null || mUriOfSelected == null) {
+			Toast.makeText(getApplicationContext(),
+					R.string.syncresults_addpicture_error, 
+					Toast.LENGTH_LONG).show();
+			return;
+		}
+		
 		final ContentResolver resolver = getContentResolver();
 		
 		Cursor cursor = resolver.query(mUriOfSelected, 
