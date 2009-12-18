@@ -522,6 +522,11 @@ public class SyncResultsActivity extends Activity {
 	
 	private void updateContactWithSelection(Uri contact)
 	{
+		// hopefully, no users will ever see this message
+		// SyncMyPix has been getting killed by Android under
+		// low memory conditions. 
+		// Work has been done to try to prevent this ie. override onLowMemory,
+		// free resources, ensure proper garbage collection.
 		if (contact == null || mUriOfSelected == null) {
 			Toast.makeText(getApplicationContext(),
 					R.string.syncresults_addpicture_error, 
