@@ -245,6 +245,9 @@ public abstract class SyncService extends Service {
     {
     	private final WeakReference<SyncService> mService;
     	private final SyncMyPixDbHelper dbHelper;
+    	private int mUpdated = 0;
+    	private int mSkipped = 0;
+    	private int mNotFound = 0;
     	    	    	
     	public SyncTask (SyncService service)
     	{
@@ -282,6 +285,7 @@ public abstract class SyncService extends Service {
     		
     		if (contactId == null) {
     			Log.d(TAG, "Contact not found in database.");
+    			mNotFound++;
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
     			addResult(values);
     			return;
@@ -328,7 +332,9 @@ public abstract class SyncService extends Service {
     						ContactServices.updateContactPhoto(resolver, image, contactId);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
     						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
+    						mUpdated++;
     					} else {
+    						mSkipped++;
     						valuesCopy.put(Results.DESCRIPTION, 
     								ResultsDescription.SKIPPED_UNCHANGED.getDescription(service));
     					}
@@ -353,6 +359,7 @@ public abstract class SyncService extends Service {
     					//break;
     				}
     			} else {
+    				mSkipped++;
     				valuesCopy.put(Results.DESCRIPTION, 
     						ResultsDescription.SKIPPED_EXISTS.getDescription(service));
     			}
@@ -453,6 +460,9 @@ public abstract class SyncService extends Service {
 	
 					syncValues.clear();
 					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
+					syncValues.put(Sync.UPDATED, mUpdated);
+					syncValues.put(Sync.NOT_FOUND, mNotFound);
+					syncValues.put(Sync.SKIPPED, mSkipped);
 					resolver.update(sync, syncValues, null, null);
 					
 					total = index;

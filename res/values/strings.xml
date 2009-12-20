@@ -43,8 +43,9 @@
     
     <string name="app_name">SyncMyPix</string>
     <string name="syncresults">Sync Results</string>
-    <string name="syncresults.started">Started</string>
-    <string name="syncresults.completed">Completed</string>
+    <string name="syncresults.updated">Updated</string>
+    <string name="syncresults.skipped">Skipped</string>
+    <string name="syncresults.notfound">Not Found</string>
     <string name="syncresults.resultsList">Social Network Friends</string>
     <string name="syncresults.menu.viewsynced">View synced contact</string>
     <string name="syncresults.menu.crop">Crop picture</string>

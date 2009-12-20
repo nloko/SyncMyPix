@@ -788,7 +788,9 @@ public class SyncResultsActivity extends Activity {
 			}
 			
 			cursor = activity.getContentResolver().query(Results.CONTENT_URI, 
-					new String[] { Sync.DATE_STARTED, Sync.DATE_COMPLETED }, 
+					new String[] { Sync.UPDATED, 
+						Sync.SKIPPED,
+						Sync.NOT_FOUND }, 
 					null, 
 					null, 
 					null);
@@ -815,31 +817,33 @@ public class SyncResultsActivity extends Activity {
 				return;
 			}
 
-			long started, completed;
+			final int updated, skipped, notFound;
 			ensureQuery();
 			
 			if (running && cursor.moveToFirst()) {
 				synchronized(this) {
-					started = cursor.getLong(cursor.getColumnIndex(Sync.DATE_STARTED));
-					completed = cursor.getLong(cursor.getColumnIndex(Sync.DATE_COMPLETED));
+					updated = cursor.getInt(cursor.getColumnIndex(Sync.UPDATED));
+					skipped = cursor.getInt(cursor.getColumnIndex(Sync.SKIPPED));
+					notFound = cursor.getInt(cursor.getColumnIndex(Sync.NOT_FOUND));
 				}
 				
-				final String dateStarted = new Date(started).toString();
-				final String dateCompleted = new Date(completed).toString();
+				final TextView text1 = (TextView) activity.findViewById(R.id.updated);
+				final TextView text2 = (TextView) activity.findViewById(R.id.skipped);
+				final TextView text3 = (TextView) activity.findViewById(R.id.notfound);
 				
-				final TextView text1 = (TextView) activity.findViewById(R.id.started);
-				final TextView text2 = (TextView) activity.findViewById(R.id.completed);
-				
-				final TextView label1 = (TextView) activity.findViewById(R.id.startedLabel);
-				final TextView label2 = (TextView) activity.findViewById(R.id.completedLabel);
+				final TextView label1 = (TextView) activity.findViewById(R.id.updatedLabel);
+				final TextView label2 = (TextView) activity.findViewById(R.id.skippedLabel);
+				final TextView label3 = (TextView) activity.findViewById(R.id.notfoundLabel);
 
 				queue.addIdleHandler(new MessageQueue.IdleHandler () {
 					public boolean queueIdle() {
-						text1.setText(dateStarted);
-						text2.setText(dateCompleted);
+						text1.setText(Integer.toString(updated));
+						text2.setText(Integer.toString(skipped));
+						text3.setText(Integer.toString(notFound));
 						
 						label1.setVisibility(View.VISIBLE);
 						label2.setVisibility(View.VISIBLE);
+						label3.setVisibility(View.VISIBLE);
 				
 						activity.mThumbnailThread = new LoadThumbnailsThread(activity);
 				        activity.mThumbnailThread.start();
