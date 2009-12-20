@@ -112,6 +112,7 @@ public class SyncResultsActivity extends Activity {
 	private final int CONTEXTMENU_CROP = 3;
 	private final int CONTEXTMENU_SELECT_CONTACT = 4;
 	private final int CONTEXTMENU_VIEW_CONTACT = 5;
+	private final int CONTEXTMENU_UNLINK = 6;
 	
 	private final int PICK_CONTACT    = 6;
 	private final int REQUEST_CROP_PHOTO    = 7;
@@ -209,6 +210,7 @@ public class SyncResultsActivity extends Activity {
 						if (id != null) {
 							menu.add(0, CONTEXTMENU_VIEW_CONTACT, Menu.NONE, R.string.syncresults_menu_viewsynced);
 							menu.add(0, CONTEXTMENU_CROP, Menu.NONE, R.string.syncresults_menu_crop);
+							menu.add(0, CONTEXTMENU_UNLINK, Menu.NONE, R.string.syncresults_menu_unlink);
 						}
 						
 		                menu.add(0, CONTEXTMENU_SELECT_CONTACT, Menu.NONE, R.string.syncresults_menu_addpicture);
@@ -416,7 +418,6 @@ public class SyncResultsActivity extends Activity {
 				return true;
 				
 			case CONTEXTMENU_SELECT_CONTACT:
-				
 				position = ((AdapterContextMenuInfo)menuInfo).position;
 				mUriOfSelected = getResultsUriFromListPosition(position);
 				
@@ -425,15 +426,25 @@ public class SyncResultsActivity extends Activity {
 				return true;
 				
 			case CONTEXTMENU_CROP:
-				
 				position = ((AdapterContextMenuInfo)menuInfo).position;
 				mUriOfSelected = getResultsUriFromListPosition(position);
 				
 				cursor = ((SimpleCursorAdapter)mListview.getAdapter()).getCursor();
-				
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					crop(id);
+				}
+				
+				return true;
+				
+			case CONTEXTMENU_UNLINK:
+				position = ((AdapterContextMenuInfo)menuInfo).position;
+				mUriOfSelected = getResultsUriFromListPosition(position);
+				
+				cursor = ((SimpleCursorAdapter)mListview.getAdapter()).getCursor();
+				if (cursor.moveToPosition(position)) {
+					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+					unlink(id);
 				}
 				
 				return true;
@@ -570,15 +581,9 @@ public class SyncResultsActivity extends Activity {
 							}
 							mCache.add(url, bitmap);
 							
-							ContentValues values = new ContentValues();
-							values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getApplicationContext()));
-							values.put(Results.CONTACT_ID, "");
-							resolver.update(Results.CONTENT_URI, 
-									values, 
-									Results.CONTACT_ID + "=" + contactId, 
-									null);
+							unlink(contactId);
 							
-							values.clear();
+							ContentValues values = new ContentValues();
 							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getApplicationContext()));
 							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
 							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
@@ -609,6 +614,18 @@ public class SyncResultsActivity extends Activity {
 			
 			thread.start();
 		}
+	}
+	
+	private void unlink(String id)
+	{
+		final ContentResolver resolver = getContentResolver();
+		ContentValues values = new ContentValues();
+		values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getApplicationContext()));
+		values.put(Results.CONTACT_ID, "");
+		resolver.update(Results.CONTENT_URI, 
+				values, 
+				Results.CONTACT_ID + "=" + id, 
+				null);
 	}
 	
 	private Dialog showZoomDialog()

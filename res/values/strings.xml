@@ -48,7 +48,8 @@
     <string name="syncresults.resultsList">Social Network Friends</string>
     <string name="syncresults.menu.viewsynced">View synced contact</string>
     <string name="syncresults.menu.crop">Crop picture</string>
-    <string name="syncresults.menu.addpicture">Add picture to contact</string>
+    <string name="syncresults.menu.addpicture">Link picture to contact</string>
+    <string name="syncresults.menu.unlink">Unlink contact</string>
     <string name="syncresults.networkerror">Unable to resolve host. Do you have network connectivity?</string>
     <string name="syncresults.filterButton">Filter Results</string>
     <string name="syncresults.deleteButton">Delete</string>
