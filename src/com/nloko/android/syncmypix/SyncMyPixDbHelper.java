@@ -101,6 +101,32 @@ public class SyncMyPixDbHelper {
 		thread.start();
 	}
 
+	public void deleteResults(String source)
+	{
+		if (source == null) {
+    		throw new IllegalArgumentException("source");
+    	}
+		
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
+		Cursor cursor = resolver.query(Sync.CONTENT_URI,
+						new String[] { Sync._ID, Sync.SOURCE }, 
+						Sync.SOURCE + "='" + source + "'", 
+						null, 
+						null);
+		
+		while (cursor.moveToNext()) {
+			String id = cursor.getString(cursor.getColumnIndex(Sync._ID));
+			Uri uri = Uri.withAppendedPath(Sync.CONTENT_URI, id);
+			resolver.delete(uri, null, null);
+		}
+		
+		cursor.close();
+	}
+	
 	public void updateHashes(String id, byte[] origImage, byte[] modifiedImage)
 	{
 		String networkHash = null;
@@ -119,6 +145,10 @@ public class SyncMyPixDbHelper {
 	
 	public void updateHashes(String id, String networkHash, String updatedHash)
 	{
+		if (id == null) {
+    		throw new IllegalArgumentException("id");
+    	}
+		
 		final ContentResolver resolver = mResolver.get();
 		if (resolver == null) {
 			return;
@@ -151,6 +181,98 @@ public class SyncMyPixDbHelper {
 		if (cursor != null) {
 			cursor.close();
 		}
+	}
+	
+	public void updateLink(String id, SocialNetworkUser user, String source)
+	{
+		updateLink(id, user.uid, source);
+	}
+	
+	public void updateLink(String id, String friendId, String source)
+	{
+		if (id == null) {
+    		throw new IllegalArgumentException("id");
+    	} 
+		
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
+		Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+		Cursor cursor = resolver.query(uri,
+						new String[] { Contacts._ID }, 
+						null, 
+						null, 
+						null);	
+		
+		ContentValues values = new ContentValues();
+		values.put(Contacts.FRIEND_ID, friendId);
+		values.put(Contacts.SOURCE, source);
+		if (cursor.moveToFirst()) {
+			resolver.update(uri, values, null, null);
+		} else {
+			values.put(Contacts._ID, id);
+			resolver.insert(Contacts.CONTENT_URI, values);
+		}
+		
+		if (cursor != null) {
+			cursor.close();
+		}
+	}
+	
+	public boolean hasLink(String id, String source)
+	{
+		if (id == null) {
+    		throw new IllegalArgumentException("id");
+    	} else if (source == null) {
+    		throw new IllegalArgumentException("source");
+    	}
+    	
+    	final ContentResolver resolver = mResolver.get();
+    	if (resolver == null) {
+    		return false;
+    	}
+    	
+    	Cursor cursor = resolver.query(Contacts.CONTENT_URI, 
+				new String[] { Contacts._ID },
+				Contacts._ID + "=" + id 
+					+ " AND " + Contacts.SOURCE + "='" + source + "'"
+					+ " AND " + Contacts.FRIEND_ID + " IS NOT NULL",
+				null, 
+				null);
+    	
+    	boolean answer = cursor.moveToNext();
+    	cursor.close();
+    	return answer;
+	}
+	
+	public String getLinkedContact(String id, String source)
+	{
+		if (id == null) {
+    		throw new IllegalArgumentException("id");
+    	} else if (source == null) {
+    		throw new IllegalArgumentException("source");
+    	}
+    	
+    	final ContentResolver resolver = mResolver.get();
+    	if (resolver == null) {
+    		return null;
+    	}
+    	
+    	Cursor cursor = resolver.query(Contacts.CONTENT_URI, 
+				new String[] { Contacts._ID },
+				Contacts.FRIEND_ID + "='" + id + "' AND " + Contacts.SOURCE + "='" + source + "'",
+				null, 
+				null);
+    	
+    	String contactId = null;
+    	if (cursor.moveToNext()) {
+    		contactId = cursor.getString(cursor.getColumnIndex(Contacts._ID));
+    	}
+
+    	cursor.close();
+    	return contactId;
 	}
 	
     public DBHashes getHashes(String id)
@@ -205,7 +327,7 @@ public class SyncMyPixDbHelper {
     		// not tracking any hashes for contact and photo is set for contact
     		if (dbHash == null && contactHash != null) {
     			ok = false;
-    		}else if (contactHash != null) {
+    		} else if (contactHash != null) {
     			// we are tracking a hash and there is a photo for this contact
     			Log.d(TAG, String.format("dbhash %s hash %s", dbHash, contactHash));
     			// hashes do not match, so we don't need to track this hash anymore

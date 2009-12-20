@@ -48,7 +48,7 @@ public class SyncMyPixProvider extends ContentProvider {
 	private static final String TAG = "SyncMyPixProvider";
 	
     private static final String DATABASE_NAME = "syncpix.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 6;
     
     private static final String CONTACTS_TABLE_NAME = "contacts";
     private static final String RESULTS_TABLE_NAME = "results";
@@ -56,6 +56,7 @@ public class SyncMyPixProvider extends ContentProvider {
 
     private static HashMap<String, String> contactsProjection;
     private static HashMap<String, String> resultsProjection;
+    private static HashMap<String, String> syncProjection;
 
     private static final int CONTACTS = 1;
     private static final int CONTACTS_ID = 2;
@@ -80,18 +81,34 @@ public class SyncMyPixProvider extends ContentProvider {
         contactsProjection.put(Contacts._ID, Contacts._ID);
         contactsProjection.put(Contacts.PHOTO_HASH, Contacts.PHOTO_HASH);
         contactsProjection.put(Contacts.NETWORK_PHOTO_HASH, Contacts.NETWORK_PHOTO_HASH);
+        contactsProjection.put(Contacts.FRIEND_ID, Contacts.FRIEND_ID);
+        contactsProjection.put(Contacts.SOURCE, Contacts.SOURCE);
 
+        syncProjection = new HashMap<String, String>();
+        syncProjection.put(Sync._ID, SYNC_TABLE_NAME + "." + Sync._ID);
+        syncProjection.put(Sync.SOURCE, Sync.SOURCE);
+        syncProjection.put(Sync.DATE_STARTED, Sync.DATE_STARTED);
+        syncProjection.put(Sync.DATE_COMPLETED, Sync.DATE_COMPLETED);
+        syncProjection.put(Sync.UPDATED, Sync.UPDATED);
+        syncProjection.put(Sync.SKIPPED, Sync.SKIPPED);
+        syncProjection.put(Sync.NOT_FOUND, Sync.NOT_FOUND);
+        
         resultsProjection = new HashMap<String, String>();
         resultsProjection.put(Sync._ID, SYNC_TABLE_NAME + "." + Sync._ID);
         resultsProjection.put(Sync.SOURCE, Sync.SOURCE);
         resultsProjection.put(Sync.DATE_STARTED, Sync.DATE_STARTED);
         resultsProjection.put(Sync.DATE_COMPLETED, Sync.DATE_COMPLETED);
+        resultsProjection.put(Sync.UPDATED, Sync.UPDATED);
+        resultsProjection.put(Sync.SKIPPED, Sync.SKIPPED);
+        resultsProjection.put(Sync.NOT_FOUND, Sync.NOT_FOUND);
+        
         resultsProjection.put(Results._ID, RESULTS_TABLE_NAME + "." + Results._ID);
         resultsProjection.put(Results.SYNC_ID, Results.SYNC_ID);
         resultsProjection.put(Results.NAME, Results.NAME);
         resultsProjection.put(Results.PIC_URL, Results.PIC_URL);
         resultsProjection.put(Results.DESCRIPTION, Results.DESCRIPTION);
         resultsProjection.put(Results.CONTACT_ID, Results.CONTACT_ID);
+        resultsProjection.put(Results.FRIEND_ID, Results.FRIEND_ID);
     }
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -105,7 +122,9 @@ public class SyncMyPixProvider extends ContentProvider {
             db.execSQL("CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
                     + Contacts._ID + " INTEGER PRIMARY KEY,"
                     + Contacts.PHOTO_HASH + " TEXT,"
-                    + Contacts.NETWORK_PHOTO_HASH + " TEXT"
+                    + Contacts.NETWORK_PHOTO_HASH + " TEXT,"
+                    + Contacts.FRIEND_ID + " TEXT DEFAULT NULL,"
+                    + Contacts.SOURCE + " TEXT"
                     + ");");
             
             db.execSQL("CREATE TABLE " + RESULTS_TABLE_NAME + " ("
@@ -114,14 +133,18 @@ public class SyncMyPixProvider extends ContentProvider {
                     + Results.NAME + " TEXT DEFAULT NULL,"
                     + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
                     + Results.PIC_URL + " TEXT  DEFAULT NULL,"
-                    + Results.CONTACT_ID + " INTEGER"
+                    + Results.CONTACT_ID + " INTEGER,"
+                    + Results.FRIEND_ID + " TEXT DEFAULT NULL"
                     + ");");
             
             db.execSQL("CREATE TABLE " + SYNC_TABLE_NAME + " ("
                     + Sync._ID + " INTEGER PRIMARY KEY,"
                     + Sync.SOURCE + " TEXT DEFAULT NULL,"
                     + Sync.DATE_STARTED + " INTEGER,"
-                    + Sync.DATE_COMPLETED + " INTEGER"
+                    + Sync.DATE_COMPLETED + " INTEGER,"
+                    + Sync.UPDATED + " INTEGER,"
+                    + Sync.SKIPPED + " INTEGER,"
+                    + Sync.NOT_FOUND + " INTEGER"
                     + ");");
         }
 
@@ -130,51 +153,63 @@ public class SyncMyPixProvider extends ContentProvider {
             Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
 
-            if (oldVersion == 2) {
+            if (oldVersion >= 2) {
 	            db.execSQL("CREATE TABLE results_new ("
 	                    + Results._ID + " INTEGER PRIMARY KEY,"
 	                    + Results.SYNC_ID + " INTEGER,"
 	                    + Results.NAME + " TEXT DEFAULT NULL,"
 	                    + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
 	                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
-	                    + Results.CONTACT_ID + " INTEGER"
+	                    + Results.CONTACT_ID + " INTEGER,"
+	                    + Results.FRIEND_ID + " TEXT DEFAULT NULL"
 	                    + ");");
 	            
-	            db.execSQL("INSERT INTO results_new (" 
-	            		+ Results._ID + ","
-	            		+ Results.SYNC_ID + ","
-	            		+ Results.NAME + ","
-	            		+ Results.DESCRIPTION + ","
-	            		+ Results.PIC_URL + ") "
-	            		+ "SELECT "
-	            		+ Results._ID + ","
-	            		+ Results.SYNC_ID + ","
-	            		+ Results.NAME + ","
-	            		+ Results.DESCRIPTION + ","
-	            		+ Results.PIC_URL
-	            		+ " FROM " + RESULTS_TABLE_NAME + ";");
-	            
+                db.execSQL("CREATE TABLE sync_new  ("
+                        + Sync._ID + " INTEGER PRIMARY KEY,"
+                        + Sync.SOURCE + " TEXT DEFAULT NULL,"
+                        + Sync.DATE_STARTED + " INTEGER,"
+                        + Sync.DATE_COMPLETED + " INTEGER,"
+                        + Sync.UPDATED + " INTEGER,"
+                        + Sync.SKIPPED + " INTEGER,"
+                        + Sync.NOT_FOUND + " INTEGER"
+                        + ");");
+	                
+	            db.execSQL("DROP TABLE IF EXISTS sync;");
+	            db.execSQL("ALTER TABLE sync_new RENAME TO " + SYNC_TABLE_NAME +";");
+
 	            db.execSQL("DROP TABLE IF EXISTS results;");
-	            
 	            db.execSQL("ALTER TABLE results_new RENAME TO " + RESULTS_TABLE_NAME +";");
             }
             
             db.execSQL("CREATE TABLE contacts_new ("
                     + Contacts._ID + " INTEGER PRIMARY KEY,"
                     + Contacts.PHOTO_HASH + " TEXT,"
-                    + Contacts.NETWORK_PHOTO_HASH + " TEXT"
+                    + Contacts.NETWORK_PHOTO_HASH + " TEXT,"
+                    + Contacts.FRIEND_ID + " TEXT DEFAULT NULL,"
+                    + Contacts.SOURCE + " TEXT"
                     + ");");
             
-            db.execSQL("INSERT INTO contacts_new (" 
-            		+ Contacts._ID + ","
-            		+ Contacts.PHOTO_HASH + ")"
-            		+ "SELECT "
-            		+ Contacts._ID + ","
-            		+ Contacts.PHOTO_HASH
-            		+ " FROM " + CONTACTS_TABLE_NAME + ";");
+            if (oldVersion < 5) {
+	            db.execSQL("INSERT INTO contacts_new (" 
+	            		+ Contacts._ID + ","
+	            		+ Contacts.PHOTO_HASH + ")"
+	            		+ "SELECT "
+	            		+ Contacts._ID + ","
+	            		+ Contacts.PHOTO_HASH
+	            		+ " FROM " + CONTACTS_TABLE_NAME + ";");
+            } else {
+            	db.execSQL("INSERT INTO contacts_new (" 
+	            		+ Contacts._ID + ","
+	            		+ Contacts.NETWORK_PHOTO_HASH + ","
+	            		+ Contacts.PHOTO_HASH + ")"
+	            		+ "SELECT "
+	            		+ Contacts._ID + ","
+	            		+ Contacts.NETWORK_PHOTO_HASH + ","
+	            		+ Contacts.PHOTO_HASH
+	            		+ " FROM " + CONTACTS_TABLE_NAME + ";");
+            }
             
             db.execSQL("DROP TABLE IF EXISTS contacts;");
-            
             db.execSQL("ALTER TABLE contacts_new RENAME TO " + CONTACTS_TABLE_NAME +";");
         }
     }
@@ -183,17 +218,18 @@ public class SyncMyPixProvider extends ContentProvider {
     
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
-
 		SQLiteDatabase db = openHelper.getWritableDatabase();
         
 		int count;
+		String Id;
+		
         switch (uriMatcher.match(uri)) {
         case CONTACTS:
             count = db.delete(CONTACTS_TABLE_NAME, selection, selectionArgs);
             break;
 
         case CONTACTS_ID:
-            String Id = uri.getPathSegments().get(1);
+            Id = uri.getPathSegments().get(1);
             count = db.delete(CONTACTS_TABLE_NAME, Contacts._ID + "=" + Id
                     + (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : ""), selectionArgs);
             break;
@@ -205,6 +241,12 @@ public class SyncMyPixProvider extends ContentProvider {
             count = db.delete(RESULTS_TABLE_NAME, null, null);
             break;
 
+        case SYNC_ID:
+        	Id = uri.getPathSegments().get(1);
+            count = db.delete(SYNC_TABLE_NAME, Sync._ID + "=" + Id, null);
+            count = db.delete(RESULTS_TABLE_NAME, Results.SYNC_ID + "=" + Id, null);
+            break;
+            
         default:
             throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -215,7 +257,6 @@ public class SyncMyPixProvider extends ContentProvider {
 
 	@Override
 	public String getType(Uri uri) {
-		
 		switch (uriMatcher.match(uri)) {
         case CONTACTS:
             return Contacts.CONTENT_TYPE;
@@ -340,6 +381,12 @@ public class SyncMyPixProvider extends ContentProvider {
             orderBy = Results.DEFAULT_SORT_ORDER;
         	break;
         	
+        case SYNC:
+            qb.setTables(SYNC_TABLE_NAME);
+            qb.setProjectionMap(syncProjection);
+            orderBy = Sync.DEFAULT_SORT_ORDER;
+            break;
+            
         default:
             throw new IllegalArgumentException("Unknown URI " + uri);
         }

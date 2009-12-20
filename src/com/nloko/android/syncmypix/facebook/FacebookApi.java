@@ -109,6 +109,7 @@ public class FacebookApi {
         for (int i = 0; i < users.length(); i++) {
             user = users.getJSONObject(i);
             fbUser = new SocialNetworkUser();
+            fbUser.uid = user.getString("uid");
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
             fbUser.name = user.getString("name");

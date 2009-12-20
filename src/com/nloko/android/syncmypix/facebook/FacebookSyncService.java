@@ -156,7 +156,7 @@ public class FacebookSyncService extends SyncService {
     	return FacebookLoginWebView.class;
     }
     
-    public static String getSocialNetworkName()
+    public String getSocialNetworkName()
     {
     	return "Facebook";
     }

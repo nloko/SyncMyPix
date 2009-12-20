@@ -272,7 +272,7 @@ public abstract class SyncService extends Service {
     		Log.d(TAG, String.format("%s %s", user.name, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
-    		ContentValues values = createResult(syncId, user.name, user.picUrl);
+    		ContentValues values = createResult(syncId, user);
     		
     		if (user.picUrl == null) {
     			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(service));
@@ -327,6 +327,7 @@ public abstract class SyncService extends Service {
     						}
     						ContactServices.updateContactPhoto(resolver, image, contactId);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
+    						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
     					} else {
     						valuesCopy.put(Results.DESCRIPTION, 
     								ResultsDescription.SKIPPED_UNCHANGED.getDescription(service));
@@ -372,12 +373,13 @@ public abstract class SyncService extends Service {
     		}
         }
         
-        private ContentValues createResult(String id, String name, String url)
+        private ContentValues createResult(String id, SocialNetworkUser user)
         {
         	ContentValues values = new ContentValues();
     		values.put(Results.SYNC_ID, id);
-    		values.put(Results.NAME, name);
-    		values.put(Results.PIC_URL, url);
+    		values.put(Results.NAME, user.name);
+    		values.put(Results.PIC_URL, user.picUrl);
+    		values.put(Results.FRIEND_ID, user.uid);
     		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(mService.get()));
     		
     		return values;
@@ -401,28 +403,40 @@ public abstract class SyncService extends Service {
     			return 0l;
     		}
     		MainHandler handler = service.mMainHandler;
+    		final String source = service.getSocialNetworkName();
     		
 			synchronized(mSyncLock) {
 				try {
 					matcher = new NameMatcher(service.getApplicationContext(), service.getResources().openRawResource(R.raw.diminutives));
 					
 					// clear previous results, if any
-					resolver.delete(Sync.CONTENT_URI, null, null);
-					Uri sync = resolver.insert(Sync.CONTENT_URI, null);
+					dbHelper.deleteResults(source);
+					ContentValues syncValues = new ContentValues();
+					syncValues.put(Sync.SOURCE, source);
+					Uri sync = resolver.insert(Sync.CONTENT_URI, syncValues);
 	
 					index = 1;
 					size = userList.size();
 					
 					for(int i=size-1; i>=0; i--) {
 						SocialNetworkUser user = userList.remove(i);
-						PhoneContact contact = null;
-						if (service.mIntelliMatch) {
-							contact = matcher.match(user.name, true);
-						} else {
-							contact = matcher.exactMatch(user.name);
+						
+						String id = dbHelper.getLinkedContact(user.uid, source);
+						if (id == null) {
+							PhoneContact contact = null;
+							if (service.mIntelliMatch) {
+								contact = matcher.match(user.name, true);
+							} else {
+								contact = matcher.exactMatch(user.name);
+							}
+							id = contact == null ? null : contact.id;
+							// check to ensure matched contact is not linked to another friend
+							if (id != null && dbHelper.hasLink(id, source)) {
+								id = null;
+							}
 						}
 						
-						processUser(user, contact == null ? null : contact.id, sync);
+						processUser(user, id, sync);
 						publishProgress((int) ((index++ / (float) size) * 100), index, size);
 	
 						if (service.mCancel) {
@@ -437,7 +451,7 @@ public abstract class SyncService extends Service {
 						}
 					}
 	
-					ContentValues syncValues = new ContentValues();
+					syncValues.clear();
 					syncValues.put(Sync.DATE_COMPLETED, System.currentTimeMillis());
 					resolver.update(sync, syncValues, null, null);
 					
@@ -690,7 +704,7 @@ public abstract class SyncService extends Service {
     	am.setRepeating(AlarmManager.RTC_WAKEUP, startTime, interval, alarmSender);
     }
     
-    // Hide the below static methods with an appropriate implementation 
+    // Hide/Override the below static methods with an appropriate implementation 
     // in your derived SyncService class
     public static boolean isLoggedIn (Context context)
     {
@@ -702,7 +716,7 @@ public abstract class SyncService extends Service {
     	return null;
     }
     
-    public static String getSocialNetworkName()
+    public String getSocialNetworkName()
     {
     	return "Default";
     }
