@@ -223,11 +223,13 @@ public abstract class SyncService extends Service {
 			
 			Log.d(TAG, "mStarted updating results at " + Long.toString(System.currentTimeMillis()));
 			synchronized (list) {
+				//for (int i=0;i<6;i++) {
 				for (ContentValues values : list) {
 					if (values != null) {
 						createResult(values);
 					}
 				}
+				//}
 				list.clear();
 			}
 			
@@ -279,6 +281,7 @@ public abstract class SyncService extends Service {
     		ContentValues values = createResult(syncId, user);
     		
     		if (user.picUrl == null) {
+    			mNotFound++;
     			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(service));
     			addResult(values);
     			return;
