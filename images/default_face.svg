@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -12,11 +13,11 @@
    height="50"
    id="svg2418"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="0.47pre4 r22446"
    version="1.0"
    sodipodi:docname="default_face.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/neil/default_face.png"
+   inkscape:export-filename="/home/neil/neutral_face.png"
    inkscape:export-xdpi="100"
    inkscape:export-ydpi="100">
   <defs
@@ -28,27 +29,36 @@
        inkscape:vp_z="744.09448 : 526.18109 : 1"
        inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
        id="perspective2426" />
+    <filter
+       inkscape:collect="always"
+       id="filter3168">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.58932235"
+         id="feGaussianBlur3170" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#323232"
+     pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
      gridtolerance="10000"
      guidetolerance="10"
      objecttolerance="10"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="-29.372044"
+     inkscape:zoom="2.5828571"
+     inkscape:cx="18.537142"
      inkscape:cy="18.928571"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1002"
-     inkscape:window-height="719"
-     inkscape:window-x="1"
-     inkscape:window-y="24" />
+     inkscape:window-width="884"
+     inkscape:window-height="681"
+     inkscape:window-x="361"
+     inkscape:window-y="24"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata2423">
     <rdf:RDF>
@@ -57,6 +67,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -65,8 +76,18 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
+       transform="matrix(1.2090909,0,0,1.2363637,-8.2857145,-10.194806)"
+       d="M 47.142857,28.928572 A 19.642857,19.642857 0 1 1 7.8571434,28.928572 A 19.642857,19.642857 0 1 1 47.142857,28.928572 z"
+       sodipodi:ry="19.642857"
+       sodipodi:rx="19.642857"
+       sodipodi:cy="28.928572"
+       sodipodi:cx="27.5"
+       id="path2460"
+       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter3168)"
+       sodipodi:type="arc" />
+    <path
        sodipodi:type="arc"
-       style="opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:#333333;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path2428"
        sodipodi:cx="27.5"
        sodipodi:cy="28.928572"
@@ -74,30 +95,15 @@
        sodipodi:ry="19.642857"
        d="M 47.142857,28.928572 A 19.642857,19.642857 0 1 1 7.8571434,28.928572 A 19.642857,19.642857 0 1 1 47.142857,28.928572 z"
        transform="matrix(1.1272727,0,0,1.1636364,-6.0000001,-7.9480521)" />
-    <path
-       sodipodi:type="arc"
-       style="opacity:1;fill:#323232;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path2430"
-       sodipodi:cx="16.785715"
-       sodipodi:cy="15.714286"
-       sodipodi:rx="1.7857143"
-       sodipodi:ry="2.1428571"
-       d="M 18.571429,15.714286 A 1.7857143,2.1428571 0 1 1 15.000001,15.714286 A 1.7857143,2.1428571 0 1 1 18.571429,15.714286 z"
-       transform="translate(0,2)" />
-    <path
-       d="M 18.571429,15.714286 A 1.7857143,2.1428571 0 1 1 15.000001,15.714286 A 1.7857143,2.1428571 0 1 1 18.571429,15.714286 z"
-       sodipodi:ry="2.1428571"
-       sodipodi:rx="1.7857143"
-       sodipodi:cy="15.714286"
-       sodipodi:cx="16.785715"
-       id="path2432"
-       style="opacity:1;fill:#323232;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       sodipodi:type="arc"
-       transform="translate(16,2)" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#323232;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 32.33508,33.159354 C 19.777877,42.332669 17.766389,31.814599 17.766389,31.814599"
-       id="path2466"
-       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#b3b3b3;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="15.486726"
+       y="40.643806"
+       id="text5518"><tspan
+         sodipodi:role="line"
+         id="tspan5520"
+         x="15.486726"
+         y="40.643806">?</tspan></text>
   </g>
 </svg>
