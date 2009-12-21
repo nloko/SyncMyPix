@@ -837,6 +837,9 @@ public class SyncResultsActivity extends Activity {
 
 				queue.addIdleHandler(new MessageQueue.IdleHandler () {
 					public boolean queueIdle() {
+						CharSequence s = activity.getString(R.string.syncresults_updated);
+						label1.setText(String.format(s.toString(), activity.getString(R.string.app_name)));
+						
 						text1.setText(Integer.toString(updated));
 						text2.setText(Integer.toString(skipped));
 						text3.setText(Integer.toString(notFound));

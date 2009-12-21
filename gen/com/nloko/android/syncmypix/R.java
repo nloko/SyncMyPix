@@ -33,13 +33,14 @@ public final class R {
         public static final int sync_button=0x7f02000d;
     }
     public static final class id {
-        public static final int ImageView01=0x7f07002e;
-        public static final int ImageView02=0x7f07002f;
-        public static final int LinearLayout01=0x7f07001b;
-        public static final int NameTextSwitcher=0x7f07002a;
-        public static final int PhotoImageSwitcher=0x7f07002d;
-        public static final int TextView01=0x7f07002b;
-        public static final int TextView02=0x7f07002c;
+        public static final int ImageView01=0x7f07002f;
+        public static final int ImageView02=0x7f070030;
+        public static final int LinearLayout01=0x7f07002a;
+        public static final int NameTextSwitcher=0x7f07002b;
+        public static final int PhotoImageSwitcher=0x7f07002e;
+        public static final int RelativeLayout01=0x7f07001b;
+        public static final int TextView01=0x7f07002c;
+        public static final int TextView02=0x7f07002d;
         public static final int about_layout=0x7f070000;
         public static final int contactImage=0x7f070024;
         public static final int contributors=0x7f070004;
@@ -72,9 +73,9 @@ public final class R {
         public static final int skipped=0x7f07001f;
         public static final int skippedLabel=0x7f07001e;
         public static final int syncButton=0x7f070015;
-        public static final int syncCancel=0x7f070032;
-        public static final int syncProgress=0x7f070031;
-        public static final int syncStatusSwitcher=0x7f070030;
+        public static final int syncCancel=0x7f070033;
+        public static final int syncProgress=0x7f070032;
+        public static final int syncStatusSwitcher=0x7f070031;
         public static final int syncTitle=0x7f070016;
         public static final int syncmypix_title=0x7f070027;
         public static final int text1=0x7f070026;
@@ -84,7 +85,7 @@ public final class R {
         public static final int updated=0x7f07001d;
         public static final int updatedLabel=0x7f07001c;
         public static final int webview=0x7f070013;
-        public static final int zoomed_layout=0x7f070033;
+        public static final int zoomed_layout=0x7f070034;
     }
     public static final class layout {
         public static final int about=0x7f030000;

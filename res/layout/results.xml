@@ -1,4 +1,4 @@
-<LinearLayout android:id="@+id/LinearLayout01" 
+<RelativeLayout android:id="@+id/RelativeLayout01" 
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent" 
 	android:orientation="vertical"
@@ -11,49 +11,66 @@
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:layout_marginTop="4dip"
-		android:textSize="18dip" 
-		android:textColor="#FFFFFF"/>
+		android:layout_marginLeft="4dip"
+		android:textSize="16dip" 
+		/>
 		
 	<TextView android:text="" 
 		android:id="@+id/updated"
-		android:textSize="14dip" 
+		android:textSize="22dip" 
 		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" />
+		android:layout_width="fill_parent"
+		android:layout_toRightOf="@id/updatedLabel"
+		android:layout_marginLeft="4dip" 
+		android:textColor="#FFFFFF" />
 
 	<TextView android:text="@string/syncresults.skipped" 
 		android:id="@+id/skippedLabel"
 		android:visibility="invisible"
 		android:layout_marginTop="4dip"
+		android:layout_marginLeft="30dip"
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
-		android:textSize="18dip" 
-		android:textColor="#FFFFFF"/>
+		android:layout_below="@id/updatedLabel"
+		android:textSize="16dip" 
+	/>
 		
 	<TextView android:text="" 
 		android:id="@+id/skipped"
-		android:textSize="14dip"
+		android:textSize="22dip"
 		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" />
+		android:layout_width="fill_parent" 
+		android:layout_toRightOf="@id/skippedLabel"
+		android:layout_below="@id/updatedLabel" 
+		android:layout_marginLeft="4dip"
+		android:textColor="#FFFFFF" />
 		
 		<TextView android:text="@string/syncresults.notfound" 
 		android:id="@+id/notfoundLabel"
 		android:visibility="invisible"
 		android:layout_marginTop="4dip"
+		android:layout_marginLeft="30dip"
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
-		android:textSize="18dip" 
-		android:textColor="#FFFFFF"/>
+		android:layout_below="@id/skippedLabel"		
+		android:textSize="16dip" 
+		/>
 		
 	<TextView android:text="" 
 		android:id="@+id/notfound"
-		android:textSize="14dip"
+		android:textSize="22dip"
 		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" />
+		android:layout_width="fill_parent"
+		android:layout_toRightOf="@id/notfoundLabel"
+		android:layout_below="@id/skippedLabel"  
+		android:layout_marginLeft="4dip"
+		android:textColor="#FFFFFF" />
 
 	<TextView android:text="@string/syncresults.resultsList" 
 		android:id="@+id/resultsListHeader" 
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent" 
+		android:layout_below="@id/notfoundLabel"
 		android:textStyle="bold" 
 		android:textColor="#DDDDDD" 
 		android:background="#666666" 
@@ -63,7 +80,8 @@
 	<ListView android:id="@+id/resultList" 
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content" 
+		android:layout_below="@id/resultsListHeader"
 		android:background="@android:color/transparent"
 		android:cacheColorHint="#00000000" />
 	
-</LinearLayout>
+</RelativeLayout>
