@@ -83,7 +83,8 @@ public class SyncResultsActivity extends Activity {
 	
 	private Handler mMainHandler;
 	private DownloadImageHandler mDownloadHandler;
-	private LoadThumbnailsThread mThumbnailThread;
+	//private LoadThumbnailsThread mThumbnailThread;
+	private ThumbnailHandler mThumbnailHandler;
 	private InitializeResultsThread mInitResultsThread;
 	
 	private Bitmap mContactImage;
@@ -157,9 +158,11 @@ public class SyncResultsActivity extends Activity {
         
         mCache.setImageProvider(new ImageProvider() {
 			public boolean onImageRequired(String url) {
-				if (mThumbnailThread != null) {
-					Log.d(TAG, "restarting thumbnail thread");
-					mThumbnailThread.restart();
+				if (mThumbnailHandler != null) {
+					Log.d(TAG, "reloading thumbnail");
+					Message msg = mThumbnailHandler.obtainMessage();
+					msg.obj = url;
+					mThumbnailHandler.sendMessage(msg);
 					return true;
 				}
 		        return false;
@@ -277,6 +280,10 @@ public class SyncResultsActivity extends Activity {
 			mCache.empty();
 		}
 		
+		if (mThumbnailHandler != null) {
+			mThumbnailHandler.stopRunning();
+		}
+		
 		if (mDownloadHandler != null) {
 			mDownloadHandler.stopRunning();
 		}
@@ -286,10 +293,10 @@ public class SyncResultsActivity extends Activity {
 			mInitResultsThread.closeQuery();
 		}
 		
-		if (mThumbnailThread != null) {
-			mThumbnailThread.stopRunning();
-			mThumbnailThread.closeQuery();
-		}
+//		if (mThumbnailThread != null) {
+//			mThumbnailThread.stopRunning();
+//			mThumbnailThread.closeQuery();
+//		}
 	}
 	 
 	@Override
@@ -312,9 +319,13 @@ public class SyncResultsActivity extends Activity {
         	mInitResultsThread = new InitializeResultsThread(this);
         	mInitResultsThread.start();
         } else {
-        	mThumbnailThread = new LoadThumbnailsThread(this);
-	        mThumbnailThread.start();
+//        	mThumbnailThread = new LoadThumbnailsThread(this);
+//	        mThumbnailThread.start();
         }
+        
+        HandlerThread thumbnailThread = new HandlerThread("Thumbnail");
+        thumbnailThread.start();
+        mThumbnailHandler = new ThumbnailHandler(this, thumbnailThread.getLooper());
         
         mCache.togglePauseOnDownloader(false);
 	}
@@ -323,10 +334,10 @@ public class SyncResultsActivity extends Activity {
 	protected void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		super.onDestroy();
-		if (mThumbnailThread != null) {
-			mThumbnailThread.stopRunning();
-			mThumbnailThread.closeQuery();
-		}
+//		if (mThumbnailThread != null) {
+//			mThumbnailThread.stopRunning();
+//			mThumbnailThread.closeQuery();
+//		}
 		
 		mCache.destroy();
 		// allow proper GC
@@ -862,8 +873,8 @@ public class SyncResultsActivity extends Activity {
 						label2.setVisibility(View.VISIBLE);
 						label3.setVisibility(View.VISIBLE);
 				
-						activity.mThumbnailThread = new LoadThumbnailsThread(activity);
-				        activity.mThumbnailThread.start();
+//						activity.mThumbnailThread = new LoadThumbnailsThread(activity);
+//				        activity.mThumbnailThread.start();
 				        
 				        activity.removeDialog(activity.LOADING_DIALOG);
 						return false;
@@ -875,27 +886,165 @@ public class SyncResultsActivity extends Activity {
 		}
 	}
 	
-	private static class LoadThumbnailsThread extends Thread
+//	private static class LoadThumbnailsThread extends Thread
+//	{
+//		private final WeakReference<SyncResultsActivity> mActivity;
+//		private final String where;
+//
+//		private Cursor cursor;
+//		
+//		private boolean running = true;
+// 		private boolean notified = false;
+//		
+//		public LoadThumbnailsThread(SyncResultsActivity activity)
+//		{
+//			mActivity = new WeakReference<SyncResultsActivity>(activity);
+//			where = Results.DESCRIPTION + " IN ('" +
+//				ResultsDescription.UPDATED.getDescription(activity) + "','" +
+//				ResultsDescription.SKIPPED_UNCHANGED.getDescription(activity) + "','" +
+//				ResultsDescription.MULTIPLEPROCESSED.getDescription(activity) + "')";
+//	        ensureQuery();
+//		}
+//		
+//		private void ensureQuery()
+//		{
+//			final SyncResultsActivity activity = mActivity.get();
+//			if (activity == null) {
+//				return;
+//			}
+//			final ContentResolver resolver = activity.getContentResolver();
+//			if (resolver == null) {
+//				return;
+//			}
+//			
+//			String[] projection = { 
+//	        		Results._ID, 
+//	        		Results.CONTACT_ID,
+//	        		Results.PIC_URL };
+//			
+//			if (cursor == null || cursor.isClosed()) {
+//				cursor = resolver.query(Results.CONTENT_URI, 
+//		        		projection, 
+//		        		where, 
+//		        		null, 
+//		        		Results.DEFAULT_SORT_ORDER);
+//			}
+//		}
+//		
+//		public void closeQuery()
+//		{
+//			synchronized(this) {
+//				if (cursor != null) {
+//					cursor.close();
+//				}
+//			}
+//		}
+//		
+//		// TODO this is BAD fix this before releasing 0.10
+//		public void restart()
+//		{
+//			notified = true;
+//			run();
+//		}
+//
+//		public void stopRunning()
+//		{
+//			running = false;
+//		}
+//		
+//		private void refreshCursor()
+//		{
+//			ensureQuery();
+//			cursor.requery();
+//			cursor.moveToPosition(-1);
+//		}
+//		
+//		public void run()
+//		{
+//			final SyncResultsActivity activity = mActivity.get();
+//			if (activity == null) {
+//				return;
+//			}
+//			final ContentResolver resolver = activity.getContentResolver();
+//			if (resolver == null) {
+//				return;
+//			}
+//			final Context context = activity.getApplicationContext();
+//			if (context == null) {
+//				return;
+//			}
+//			
+//			boolean wasNotified = false;
+//			boolean updated = false;
+//			Bitmap bitmap = null;
+//			String url = null;
+//			String id = null;
+//			long contactId = 0;
+//			
+//			if (notified) {
+//				refreshCursor();
+//				notified = false;
+//				wasNotified = true;
+//			} else {
+//				ensureQuery();
+//			}
+//			
+//			while(running && !notified && cursor.moveToNext()) {
+//				synchronized(this) {
+//					id = cursor.getString(cursor.getColumnIndex(Results._ID));
+//					contactId = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
+//					url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+//				}
+//				
+//				if (!activity.mCache.contains(url) && contactId > 0) {
+//					bitmap = People.loadContactPhoto(context, 
+//							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(contactId)), 
+//							0, null);
+//					
+//					if (bitmap != null) {
+//						activity.mCache.add(url, bitmap);
+//						//Log.d(TAG, "added back " + url + " to cache");
+//						if (wasNotified) {
+//							// HACK to force notifyDatasetUpdated() to be honoured
+//							ContentValues values = new ContentValues();
+//							values.put(Results.PIC_URL, url);
+//							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
+//									values, 
+//									null, 
+//									null);
+//						}
+//						updated = true;
+//					}
+//				}
+//			}
+//			
+//			if (updated) {
+//				activity.runOnUiThread(new Runnable() {
+//					public void run() {
+//						Log.d(TAG, "listview notified");
+//						ListView listview = activity.mListview;
+//						if (listview != null) {
+//							((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
+//						}
+//					}
+//				});
+//			}
+//		}
+//	}
+	
+	private static class ThumbnailHandler extends Handler
 	{
 		private final WeakReference<SyncResultsActivity> mActivity;
-		private final String where;
-
-		private Cursor cursor;
-		
 		private boolean running = true;
- 		private boolean notified = false;
 		
-		public LoadThumbnailsThread(SyncResultsActivity activity)
+		ThumbnailHandler(SyncResultsActivity activity, Looper looper)
 		{
+			super(looper);
 			mActivity = new WeakReference<SyncResultsActivity>(activity);
-			where = Results.DESCRIPTION + " IN ('" +
-				ResultsDescription.UPDATED.getDescription(activity) + "','" +
-				ResultsDescription.SKIPPED_UNCHANGED.getDescription(activity) + "','" +
-				ResultsDescription.MULTIPLEPROCESSED.getDescription(activity) + "')";
-	        ensureQuery();
+			init();
 		}
 		
-		private void ensureQuery()
+		private void init()
 		{
 			final SyncResultsActivity activity = mActivity.get();
 			if (activity == null) {
@@ -911,111 +1060,113 @@ public class SyncResultsActivity extends Activity {
 	        		Results.CONTACT_ID,
 	        		Results.PIC_URL };
 			
-			if (cursor == null || cursor.isClosed()) {
-				cursor = resolver.query(Results.CONTENT_URI, 
-		        		projection, 
-		        		where, 
-		        		null, 
-		        		Results.DEFAULT_SORT_ORDER);
+			Cursor cursor = resolver.query(Results.CONTENT_URI, 
+		        	projection, 
+		        	null, 
+		        	null, 
+		        	Results.DEFAULT_SORT_ORDER);
+			
+			while(running && cursor.moveToNext()) {
+				Message msg = obtainMessage();
+				msg.obj = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+				sendMessage(msg);
 			}
+			
+			cursor.close();
 		}
 		
-		public void closeQuery()
-		{
-			synchronized(this) {
-				if (cursor != null) {
-					cursor.close();
-				}
-			}
-		}
-		
-		public void restart()
-		{
-			notified = true;
-			run();
-		}
-
-		public void stopRunning()
-		{
-			running = false;
-		}
-		
-		private void refreshCursor()
-		{
-			ensureQuery();
-			cursor.requery();
-			cursor.moveToPosition(-1);
-		}
-		
-		public void run()
+		private String queryContact(String url)
 		{
 			final SyncResultsActivity activity = mActivity.get();
 			if (activity == null) {
+				return null;
+			}
+			final ContentResolver resolver = activity.getContentResolver();
+			if (resolver == null) {
+				return null;
+			}
+			
+			final String where = Results.PIC_URL + "='" + url + "'";
+			
+			String[] projection = { 
+	        		Results._ID, 
+	        		Results.CONTACT_ID,
+	        		Results.PIC_URL };
+			
+			Cursor cursor = resolver.query(Results.CONTENT_URI, 
+		        	projection, 
+		        	where, 
+		        	null, 
+		        	Results.DEFAULT_SORT_ORDER);
+			
+			String id = null;
+			if (cursor.moveToNext()) {
+				id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+			}
+			
+			cursor.close();
+			return id;
+		}
+		
+		public void stopRunning()
+		{
+			synchronized(this) {
+				getLooper().quit();
+				running = false;
+			}
+		}
+		
+		@Override
+		public void handleMessage(Message msg)
+		{
+			if (!running) {
+				return;
+			}
+			
+			final SyncResultsActivity activity = mActivity.get();
+			if (activity == null) {
+				return;
+			}
+			final Handler handler = activity.mMainHandler;
+			if (handler == null) {
 				return;
 			}
 			final ContentResolver resolver = activity.getContentResolver();
 			if (resolver == null) {
 				return;
 			}
-			final Context context = activity.getApplicationContext();
-			if (context == null) {
+			
+			String url = (String) msg.obj;
+			if (url == null) {
 				return;
 			}
 			
-			boolean wasNotified = false;
-			boolean updated = false;
-			Bitmap bitmap = null;
-			String url = null;
-			String id = null;
-			long contactId = 0;
-			
-			if (notified) {
-				refreshCursor();
-				notified = false;
-				wasNotified = true;
-			} else {
-				ensureQuery();
-			}
-			
-			while(running && !notified && cursor.moveToNext()) {
-				synchronized(this) {
-					id = cursor.getString(cursor.getColumnIndex(Results._ID));
-					contactId = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
-					url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
-				}
-				
-				if (!activity.mCache.contains(url) && contactId > 0) {
-					bitmap = People.loadContactPhoto(context, 
-							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(contactId)), 
-							0, null);
+			String contactId = queryContact(url);
+			if (contactId != null && !activity.mCache.contains(url)) {
+				Bitmap bitmap = People.loadContactPhoto(activity, 
+						Uri.withAppendedPath(People.CONTENT_URI, contactId), 
+						0, null);
+
+				if (bitmap != null) {
+					activity.mCache.add(url, bitmap);
+					// HACK to force notifyDatasetUpdated() to be honoured
+					ContentValues values = new ContentValues();
+					values.put(Results.PIC_URL, url);
+					resolver.update(Results.CONTENT_URI, 
+							values, 
+							Results.CONTACT_ID + "=" + contactId, 
+							null);
 					
-					if (bitmap != null) {
-						activity.mCache.add(url, bitmap);
-						//Log.d(TAG, "added back " + url + " to cache");
-						if (wasNotified) {
-							// HACK to force notifyDatasetUpdated() to be honoured
-							ContentValues values = new ContentValues();
-							values.put(Results.PIC_URL, url);
-							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
-									values, 
-									null, 
-									null);
+					activity.runOnUiThread(new Runnable() {
+						public void run() {
+//							Log.d(TAG, "listview notified");
+//							ListView listview = activity.mListview;
+//							if (listview != null) {
+//								((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
+//							}
 						}
-						updated = true;
-					}
+					});
 				}
-			}
-			
-			if (updated) {
-				activity.runOnUiThread(new Runnable() {
-					public void run() {
-						Log.d(TAG, "listview notified");
-						ListView listview = activity.mListview;
-						if (listview != null) {
-							((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
-						}
-					}
-				});
 			}
 		}
 	}
