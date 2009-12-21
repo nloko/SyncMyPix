@@ -23,6 +23,8 @@
     <string name="preferences.intelliMatch.summary">Use heuristics ie. common names, last initial, reverse names, etc.</string>
     <string name="preferences.firstNames">First name only</string>
     <string name="preferences.firstNames.summary">Match on first name only, if unambiguous</string>
+    <string name="preferences.phoneOnly">Phone numbers only</string>
+    <string name="preferences.phoneOnly.summary">Match only if contact has a phone number</string>
     
     <string name="preferences.loginstatus">Login Status</string>
     <string name="preferences.notloggedin">Not logged in</string>

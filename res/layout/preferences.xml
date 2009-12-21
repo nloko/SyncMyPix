@@ -38,6 +38,12 @@
             android:defaultValue="true"
             android:summary="@string/preferences.intelliMatch.summary"
             android:key="intelliMatch" />
+            
+        <CheckBoxPreference
+            android:title="@string/preferences.phoneOnly"
+            android:defaultValue="false"
+            android:summary="@string/preferences.phoneOnly.summary"
+            android:key="phoneOnly" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences.picturesHeader">
     	<CheckBoxPreference

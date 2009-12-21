@@ -75,6 +75,7 @@ public abstract class SyncService extends Service {
     protected boolean mMaxQuality;
     protected boolean mCropSquare;
     protected boolean mIntelliMatch;
+    protected boolean mPhoneOnly;
     protected SyncServiceListener mListener;
 	protected final MainHandler mMainHandler = new MainHandler(this);
 
@@ -414,7 +415,10 @@ public abstract class SyncService extends Service {
     		
 			synchronized(mSyncLock) {
 				try {
-					matcher = new NameMatcher(service.getApplicationContext(), service.getResources().openRawResource(R.raw.diminutives));
+					matcher = new NameMatcher(service.getApplicationContext(), 
+							service.getResources().openRawResource(R.raw.diminutives),
+							service.mPhoneOnly
+						);
 					
 					// clear previous results, if any
 					dbHelper.deleteResults(source);
@@ -549,6 +553,7 @@ public abstract class SyncService extends Service {
 		mCropSquare = prefs.getCropSquare();
     	mSkipIfExists = prefs.getSkipIfExists();
     	mIntelliMatch = prefs.getIntelliMatch();
+    	mPhoneOnly = prefs.getPhoneOnly();
     }
     
     private void updateResults(boolean finish)

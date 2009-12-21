@@ -75,17 +75,24 @@ public class NameMatcher {
     private HashMap<String, Object> mDiminutives;
     
     public NameMatcher(Context context, InputStream diminutives) throws Exception {
+    	this(context, diminutives, false);
+    }
+    
+    public NameMatcher(Context context, InputStream diminutives, boolean withPhone) throws Exception {
         loadDiminutives(diminutives);
         // Build data structures for the first and last names, so we can
         // efficiently do partial matches (eg "Rob" -> "Robert").
         
+        String where = "";
+        if (withPhone) {
+        	where = People.PRIMARY_PHONE_ID + " IS NOT NULL";
+        }
+        
 		Cursor cursor = context.getContentResolver().query(People.CONTENT_URI, 
-				new String[] { People._ID, People.NAME }, 
-				null, 
+				new String[] { People._ID, People.NAME, People.PRIMARY_PHONE_ID}, 
+				where, 
 				null, 
 				null);
-		
-
 		
         mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();
         mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();

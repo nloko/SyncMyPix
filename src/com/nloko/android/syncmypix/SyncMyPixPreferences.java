@@ -73,6 +73,12 @@ public final class SyncMyPixPreferences {
 		return intelliMatch;
 	}
     
+    private boolean phoneOnly;
+    public boolean getPhoneOnly()
+	{
+		return phoneOnly;
+	}
+    
     private String source;
     public String getSource()
     {
@@ -107,5 +113,6 @@ public final class SyncMyPixPreferences {
     	skipIfExists = prefs.getBoolean("skipIfExists", true);
     	cropSquare = prefs.getBoolean("cropSquare", true);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);
+    	phoneOnly = prefs.getBoolean("phoneOnly", true);
     }
 }
