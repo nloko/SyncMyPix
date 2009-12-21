@@ -56,6 +56,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
+import android.provider.Contacts;
 import android.provider.Contacts.People;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -444,7 +445,7 @@ public class SyncResultsActivity extends Activity {
 				cursor = ((SimpleCursorAdapter)mListview.getAdapter()).getCursor();
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
-					unlink(id);
+					unlink(id, true);
 				}
 				
 				return true;
@@ -618,14 +619,27 @@ public class SyncResultsActivity extends Activity {
 	
 	private void unlink(String id)
 	{
+		unlink(id, false);
+	}
+	
+	private void unlink(String id, boolean purge)
+	{
+		if (id == null) {
+			return;
+		}
+		
 		final ContentResolver resolver = getContentResolver();
 		ContentValues values = new ContentValues();
 		values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getApplicationContext()));
-		values.put(Results.CONTACT_ID, "");
+		values.putNull(Results.CONTACT_ID);
 		resolver.update(Results.CONTENT_URI, 
 				values, 
 				Results.CONTACT_ID + "=" + id, 
 				null);
+		
+		if (purge) {
+			resolver.delete(Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id), null, null);
+		}
 	}
 	
 	private Dialog showZoomDialog()
