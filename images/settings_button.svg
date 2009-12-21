@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="250"
+   height="250"
+   id="svg2633"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   version="1.0"
+   sodipodi:docname="settings_button.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/neil/settings_button.png"
+   inkscape:export-xdpi="28.879999"
+   inkscape:export-ydpi="28.879999">
+  <defs
+     id="defs2635">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective2641" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="222.97204"
+     inkscape:cy="115.71956"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1047"
+     inkscape:window-height="719"
+     inkscape:window-x="98"
+     inkscape:window-y="24" />
+  <metadata
+     id="metadata2638">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#1a1a1a;fill-rule:evenodd;stroke:#000000;stroke-width:0.81615101999999984px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect2647"
+       width="148.75526"
+       height="140.18385"
+       x="57.908051"
+       y="57.413116"
+       rx="13.650644"
+       ry="13.650644" />
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 158.59375 71.1875 C 145.76885 71.1875 135.375 80.475363 135.375 91.90625 C 135.375 103.33714 145.76885 112.625 158.59375 112.625 C 171.41865 112.625 181.8125 103.33714 181.8125 91.90625 C 181.8125 90.288275 181.61315 88.730228 181.21875 87.21875 L 168.75 99.34375 L 149.59375 82.84375 L 161.40625 71.375 C 160.4825 71.275312 159.54751 71.1875 158.59375 71.1875 z "
+       id="path3463" />
+    <rect
+       style="fill:#ffffff;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect3468"
+       width="104.04572"
+       height="17.172594"
+       x="-86.818344"
+       y="173.84697"
+       rx="13.599151"
+       ry="13.599151"
+       transform="matrix(0.6134208,-0.7897563,0.7897563,0.6134208,0,0)" />
+  </g>
+</svg>
