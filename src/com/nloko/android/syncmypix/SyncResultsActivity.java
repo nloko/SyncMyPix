@@ -83,7 +83,6 @@ public class SyncResultsActivity extends Activity {
 	
 	private Handler mMainHandler;
 	private DownloadImageHandler mDownloadHandler;
-	//private LoadThumbnailsThread mThumbnailThread;
 	private ThumbnailHandler mThumbnailHandler;
 	private InitializeResultsThread mInitResultsThread;
 	
@@ -148,7 +147,7 @@ public class SyncResultsActivity extends Activity {
         
 		final SimpleCursorAdapter adapter = new ResultsListAdapter(
                 this, 
-                R.layout.resultslistitem,  
+                R.layout.resultslistitem,
                 cursor,                                    
                 new String[] {Results.NAME, Results.DESCRIPTION },
                 new int[] { R.id.text1, R.id.text2 } );    
@@ -292,11 +291,6 @@ public class SyncResultsActivity extends Activity {
 			mInitResultsThread.stopRunning();
 			mInitResultsThread.closeQuery();
 		}
-		
-//		if (mThumbnailThread != null) {
-//			mThumbnailThread.stopRunning();
-//			mThumbnailThread.closeQuery();
-//		}
 	}
 	 
 	@Override
@@ -309,8 +303,8 @@ public class SyncResultsActivity extends Activity {
 	}
 
 	@Override
-	protected void onStart() {
-		super.onStart();
+	protected void onResume() {
+		super.onResume();
         HandlerThread downloadThread = new HandlerThread("ImageDownload");
         downloadThread.start();
         mDownloadHandler = new DownloadImageHandler(this, downloadThread.getLooper());
@@ -318,9 +312,6 @@ public class SyncResultsActivity extends Activity {
         if (mInitResultsThread == null) {
         	mInitResultsThread = new InitializeResultsThread(this);
         	mInitResultsThread.start();
-        } else {
-//        	mThumbnailThread = new LoadThumbnailsThread(this);
-//	        mThumbnailThread.start();
         }
         
         HandlerThread thumbnailThread = new HandlerThread("Thumbnail");
@@ -334,11 +325,6 @@ public class SyncResultsActivity extends Activity {
 	protected void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		super.onDestroy();
-//		if (mThumbnailThread != null) {
-//			mThumbnailThread.stopRunning();
-//			mThumbnailThread.closeQuery();
-//		}
-		
 		mCache.destroy();
 		// allow proper GC
 		mListview = null;
@@ -406,7 +392,6 @@ public class SyncResultsActivity extends Activity {
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
 		
 		int position;
@@ -467,7 +452,6 @@ public class SyncResultsActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode != Activity.RESULT_OK) {
 			return;
@@ -872,9 +856,6 @@ public class SyncResultsActivity extends Activity {
 						label1.setVisibility(View.VISIBLE);
 						label2.setVisibility(View.VISIBLE);
 						label3.setVisibility(View.VISIBLE);
-				
-//						activity.mThumbnailThread = new LoadThumbnailsThread(activity);
-//				        activity.mThumbnailThread.start();
 				        
 				        activity.removeDialog(activity.LOADING_DIALOG);
 						return false;
@@ -885,152 +866,6 @@ public class SyncResultsActivity extends Activity {
 			}
 		}
 	}
-	
-//	private static class LoadThumbnailsThread extends Thread
-//	{
-//		private final WeakReference<SyncResultsActivity> mActivity;
-//		private final String where;
-//
-//		private Cursor cursor;
-//		
-//		private boolean running = true;
-// 		private boolean notified = false;
-//		
-//		public LoadThumbnailsThread(SyncResultsActivity activity)
-//		{
-//			mActivity = new WeakReference<SyncResultsActivity>(activity);
-//			where = Results.DESCRIPTION + " IN ('" +
-//				ResultsDescription.UPDATED.getDescription(activity) + "','" +
-//				ResultsDescription.SKIPPED_UNCHANGED.getDescription(activity) + "','" +
-//				ResultsDescription.MULTIPLEPROCESSED.getDescription(activity) + "')";
-//	        ensureQuery();
-//		}
-//		
-//		private void ensureQuery()
-//		{
-//			final SyncResultsActivity activity = mActivity.get();
-//			if (activity == null) {
-//				return;
-//			}
-//			final ContentResolver resolver = activity.getContentResolver();
-//			if (resolver == null) {
-//				return;
-//			}
-//			
-//			String[] projection = { 
-//	        		Results._ID, 
-//	        		Results.CONTACT_ID,
-//	        		Results.PIC_URL };
-//			
-//			if (cursor == null || cursor.isClosed()) {
-//				cursor = resolver.query(Results.CONTENT_URI, 
-//		        		projection, 
-//		        		where, 
-//		        		null, 
-//		        		Results.DEFAULT_SORT_ORDER);
-//			}
-//		}
-//		
-//		public void closeQuery()
-//		{
-//			synchronized(this) {
-//				if (cursor != null) {
-//					cursor.close();
-//				}
-//			}
-//		}
-//		
-//		// TODO this is BAD fix this before releasing 0.10
-//		public void restart()
-//		{
-//			notified = true;
-//			run();
-//		}
-//
-//		public void stopRunning()
-//		{
-//			running = false;
-//		}
-//		
-//		private void refreshCursor()
-//		{
-//			ensureQuery();
-//			cursor.requery();
-//			cursor.moveToPosition(-1);
-//		}
-//		
-//		public void run()
-//		{
-//			final SyncResultsActivity activity = mActivity.get();
-//			if (activity == null) {
-//				return;
-//			}
-//			final ContentResolver resolver = activity.getContentResolver();
-//			if (resolver == null) {
-//				return;
-//			}
-//			final Context context = activity.getApplicationContext();
-//			if (context == null) {
-//				return;
-//			}
-//			
-//			boolean wasNotified = false;
-//			boolean updated = false;
-//			Bitmap bitmap = null;
-//			String url = null;
-//			String id = null;
-//			long contactId = 0;
-//			
-//			if (notified) {
-//				refreshCursor();
-//				notified = false;
-//				wasNotified = true;
-//			} else {
-//				ensureQuery();
-//			}
-//			
-//			while(running && !notified && cursor.moveToNext()) {
-//				synchronized(this) {
-//					id = cursor.getString(cursor.getColumnIndex(Results._ID));
-//					contactId = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
-//					url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
-//				}
-//				
-//				if (!activity.mCache.contains(url) && contactId > 0) {
-//					bitmap = People.loadContactPhoto(context, 
-//							Uri.withAppendedPath(People.CONTENT_URI, Long.toString(contactId)), 
-//							0, null);
-//					
-//					if (bitmap != null) {
-//						activity.mCache.add(url, bitmap);
-//						//Log.d(TAG, "added back " + url + " to cache");
-//						if (wasNotified) {
-//							// HACK to force notifyDatasetUpdated() to be honoured
-//							ContentValues values = new ContentValues();
-//							values.put(Results.PIC_URL, url);
-//							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, id), 
-//									values, 
-//									null, 
-//									null);
-//						}
-//						updated = true;
-//					}
-//				}
-//			}
-//			
-//			if (updated) {
-//				activity.runOnUiThread(new Runnable() {
-//					public void run() {
-//						Log.d(TAG, "listview notified");
-//						ListView listview = activity.mListview;
-//						if (listview != null) {
-//							((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
-//						}
-//					}
-//				});
-//			}
-//		}
-//	}
 	
 	private static class ThumbnailHandler extends Handler
 	{
@@ -1157,15 +992,15 @@ public class SyncResultsActivity extends Activity {
 							Results.CONTACT_ID + "=" + contactId, 
 							null);
 					
-					activity.runOnUiThread(new Runnable() {
+/*					activity.runOnUiThread(new Runnable() {
 						public void run() {
-//							Log.d(TAG, "listview notified");
-//							ListView listview = activity.mListview;
-//							if (listview != null) {
-//								((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
-//							}
+							Log.d(TAG, "listview notified");
+							ListView listview = activity.mListview;
+							if (listview != null) {
+								((ResultsListAdapter)listview.getAdapter()).notifyDataSetChanged();
+							}
 						}
-					});
+					});*/
 				}
 			}
 		}
