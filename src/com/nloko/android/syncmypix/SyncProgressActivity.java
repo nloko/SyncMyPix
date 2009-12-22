@@ -83,8 +83,8 @@ public class SyncProgressActivity extends Activity {
 	}
 
     @Override
-	protected void onResume() {
-		super.onResume();
+	protected void onStart() {
+		super.onStart();
 		if (!mSyncServiceBound) {
 			Intent i = new Intent(getApplicationContext(), MainActivity.getSyncSource(getApplicationContext()));
 			mSyncServiceBound = bindService(i, mSyncServiceConn, Context.BIND_AUTO_CREATE);
@@ -95,6 +95,12 @@ public class SyncProgressActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		unbindService(mSyncServiceConn);
+		if (mSyncService != null) {
+			SyncService service = mSyncService.get();
+			if (service != null) {
+				service.unsetListener();
+			}
+		}
 		mSyncServiceBound = false;
 		mSyncServiceConn = null;
 	}
