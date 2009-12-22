@@ -1,5 +1,5 @@
 Jealous of your friends' with phones that allow contact pictures to sync with 
-their favorite social networking sites? Now, with SyncMyPix?, you can get your
+their favorite social networking sites? Now, with SyncMyPix, you can get your
 Android based phone in sync with all of your friends.
 
 Currently only Facebook is supported. If you're visiting from an Android phone,
@@ -9,28 +9,19 @@ Here's a run down of the features currently implemented:
 
     * Sync your phone's contacts with your Facebook friends' profile pictures
     * If do not want to overwrite manually set contact pictures on your phone,
-      the Skip if non-SyncMyPix? picture exists option will let you do that
-    * If a Facebook friend matches up with multiple contacts, you can skip 
-      them by checking the Skip if multiple phone contacts found option
+      the 'Skip existing pictures' option will let you do that
+    * Option for only syncing contacts with phone numbers
+    * Option for 'Smart name matching'  
     * Sync runs in the background leaving you free to do other tasks by 
       pressing HOME
     * View the results of the last sync operation 
-    * Manual conflict resolution in the "Results" interface where a long press
+    * Manual conflict resolution in the "Results" screen where a long press
       on a friend allows the picture to be manually added to a contact
     * Easily Extensible to support more social networking sites as picture 
       sources
 
-Name matching is VERY precise. For example, a Facebook friend with the name 
-"Billy Bob" will match the following phone contacts:
-
-1.) Billy Bob 2.) Bob, Billy 3.) Bob,Billy
-
-Look for the following new features in the future:
-
-    * A new "Progress" interface where the progress bar is integrated in the 
-      screen and an image widget displays the last picture downloaded
-    * Improved name matching 
-
 Visit my blog for more news on this project and others: 
 http://nlokos.blogspot.com/
 
+Follow me on twitter:
+http://twitter.com/nloko
