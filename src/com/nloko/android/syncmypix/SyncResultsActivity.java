@@ -1113,6 +1113,7 @@ public class SyncResultsActivity extends Activity {
 				Message msg = activity.mThumbnailHandler.obtainMessage();
 				msg.obj = url;
 				activity.mThumbnailHandler.sendMessage(msg);
+				image.setImageResource(R.drawable.default_face);
 			} else if (activity.mCache.contains(url)) {
 				//Log.d(TAG, "bindView attempting to get " + url);
 				image.setImageBitmap(activity.mCache.get(url));
