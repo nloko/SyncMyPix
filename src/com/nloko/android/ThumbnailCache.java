@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -75,13 +76,6 @@ public class ThumbnailCache {
 	{
 		synchronized(lock) {
 			mImages.clear();
-		}
-	}
-	
-	public void clearCachedImages ()
-	{
-		synchronized(lock) {
-			mImages.values().clear();
 		}
 	}
 	
@@ -174,7 +168,7 @@ public class ThumbnailCache {
 				}
 				if (image == null) {
 					if (mDefaultImage != null) {
-						mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
+						//mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
 						image = mDefaultImage;
 					}
 					ImageProvider provider = mProvider;
@@ -196,7 +190,9 @@ public class ThumbnailCache {
 	// thread
 	public void togglePauseOnDownloader(boolean value)
 	{
-		mDownloader.setPause(value);
+		if (mDownloader != null) {
+			mDownloader.setPause(value);
+		}
 	}
 	
 	public void setImageListener(ImageListener listener)

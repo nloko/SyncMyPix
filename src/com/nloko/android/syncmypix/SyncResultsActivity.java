@@ -158,7 +158,7 @@ public class SyncResultsActivity extends Activity {
         mCache.setImageProvider(new ImageProvider() {
 			public boolean onImageRequired(String url) {
 				if (mThumbnailHandler != null) {
-					Log.d(TAG, "reloading thumbnail");
+					//Log.d(TAG, "reloading thumbnail");
 					Message msg = mThumbnailHandler.obtainMessage();
 					msg.obj = url;
 					mThumbnailHandler.sendMessage(msg);
@@ -279,9 +279,9 @@ public class SyncResultsActivity extends Activity {
 			mCache.empty();
 		}
 		
-		if (mThumbnailHandler != null) {
-			mThumbnailHandler.stopRunning();
-		}
+//		if (mThumbnailHandler != null) {
+//			mThumbnailHandler.stopRunning();
+//		}
 		
 		if (mDownloadHandler != null) {
 			mDownloadHandler.stopRunning();
@@ -314,9 +314,11 @@ public class SyncResultsActivity extends Activity {
         	mInitResultsThread.start();
         }
         
-        HandlerThread thumbnailThread = new HandlerThread("Thumbnail");
-        thumbnailThread.start();
-        mThumbnailHandler = new ThumbnailHandler(this, thumbnailThread.getLooper());
+        if (mThumbnailHandler == null) {
+        	HandlerThread thumbnailThread = new HandlerThread("Thumbnail");
+        	thumbnailThread.start();
+        	mThumbnailHandler = new ThumbnailHandler(this, thumbnailThread.getLooper());
+        }
         
         mCache.togglePauseOnDownloader(false);
 	}
@@ -325,6 +327,9 @@ public class SyncResultsActivity extends Activity {
 	protected void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		super.onDestroy();
+		if (mThumbnailHandler != null) {
+			mThumbnailHandler.stopRunning();
+		}
 		mCache.destroy();
 		// allow proper GC
 		mListview = null;
@@ -869,8 +874,10 @@ public class SyncResultsActivity extends Activity {
 	
 	private static class ThumbnailHandler extends Handler
 	{
+		private final int LOAD_ALL = 1;
 		private final WeakReference<SyncResultsActivity> mActivity;
 		private boolean running = true;
+		private boolean mLoading = false;
 		
 		ThumbnailHandler(SyncResultsActivity activity, Looper looper)
 		{
@@ -881,6 +888,13 @@ public class SyncResultsActivity extends Activity {
 		
 		private void init()
 		{
+			Message msg = obtainMessage();
+			msg.what = LOAD_ALL;
+			sendMessage(msg);
+		}
+		
+		private void loadAll()
+		{
 			final SyncResultsActivity activity = mActivity.get();
 			if (activity == null) {
 				return;
@@ -889,6 +903,8 @@ public class SyncResultsActivity extends Activity {
 			if (resolver == null) {
 				return;
 			}
+		
+			mLoading = true;
 			
 			String[] projection = { 
 	        		Results._ID, 
@@ -902,12 +918,13 @@ public class SyncResultsActivity extends Activity {
 		        	Results.DEFAULT_SORT_ORDER);
 			
 			while(running && cursor.moveToNext()) {
-				Message msg = obtainMessage();
-				msg.obj = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
-				sendMessage(msg);
+				String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+				String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
+				update(id, url);
 			}
 			
 			cursor.close();
+			mLoading = false;
 		}
 		
 		private String queryContact(String url)
@@ -951,10 +968,9 @@ public class SyncResultsActivity extends Activity {
 			}
 		}
 		
-		@Override
-		public void handleMessage(Message msg)
+		private void update(String contactId, String url)
 		{
-			if (!running) {
+			if (contactId == null || url == null) {
 				return;
 			}
 			
@@ -962,12 +978,41 @@ public class SyncResultsActivity extends Activity {
 			if (activity == null) {
 				return;
 			}
-			final Handler handler = activity.mMainHandler;
-			if (handler == null) {
-				return;
-			}
+
 			final ContentResolver resolver = activity.getContentResolver();
 			if (resolver == null) {
+				return;
+			}
+
+			Bitmap bitmap = People.loadContactPhoto(activity, 
+					Uri.withAppendedPath(People.CONTENT_URI, contactId), 
+					0, null);
+
+			if (bitmap != null) {
+				//Log.d(TAG, "ThumbnailHandler updated cache");
+				activity.mCache.add(url, bitmap);
+				// HACK to force notifyDatasetUpdated() to be honoured
+				ContentValues values = new ContentValues();
+				values.put(Results.PIC_URL, url);
+				resolver.update(Results.CONTENT_URI, 
+						values, 
+						Results.CONTACT_ID + "=" + contactId, 
+						null);
+			}
+		}
+		
+		@Override
+		public void handleMessage(Message msg)
+		{
+			if (!running || mLoading) {
+				return;
+			} else if (msg.what == LOAD_ALL) {
+				loadAll();
+				return;
+			}
+			
+			final SyncResultsActivity activity = mActivity.get();
+			if (activity == null) {
 				return;
 			}
 			
@@ -977,21 +1022,7 @@ public class SyncResultsActivity extends Activity {
 			}
 			
 			String contactId = queryContact(url);
-			if (contactId != null && !activity.mCache.contains(url)) {
-				Bitmap bitmap = People.loadContactPhoto(activity, 
-						Uri.withAppendedPath(People.CONTENT_URI, contactId), 
-						0, null);
-
-				if (bitmap != null) {
-					activity.mCache.add(url, bitmap);
-					// HACK to force notifyDatasetUpdated() to be honoured
-					ContentValues values = new ContentValues();
-					values.put(Results.PIC_URL, url);
-					resolver.update(Results.CONTENT_URI, 
-							values, 
-							Results.CONTACT_ID + "=" + contactId, 
-							null);
-					
+			update(contactId, url);					
 /*					activity.runOnUiThread(new Runnable() {
 						public void run() {
 							Log.d(TAG, "listview notified");
@@ -1001,8 +1032,6 @@ public class SyncResultsActivity extends Activity {
 							}
 						}
 					});*/
-				}
-			}
 		}
 	}
 	
@@ -1072,20 +1101,21 @@ public class SyncResultsActivity extends Activity {
 		@Override
 		public void bindView(View view, Context context, Cursor cursor) {
 			super.bindView(view, context, cursor);
-			
+
 			final SyncResultsActivity activity = mActivity.get();
 			ImageView image = (ImageView) view.findViewById(R.id.contactImage);
 			
-			//long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
+			long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
-			if (activity.mCache.contains(url)) {
-				//Log.d(TAG, "bindView resetting " + url);
+			if (!activity.mCache.contains(url) && id > 0) {
+				Message msg = activity.mThumbnailHandler.obtainMessage();
+				msg.obj = url;
+				activity.mThumbnailHandler.sendMessage(msg);
+			} else if (activity.mCache.contains(url)) {
+				//Log.d(TAG, "bindView attempting to get " + url);
 				image.setImageBitmap(activity.mCache.get(url));
-			} else if (description.equals(ResultsDescription.SKIPPED_UNCHANGED.getDescription(context.getApplicationContext())) ||
-					description.equals(ResultsDescription.UPDATED.getDescription(context.getApplicationContext()))) {
-				image.setImageResource(R.drawable.default_face);
 			} else if (description.equals(ResultsDescription.NOTFOUND.getDescription(context.getApplicationContext()))) {
 				image.setImageResource(R.drawable.neutral_face);
 			} else {

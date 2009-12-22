@@ -14,7 +14,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginRight="12dip"
         
-        android:src="@drawable/smiley_face" />
+        android:src="@drawable/default_face" />
 
     <TextView  
         android:id="@+id/text2"
