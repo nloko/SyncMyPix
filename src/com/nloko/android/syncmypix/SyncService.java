@@ -125,6 +125,10 @@ public abstract class SyncService extends Service {
 			public void run() {
 				final SyncService service = mSyncService.get();
 				if (service != null) {
+					SyncServiceListener listener = service.mListener;
+					if (listener != null) {
+						listener.onSyncCompleted();
+					}
 					service.mResultsList.clear();
 					service.mWakeLock.release();
 					service.stopSelf();
@@ -513,11 +517,6 @@ public abstract class SyncService extends Service {
     		}
     		
 			if (result > 0 && !service.mCancel) {
-				SyncServiceListener listener = service.mListener;
-				if (listener != null) {
-					listener.onSyncCompleted();
-				}
-				
 				Intent i = new Intent(service.getApplicationContext(), SyncResultsActivity.class);
 				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				service.cancelNotification(R.string.syncservice_started, R.string.syncservice_stopped);
