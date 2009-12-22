@@ -80,16 +80,15 @@ public class SyncProgressActivity extends Activity {
 				}
 			}
 		});
-		
+	}
+
+    @Override
+	protected void onResume() {
+		super.onResume();
 		if (!mSyncServiceBound) {
 			Intent i = new Intent(getApplicationContext(), MainActivity.getSyncSource(getApplicationContext()));
 			mSyncServiceBound = bindService(i, mSyncServiceConn, Context.BIND_AUTO_CREATE);
 		}
-	}
-
-    @Override
-	protected void onStart() {
-		super.onStart();
 	}
 
 	@Override
@@ -177,9 +176,7 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					if (getWindow() != null) {
-						showDialog(FRIENDS_PROGRESS);
-					}
+					showDialog(FRIENDS_PROGRESS);
 				}
 
 				public void onSyncCancelled() {
@@ -190,6 +187,7 @@ public class SyncProgressActivity extends Activity {
 
         public void onServiceDisconnected(ComponentName className) {
         	Log.d(TAG, "onServiceDisconnected");
+        	mSyncServiceBound = false;
         	SyncService s = mSyncService.get();
         	if (s != null) {
         		s.unsetListener();
