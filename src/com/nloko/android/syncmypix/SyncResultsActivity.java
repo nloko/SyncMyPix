@@ -550,6 +550,7 @@ public class SyncResultsActivity extends Activity {
 		
 		Cursor cursor = resolver.query(mUriOfSelected, 
 				new String[] { Results._ID, 
+					Results.CONTACT_ID,
 					Results.PIC_URL,
 					Results.FRIEND_ID,
 					Sync.SOURCE }, 
@@ -566,6 +567,7 @@ public class SyncResultsActivity extends Activity {
 			final String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			final String friendId = cursor.getString(cursor.getColumnIndex(Results.FRIEND_ID));
 			final String source = cursor.getString(cursor.getColumnIndex(Sync.SOURCE));
+			final String oldContactId = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 			
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
@@ -578,11 +580,10 @@ public class SyncResultsActivity extends Activity {
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, bytes, bytes);
 							if (friendId != null && !friendId.equals("")) {
+								unlink(oldContactId);
 								mDbHelper.updateLink(contactId, friendId, source);
 							}
 							mCache.add(url, bitmap);
-							
-							unlink(contactId);
 							
 							ContentValues values = new ContentValues();
 							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getApplicationContext()));
@@ -636,6 +637,8 @@ public class SyncResultsActivity extends Activity {
 				values, 
 				Results.CONTACT_ID + "=" + id, 
 				null);
+		
+		mDbHelper.deletePicture(id);
 		
 		if (purge) {
 			resolver.delete(Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id), null, null);

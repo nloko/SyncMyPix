@@ -73,15 +73,7 @@ public class SyncMyPixDbHelper {
 					while(cursor.moveToNext()) {
 						String id  = cursor.getString(cursor.getColumnIndex(Contacts._ID));
 						String dbHash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
-						Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
-						
-						InputStream stream = People.openContactPhotoInputStream(resolver, uri);
-						if (stream != null) {
-							String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
-							if (dbHash.equals(hash)) {
-								ContactServices.updateContactPhoto(resolver, null, id);
-							}
-						}
+						deletePicture(id, dbHash);
 					}
 					
 					resolver.delete(Contacts.CONTENT_URI, null, null);
@@ -101,6 +93,52 @@ public class SyncMyPixDbHelper {
 		thread.start();
 	}
 
+	public void deletePicture(String id)
+	{
+		if (id == null) {
+			throw new IllegalArgumentException("id");
+		}
+		
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
+		final Cursor cursor = resolver.query(Uri.withAppendedPath(Contacts.CONTENT_URI, id), 
+				new String[] { Contacts._ID, Contacts.PHOTO_HASH },
+				null,
+				null, 
+				null);
+		
+		if (cursor.moveToNext()) {
+			String hash = cursor.getString(cursor.getColumnIndex(Contacts.PHOTO_HASH));
+			deletePicture(id, hash);
+		}
+	}
+	
+	public void deletePicture(String id, String dbHash)
+	{
+		if (id == null) {
+			throw new IllegalArgumentException("id");
+		} else if (dbHash == null) {
+			throw new IllegalArgumentException("dbHash");
+		}
+		
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+		
+		Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
+		InputStream stream = People.openContactPhotoInputStream(resolver, uri);
+		if (stream != null) {
+			String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
+			if (dbHash.equals(hash)) {
+				ContactServices.updateContactPhoto(resolver, null, id);
+			}
+		}
+	}
+	
 	public void deleteResults(String source)
 	{
 		if (source == null) {
