@@ -45,8 +45,6 @@ public class Log {
 	
 	public static void e(String tag, String message)
 	{
-		if (debug) {
-			android.util.Log.e(tag, message);
-		}
+		android.util.Log.e(tag, message);
 	}
 }
