@@ -92,8 +92,10 @@ public class ThumbnailCache {
 	public boolean contains(String key)
 	{
 		synchronized(lock) {
-			if (mImages.containsKey(key)) {
-				return true;
+			if (key != null) {
+				if (mImages.containsKey(key)) {
+					return true;
+				}
 			}
 		}
 		
@@ -148,9 +150,11 @@ public class ThumbnailCache {
 	public boolean remove(String key)
 	{
 		synchronized(lock) {
-			if (mImages.containsKey(key)) {
-				mImages.remove(key);
-				return true;
+			if (key != null) {
+				if (mImages.containsKey(key)) {
+					mImages.remove(key);
+					return true;
+				}
 			}
 		}
 		
@@ -159,6 +163,10 @@ public class ThumbnailCache {
 	
 	public Bitmap get(String key) 
 	{
+		if (key == null) {
+			return null;
+		}
+		
 		Bitmap image = null;
 		
 		synchronized(lock) {
