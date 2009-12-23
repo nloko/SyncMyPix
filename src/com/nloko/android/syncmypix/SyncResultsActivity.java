@@ -987,11 +987,15 @@ public class SyncResultsActivity extends Activity {
 				return;
 			}
 
+			if (activity.mCache.contains(url)) {
+				return;
+			}
+			
 			final ContentResolver resolver = activity.getContentResolver();
 			if (resolver == null) {
 				return;
 			}
-
+			
 			Bitmap bitmap = People.loadContactPhoto(activity, 
 					Uri.withAppendedPath(People.CONTENT_URI, contactId), 
 					0, null);

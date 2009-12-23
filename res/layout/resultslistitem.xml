@@ -7,9 +7,10 @@
     <ImageView
         android:id="@+id/contactImage"
         
-        android:layout_width="40dip"
+		android:layout_width="40px"        
         android:layout_height="fill_parent"
-        
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="12dip"
