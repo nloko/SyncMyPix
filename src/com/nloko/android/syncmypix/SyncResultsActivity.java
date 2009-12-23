@@ -576,13 +576,19 @@ public class SyncResultsActivity extends Activity {
 						if (bitmap != null) {
 							final String contactId = contactUri.getPathSegments().get(1);
 							
+							unlink(contactId);
+							if (oldContactId != null) {
+								unlink(oldContactId, true);
+							}
+							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 							ContactServices.updateContactPhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, bytes, bytes);
+							
 							if (friendId != null && !friendId.equals("")) {
-								unlink(oldContactId);
 								mDbHelper.updateLink(contactId, friendId, source);
 							}
+							
 							mCache.add(url, bitmap);
 							
 							ContentValues values = new ContentValues();
@@ -638,9 +644,8 @@ public class SyncResultsActivity extends Activity {
 				Results.CONTACT_ID + "=" + id, 
 				null);
 		
-		mDbHelper.deletePicture(id);
-		
 		if (purge) {
+			mDbHelper.deletePicture(id);
 			resolver.delete(Uri.withAppendedPath(SyncMyPix.Contacts.CONTENT_URI, id), null, null);
 		}
 	}
