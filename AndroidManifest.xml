@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.nloko.android.syncmypix"
-      android:versionCode="30"
-      android:versionName="0.10.1">
+      android:versionCode="31"
+      android:versionName="0.10.2">
     <application 
     	android:icon="@drawable/icon" 
     	android:label="@string/app_name"
