@@ -43,7 +43,6 @@ public class ThumbnailCache {
 	// ThumbnailCache can notify if a download is required or use the built-in 
 	// ImageDownloader
 	// See setImageListener and setImageProvider
-	private static ThumbnailCache mInstance = null;
 	
 	private final Map <String, SoftReference<Bitmap>> mImages = new HashMap <String, SoftReference<Bitmap>> ();
 	
@@ -53,19 +52,6 @@ public class ThumbnailCache {
 	private ImageListener mListener = null;
 	private ImageProvider mProvider = null;
 	private ImageDownloader mDownloader = new ImageDownloader();
-	
-	private ThumbnailCache() {}
-	
-	
-	public static ThumbnailCache create()
-	{
-		if (mInstance == null) {
-			mInstance = new ThumbnailCache();
-		}
-		
-		return mInstance;
-	}
-	
 	
 	public void setDefaultImage(Bitmap defaultImage)
 	{
@@ -86,7 +72,6 @@ public class ThumbnailCache {
 		mListener = null;
 		mProvider = null;
 		mImages.clear();
-		mInstance = null;
 	}
 	
 	public boolean contains(String key)

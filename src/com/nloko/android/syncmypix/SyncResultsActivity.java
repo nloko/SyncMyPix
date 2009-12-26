@@ -87,7 +87,7 @@ public class SyncResultsActivity extends Activity {
 	private InitializeResultsThread mInitResultsThread;
 	
 	private Bitmap mContactImage;
-	private ThumbnailCache mCache;
+	private final ThumbnailCache mCache = new ThumbnailCache();
 
 	private Uri mUriOfSelected = null;
 	
@@ -136,7 +136,6 @@ public class SyncResultsActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
 		
-		mCache = ThumbnailCache.create();
 		mCache.setDefaultImage(BitmapFactory.decodeResource(getResources(), R.drawable.default_face));
 		
 		mDbHelper = new SyncMyPixDbHelper(getApplicationContext());
