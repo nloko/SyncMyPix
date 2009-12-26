@@ -113,6 +113,6 @@ public final class SyncMyPixPreferences {
     	skipIfExists = prefs.getBoolean("skipIfExists", true);
     	cropSquare = prefs.getBoolean("cropSquare", true);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);
-    	phoneOnly = prefs.getBoolean("phoneOnly", true);
+    	phoneOnly = prefs.getBoolean("phoneOnly", false);
     }
 }
