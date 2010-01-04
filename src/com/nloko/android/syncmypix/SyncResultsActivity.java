@@ -288,7 +288,6 @@ public class SyncResultsActivity extends Activity {
 		
 		if (mInitResultsThread != null) {
 			mInitResultsThread.stopRunning();
-			mInitResultsThread.closeQuery();
 		}
 	}
 	 
@@ -792,13 +791,10 @@ public class SyncResultsActivity extends Activity {
 		private Cursor cursor;
 		
 		private final WeakReference<SyncResultsActivity> mActivity;
-		private final MessageQueue queue;
 		
 		InitializeResultsThread (SyncResultsActivity activity)
 		{
 			mActivity = new WeakReference<SyncResultsActivity>(activity);
-			queue = Looper.myQueue();
-			ensureQuery();
 		}
 		
 		private void ensureQuery()
@@ -817,18 +813,33 @@ public class SyncResultsActivity extends Activity {
 					null);
 		}
 		
-		public void closeQuery()
+		private void closeQuery()
 		{
-			synchronized(this) {
-				if (cursor != null) {
-					cursor.close();
-				}
+			if (cursor != null) {
+				cursor.close();
 			}
 		}
 		
 		public void stopRunning ()
 		{
-			running = false;
+			synchronized(this) {
+				running = false;
+				closeQuery();
+			}
+		}
+		
+		private void hideDialog() 
+		{
+			final SyncResultsActivity activity = mActivity.get();
+			if (activity == null) {
+				return;
+			}
+			
+			activity.runOnUiThread(new Runnable() {
+				public void run() {
+					activity.removeDialog(activity.LOADING_DIALOG);
+				}
+			});
 		}
 		
 		public void run()
@@ -839,43 +850,49 @@ public class SyncResultsActivity extends Activity {
 			}
 
 			final int updated, skipped, notFound;
-			ensureQuery();
 			
-			if (running && cursor.moveToFirst()) {
-				synchronized(this) {
-					updated = cursor.getInt(cursor.getColumnIndex(Sync.UPDATED));
-					skipped = cursor.getInt(cursor.getColumnIndex(Sync.SKIPPED));
-					notFound = cursor.getInt(cursor.getColumnIndex(Sync.NOT_FOUND));
-				}
-				
-				final TextView text1 = (TextView) activity.findViewById(R.id.updated);
-				final TextView text2 = (TextView) activity.findViewById(R.id.skipped);
-				final TextView text3 = (TextView) activity.findViewById(R.id.notfound);
-				
-				final TextView label1 = (TextView) activity.findViewById(R.id.updatedLabel);
-				final TextView label2 = (TextView) activity.findViewById(R.id.skippedLabel);
-				final TextView label3 = (TextView) activity.findViewById(R.id.notfoundLabel);
-
-				queue.addIdleHandler(new MessageQueue.IdleHandler () {
-					public boolean queueIdle() {
-						CharSequence s = activity.getString(R.string.syncresults_updated);
-						label1.setText(String.format(s.toString(), activity.getString(R.string.app_name)));
-						
-						text1.setText(Integer.toString(updated));
-						text2.setText(Integer.toString(skipped));
-						text3.setText(Integer.toString(notFound));
-						
-						label1.setVisibility(View.VISIBLE);
-						label2.setVisibility(View.VISIBLE);
-						label3.setVisibility(View.VISIBLE);
-				        
-				        activity.removeDialog(activity.LOADING_DIALOG);
-						return false;
+			synchronized(this) {
+				if (running) {
+					ensureQuery();
+					if (cursor.moveToFirst()) {
+						updated = cursor.getInt(cursor.getColumnIndex(Sync.UPDATED));
+						skipped = cursor.getInt(cursor.getColumnIndex(Sync.SKIPPED));
+						notFound = cursor.getInt(cursor.getColumnIndex(Sync.NOT_FOUND));
+					} else {
+						updated = 0;
+						skipped = 0;
+						notFound = 0;
 					}
-		        });
-			} else {
-				activity.removeDialog(activity.LOADING_DIALOG);
+				} else {
+					hideDialog();
+					return;
+				}
 			}
+
+			final TextView text1 = (TextView) activity.findViewById(R.id.updated);
+			final TextView text2 = (TextView) activity.findViewById(R.id.skipped);
+			final TextView text3 = (TextView) activity.findViewById(R.id.notfound);
+
+			final TextView label1 = (TextView) activity.findViewById(R.id.updatedLabel);
+			final TextView label2 = (TextView) activity.findViewById(R.id.skippedLabel);
+			final TextView label3 = (TextView) activity.findViewById(R.id.notfoundLabel);
+
+			activity.runOnUiThread(new Runnable() {
+				public void run() {
+					CharSequence s = activity.getString(R.string.syncresults_updated);
+					label1.setText(String.format(s.toString(), activity.getString(R.string.app_name)));
+
+					text1.setText(Integer.toString(updated));
+					text2.setText(Integer.toString(skipped));
+					text3.setText(Integer.toString(notFound));
+
+					label1.setVisibility(View.VISIBLE);
+					label2.setVisibility(View.VISIBLE);
+					label3.setVisibility(View.VISIBLE);
+
+					activity.removeDialog(activity.LOADING_DIALOG);
+				}
+			});
 		}
 	}
 	
