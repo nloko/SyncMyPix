@@ -129,9 +129,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        if (savedInstanceState != null && savedInstanceState.containsKey("DIALOG")) {
-        	showDialog(savedInstanceState.getInt("DIALOG"));
-        } else if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
+        if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
         	showDialog(ABOUT_DIALOG);
         }
         
