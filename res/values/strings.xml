@@ -33,6 +33,7 @@
     <string name="main.syncButton">Sync</string>
     <string name="main.settingsButton">Settings</string>
     <string name="main.resultsButton">Results</string>
+    <string name="main.donateButton">Donate</string>
     <string name="main.logoutButton">Logout</string>
     <string name="main.aboutButton">About</string>
     <string name="main.friendsDialog">Getting friends from social network...</string>
@@ -87,12 +88,8 @@
     <string name="resultsdescription.error">Error occurred during processing</string>
     <string name="resultsdescription.picnotfound">Picture not found</string>
     
-    <string name="contributors">http://code.google.com/p/syncmypix/wiki/Contributors</string>
-    <string name="instructions">http://code.google.com/p/syncmypix/wiki/Instructions</string>
-    <string name="issues">http://code.google.com/p/syncmypix/issues/list</string>
-	<string name="release_notes">http://code.google.com/p/syncmypix/wiki/ChangeLog</string>
-	<string name="faq">http://code.google.com/p/syncmypix/wiki/FAQ</string>
+    <string name="donate">Make a donation</string>
+    <string name="website">http://code.google.com/p/syncmypix/</string>
 	<string name="results_help_msg"><b>Select</b> a friend to view their profile picture, or <b>long press</b> for more options</string>
-	<string name="about_info">Press <b>MENU</b> for other actions</string>
-	
+	<string name="about_info">SyncMyPix is a free, open-source Android application. For more information, including contributors, bug tracking, FAQ, and help, click the following link:</string>
 </resources>

@@ -18,7 +18,7 @@
     	android:layout_height="wrap_content"
     	android:layout_below="@id/logo"
     	android:layout_marginTop="10dip"
-    	android:layout_marginLeft="36dip"
+    	android:layout_marginLeft="80dip"
     	android:src="@drawable/sync_button"/> 
     	
     <TextView android:id="@+id/syncTitle" 
@@ -57,12 +57,34 @@
  
            />
                 
-	<ImageButton android:id="@+id/resultsButton" 
+    <ImageButton android:id="@+id/aboutButton" 
+		
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content"
+    	android:layout_below="@id/syncTitle"
+    	android:layout_marginTop="12dip"
+    	android:layout_marginLeft="80dip"
+    	android:src="@drawable/about_button" /> 
+    	
+     <TextView android:id="@+id/aboutTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#ffffff" 
+          android:textStyle="bold"
+          android:text="@string/main.aboutButton"
+          android:textSize="14dip"
+          android:layout_below="@id/aboutButton"
+          android:layout_alignLeft="@id/aboutButton"
+          android:layout_marginLeft="14dip"
+          android:padding="1dip" 
+           />
+           
+     <ImageButton android:id="@+id/resultsButton" 
     	android:layout_width="wrap_content" 
     	android:layout_height="wrap_content" 
-    	android:layout_toRightOf="@id/settingsButton"
-    	android:layout_below="@id/logo"
-    	android:layout_marginTop="10dip"
+    	android:layout_toRightOf="@id/aboutButton"
+    	android:layout_below="@id/settingsTitle"
+    	android:layout_marginTop="12dip"
     	android:layout_marginLeft="20dip"
     	android:src="@drawable/results_button" /> 
     	

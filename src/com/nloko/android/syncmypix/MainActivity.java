@@ -159,6 +159,15 @@ public class MainActivity extends Activity {
 				showResults();
 			}
         });
+        
+        ImageButton about = (ImageButton) findViewById(R.id.aboutButton);
+        about.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				showDialog(ABOUT_DIALOG);
+			}
+        });
+        
+
     }
     
     @Override
@@ -256,9 +265,6 @@ public class MainActivity extends Activity {
     	item = menu.add(0, MENU_LOGOUT, 0, R.string.main_logoutButton);
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	
-    	item = menu.add(0, MENU_ABOUT, 0, R.string.main_aboutButton);
-    	item.setIcon(android.R.drawable.ic_menu_help);
-    	
     	return true;
 	}
 
@@ -267,9 +273,6 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 			case MENU_LOGOUT:
 				logout();
-				return true;
-			case MENU_ABOUT:
-				showDialog(ABOUT_DIALOG);
 				return true;
 	    }
 		
@@ -310,6 +313,16 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+        Button donate = (Button) about.findViewById(R.id.donate);
+        donate.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				removeDialog(ABOUT_DIALOG);
+				
+				Intent i = new Intent(getApplicationContext(), DonateActivity.class);
+				startActivity(i);
+			}
+        });
+        
 		CheckBox show = (CheckBox)about.findViewById(R.id.do_not_show_about);
 		show.setChecked(getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false));
 		show.setOnCheckedChangeListener(new OnCheckedChangeListener() {
