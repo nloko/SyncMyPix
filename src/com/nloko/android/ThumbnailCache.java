@@ -58,6 +58,11 @@ public class ThumbnailCache {
 		mDefaultImage = defaultImage;
 	}
 	
+	public Bitmap getDefaultImage()
+	{
+		return mDefaultImage;
+	}
+	
 	public void empty ()
 	{
 		synchronized(lock) {
@@ -99,10 +104,10 @@ public class ThumbnailCache {
 	
 	public void add(String key, Bitmap bitmap, boolean resize)
 	{
-		add(key, bitmap, resize, false);
+		add(key, bitmap, resize, true);
 	}
 	
-	protected void add(String key, Bitmap bitmap, boolean resize, boolean notify)
+	public void add(String key, Bitmap bitmap, boolean resize, boolean notify)
 	{
 		if (bitmap == null) {
 			throw new IllegalArgumentException("bitmap");
@@ -113,7 +118,7 @@ public class ThumbnailCache {
 		}
 		
 		if (resize) {
-			bitmap = Utils.resize(bitmap, 40, 40);
+			bitmap = Utils.centerCrop(bitmap, 40, 40);
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -159,22 +164,23 @@ public class ThumbnailCache {
 				if (mImages.get(key) != null) {
 					image = mImages.get(key).get();
 				}
-				if (image == null) {
-					if (mDefaultImage != null) {
-						//mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
-						image = mDefaultImage;
-					}
-					ImageProvider provider = mProvider;
-					if (provider == null) {
-						mDownloader.download(key);
-					} else {
-						mImages.remove(key);
-						provider.onImageRequired(key);
-					}
-				}
 			}
 		}
 		
+		if (image == null) {
+			if (mDefaultImage != null) {
+				//mImages.put(key, new SoftReference<Bitmap>(mDefaultImage));
+				image = mDefaultImage;
+			}
+			ImageProvider provider = mProvider;
+			if (provider == null) {
+				mDownloader.download(key);
+			} else {
+				remove(key);
+				provider.onImageRequired(key);
+			}
+		}
+			
 		return image;
 	}
 	
