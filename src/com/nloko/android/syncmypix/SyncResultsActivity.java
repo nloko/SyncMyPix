@@ -1056,7 +1056,7 @@ public class SyncResultsActivity extends Activity {
 				while(running) {
 					try {
 						Work w = mQueue.take();
-						if (w.contactId == null) {
+						if (w != null && w.contactId == null) {
 							w.contactId = queryContact(w.url);
 						}
 						update(w.contactId, w.url);
@@ -1252,6 +1252,8 @@ public class SyncResultsActivity extends Activity {
 	{
 		private static final class Viewholder {
 			public ImageView image;
+			public TextView name;
+			public TextView status;
 		}
 		
 		private final WeakReference<SyncResultsActivity> mActivity;
@@ -1276,25 +1278,23 @@ public class SyncResultsActivity extends Activity {
 			View view =  super.newView(context, cursor, parent);
 			Viewholder holder = new Viewholder(); 
 			holder.image = (ImageView) view.findViewById(R.id.contactImage); 
+			holder.name = (TextView) view.findViewById(R.id.text1);
+			holder.status = (TextView) view.findViewById(R.id.text2);
 			view.setTag(holder);
 			return view;
 		}
 
-		
-//		@Override
-//		public View getView(int position, View convertView, ViewGroup parent) {
-//			SyncResultsActivity activity = mActivity.get();
-//			if (activity == null || convertView != null) {
-//				//View view = super.getView(position, convertView, parent);
-//				return convertView;
-//			}
-//			
-//			return activity.getLayoutInflater().inflate(R.layout.resultslistitem, null);
-//		}
-
 		@Override
 		public void bindView(View view, Context context, Cursor cursor) {
-			super.bindView(view, context, cursor);
+//			Viewholder holder = (Viewholder) view.getTag();
+//			if (holder == null) {
+//				return;
+//			} else {
+//				view.setTag("");
+//			}
+			
+			// do all the binding myself since 1.5 throws a ClassCastException due to Viewholder
+			//super.bindView(view, context, cursor);
 
 			final SyncResultsActivity activity = mActivity.get();
 			if (activity == null) {
@@ -1303,15 +1303,16 @@ public class SyncResultsActivity extends Activity {
 			
 			Viewholder holder = (Viewholder) view.getTag();
 			if (holder == null) {
-//				holder = new Viewholder(); 
-//				holder.image = (ImageView) view.findViewById(R.id.contactImage); 
-//				view.setTag(holder);
 				return;
 			}
 			
 			long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
+			String name = cursor.getString(cursor.getColumnIndex(Results.NAME));
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
+			
+			holder.name.setText(name);
+			holder.status.setText(description);
 			
 			// this finds the right view to load the image into
 			// due to Android object recycling
