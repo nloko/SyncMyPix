@@ -1,5 +1,5 @@
 //
-//    NameMatcherFactory.java is part of SyncMyPix
+//    ContactUtils.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -19,27 +19,34 @@
 //    You should have received a copy of the GNU General Public License
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
-package com.nloko.android.syncmypix.namematcher;
+
+package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
 
 import com.nloko.android.Log;
-import com.nloko.android.Utils;
 
-import android.content.Context;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Contacts.People;
+import android.provider.Contacts.Photos;
+import android.provider.ContactsContract.Contacts;
 
-public class NameMatcherFactory {
-	private static String TAG = "NameMatcherFactory";
-	public static NameMatcher create(Context context, InputStream diminutives) throws Exception {
-		return create(context, diminutives, false);
+public class ContactUtils {
+	private static final String TAG = "ContactServices";
+	
+	// proxy is created each call to allow garbage collection
+	// slightly inefficient, but whatever
+	public static InputStream getPhoto(ContentResolver cr, String id)
+	{
+		return ContactProxyFactory.create().getPhoto(cr, id);
 	}
-	public static NameMatcher create(Context context, InputStream diminutives, boolean withPhone) throws Exception {
-		if (Utils.determineOsVersion() >= 5) {
-			Log.d(TAG, "New version found...loading version 2");
-			return new NameMatcher2(context, diminutives, withPhone);
-		}
-		
-		return new NameMatcher(context, diminutives, withPhone);
+	
+	public static void updatePhoto (ContentResolver cr, byte[] image, String id)
+	{
+		ContactProxyFactory.create().updatePhoto(cr, image, id);
 	}
 }

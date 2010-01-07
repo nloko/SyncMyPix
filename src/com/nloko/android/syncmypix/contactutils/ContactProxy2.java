@@ -1,5 +1,5 @@
 //
-//    NameMatcherFactory.java is part of SyncMyPix
+//    ContactProxy2.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -19,27 +19,24 @@
 //    You should have received a copy of the GNU General Public License
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
-package com.nloko.android.syncmypix.namematcher;
+
+package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
 
-import com.nloko.android.Log;
-import com.nloko.android.Utils;
+import android.content.ContentResolver;
+import android.net.Uri;
+import android.provider.ContactsContract.Contacts;
 
-import android.content.Context;
-import android.os.Build;
+public class ContactProxy2 extends ContactProxy {
 
-public class NameMatcherFactory {
-	private static String TAG = "NameMatcherFactory";
-	public static NameMatcher create(Context context, InputStream diminutives) throws Exception {
-		return create(context, diminutives, false);
-	}
-	public static NameMatcher create(Context context, InputStream diminutives, boolean withPhone) throws Exception {
-		if (Utils.determineOsVersion() >= 5) {
-			Log.d(TAG, "New version found...loading version 2");
-			return new NameMatcher2(context, diminutives, withPhone);
+	@Override
+	public InputStream getPhoto(ContentResolver cr, String id) {
+		if (cr == null || id == null) {
+			return null;
 		}
 		
-		return new NameMatcher(context, diminutives, withPhone);
+		Uri contact = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+		return Contacts.openContactPhotoInputStream(cr, contact);
 	}
 }

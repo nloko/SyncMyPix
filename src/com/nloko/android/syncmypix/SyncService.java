@@ -33,6 +33,7 @@ import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.SyncMyPixDbHelper.DBHashes;
+import com.nloko.android.syncmypix.contactutils.ContactUtils;
 import com.nloko.android.syncmypix.namematcher.NameMatcher;
 import com.nloko.android.syncmypix.namematcher.NameMatcherFactory;
 import com.nloko.android.syncmypix.namematcher.NameMatcher.PhoneContact;
@@ -312,12 +313,11 @@ public abstract class SyncService extends Service {
     		final ContentValues valuesCopy = new ContentValues(values);
 
     		try {
-    			//String id = cur.getString(cur.getColumnIndex(People._ID));
     			DBHashes hashes = dbHelper.getHashes(contactId);
-    			Uri contact = Uri.withAppendedPath(People.CONTENT_URI, contactId);
-    			is = People.openContactPhotoInputStream(resolver, contact);
+    			is = ContactUtils.getPhoto(resolver, contactId);
     			// photo is set, so let's get its hash
     			if (is != null) {
+    				Log.d(TAG, "CONTACT PIC IS NOT NULL!!");
     				contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     			}
 
@@ -339,7 +339,7 @@ public abstract class SyncService extends Service {
     							image = Utils.bitmapToJpeg(bitmap, 100);
     							updatedHash = Utils.getMd5Hash(image);
     						}
-    						ContactServices.updateContactPhoto(resolver, image, contactId);
+    						ContactUtils.updatePhoto(resolver, image, contactId);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
     						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
     						mUpdated++;

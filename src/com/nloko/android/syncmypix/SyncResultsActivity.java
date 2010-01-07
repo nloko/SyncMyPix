@@ -38,6 +38,7 @@ import com.nloko.android.ThumbnailCache.ImageProvider;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
+import com.nloko.android.syncmypix.contactutils.ContactUtils;
 import com.nloko.android.syncmypix.graphics.CropImage;
 
 import android.app.Activity;
@@ -511,7 +512,7 @@ public class SyncResultsActivity extends Activity {
 					Bitmap bitmap = (Bitmap) data.getParcelableExtra("data");
 					byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 					
-					ContactServices.updateContactPhoto(getContentResolver(), bytes, id);
+					ContactUtils.updatePhoto(getContentResolver(), bytes, id);
 					mDbHelper.updateHashes(id, null, bytes);
 					
 					mCache.add(url, bitmap);
@@ -601,7 +602,7 @@ public class SyncResultsActivity extends Activity {
 							}
 							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
-							ContactServices.updateContactPhoto(resolver, bytes, contactId);
+							ContactUtils.updatePhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, bytes, bytes);
 							
 							if (friendId != null && !friendId.equals("")) {
@@ -1019,10 +1020,7 @@ public class SyncResultsActivity extends Activity {
 				}
 			
 				try {
-					Bitmap bitmap = People.loadContactPhoto(activity, 
-							Uri.withAppendedPath(People.CONTENT_URI, contactId), 
-							0, null);
-		
+					Bitmap bitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(resolver, contactId));
 					if (bitmap != null) {
 						//Log.d(TAG, "ThumbnailHandler updated cache");
 						activity.mCache.add(url, bitmap);

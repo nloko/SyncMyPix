@@ -30,6 +30,7 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Contacts;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
+import com.nloko.android.syncmypix.contactutils.ContactUtils;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -129,12 +130,11 @@ public class SyncMyPixDbHelper {
 			return;
 		}
 		
-		Uri uri = Uri.withAppendedPath(People.CONTENT_URI, id);
-		InputStream stream = People.openContactPhotoInputStream(resolver, uri);
+		InputStream stream = ContactUtils.getPhoto(resolver, id);
 		if (stream != null) {
 			String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
 			if (dbHash.equals(hash)) {
-				ContactServices.updateContactPhoto(resolver, null, id);
+				ContactUtils.updatePhoto(resolver, null, id);
 			}
 		}
 	}

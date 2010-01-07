@@ -39,12 +39,18 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 
 import com.nloko.android.Log;
 
 public final class Utils {
 
 	private Utils() {}
+	public static int determineOsVersion()
+	{
+		String version = Build.VERSION.SDK;
+		return Integer.parseInt(version);
+	}
 	
 	public static String join(String[] array, char separator)
 	{
