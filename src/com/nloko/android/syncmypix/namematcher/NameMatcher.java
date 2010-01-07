@@ -22,7 +22,7 @@
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-package com.nloko.android.syncmypix;
+package com.nloko.android.syncmypix.namematcher;
 
 // Ideas for improving automatic name matching:
 //
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,55 +61,60 @@ public class NameMatcher {
 			this.name = name;
 		}
 		
-		String id;
-		String name;
+		public String id;
+		public String name;
 		
 		public int compareTo(PhoneContact another) {
 			return name.compareTo(another.name);
 		}
 	}
 	
-    static private final String TAG = "NameMatcher";
+    protected final String TAG = "NameMatcher";
     
     private TreeMap<String, ArrayList<PhoneContact>> mFirstNames, mLastNames;
     private HashMap<Object, ArrayList<PhoneContact>> mNickNames;
     private HashMap<String, Object> mDiminutives;
     
-    public NameMatcher(Context context, InputStream diminutives) throws Exception {
-    	this(context, diminutives, false);
-    }
+    protected final WeakReference<Context> mContext;
     
     public NameMatcher(Context context, InputStream diminutives, boolean withPhone) throws Exception {
-        loadDiminutives(diminutives);
+        mContext = new WeakReference<Context>(context);
+    	loadDiminutives(diminutives);
         // Build data structures for the first and last names, so we can
         // efficiently do partial matches (eg "Rob" -> "Robert").
-        
-        String where = "";
-        if (withPhone) {
-        	where = People.PRIMARY_PHONE_ID + " IS NOT NULL";
-        }
-        
-		Cursor cursor = context.getContentResolver().query(People.CONTENT_URI, 
-				new String[] { People._ID, People.NAME, People.PRIMARY_PHONE_ID}, 
-				where, 
-				null, 
-				null);
-		
         mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();
         mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();
         mNickNames = new HashMap<Object, ArrayList<PhoneContact>>();
-        
+    	loadPhoneContacts(withPhone);
+    }
+    
+    protected PhoneContact createFromCursor(Cursor cursor) {
+    	if (cursor == null || cursor.isClosed()) {
+    		return null;
+    	}
+    	
+    	String id = cursor.getString(cursor.getColumnIndex(People._ID));
+		String name = cursor.getString(cursor.getColumnIndex(People.NAME));
+		Log.d(TAG, "NameMatcher is processing contact " + name);
+		return new PhoneContact(id, name);
+    }
+    
+    protected void loadPhoneContacts(boolean withPhone) {
+
+    	Cursor cursor = doQuery(withPhone);
+    	if (cursor == null) {
+    		return;
+    	}
+    	
         while(cursor.moveToNext()) {
-        	
-    		String id = cursor.getString(cursor.getColumnIndex(People._ID));
-    		String name = cursor.getString(cursor.getColumnIndex(People.NAME));
-    		
-    		PhoneContact contact = new PhoneContact(id, name);
-    		
+    		PhoneContact contact = createFromCursor(cursor);
+    		if (contact == null) {
+    			continue;
+    		}
 //            if (users[i] == null)
 //                throw new Exception("Internal error: user " + i + " was null in NameMatcher c'tor");
             
-    		name = normalizeName(name);
+    		String name = normalizeName(contact.name);
     		if (name == null) {
     			continue;
     		}
@@ -136,10 +142,29 @@ public class NameMatcher {
                 mNickNames.get(sentinel).add(contact);
             }
         }
+        
+       	cursor.close();
     }
     
-    public void destroy()
-    {
+    protected Cursor doQuery(boolean withPhone) {
+    	Context context = mContext.get();
+    	if (context == null) {
+    		return null;
+    	}
+    	
+    	String where = "";
+        if (withPhone) {
+        	where = People.PRIMARY_PHONE_ID + " IS NOT NULL";
+        }
+        
+		return context.getContentResolver().query(People.CONTENT_URI, 
+				new String[] { People._ID, People.NAME, People.PRIMARY_PHONE_ID}, 
+				where, 
+				null, 
+				null);
+    }
+    
+    public void destroy() {
     	if (mFirstNames != null) {
     		mFirstNames.clear();
     	}

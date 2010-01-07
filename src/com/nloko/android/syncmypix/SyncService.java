@@ -29,11 +29,13 @@ import java.util.List;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.NameMatcher.PhoneContact;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.SyncMyPixDbHelper.DBHashes;
+import com.nloko.android.syncmypix.namematcher.NameMatcher;
+import com.nloko.android.syncmypix.namematcher.NameMatcherFactory;
+import com.nloko.android.syncmypix.namematcher.NameMatcher.PhoneContact;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -422,7 +424,7 @@ public abstract class SyncService extends Service {
     		
 			synchronized(mSyncLock) {
 				try {
-					matcher = new NameMatcher(service.getApplicationContext(), 
+					matcher = NameMatcherFactory.create(service.getApplicationContext(), 
 							service.getResources().openRawResource(R.raw.diminutives),
 							service.mPhoneOnly
 						);
@@ -556,6 +558,8 @@ public abstract class SyncService extends Service {
     	mSkipIfExists = prefs.getSkipIfExists();
     	mIntelliMatch = prefs.getIntelliMatch();
     	mPhoneOnly = prefs.getPhoneOnly();
+    	
+    	Log.d(TAG, "PhoneOnly is " + mPhoneOnly);
     }
     
     private void updateResults(boolean finish)
