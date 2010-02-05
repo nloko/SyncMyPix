@@ -118,4 +118,8 @@ public class ContactProxy2 implements IContactProxy {
         }
         return rawContactId;
     }
+	
+	public Uri getContentUri() {
+		return ContactsContract.Contacts.CONTENT_URI;
+	}
 }

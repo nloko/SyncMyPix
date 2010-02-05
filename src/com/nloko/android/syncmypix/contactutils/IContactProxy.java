@@ -25,8 +25,10 @@ package com.nloko.android.syncmypix.contactutils;
 import java.io.InputStream;
 
 import android.content.ContentResolver;
+import android.net.Uri;
 
 public interface IContactProxy {
 	InputStream getPhoto(ContentResolver cr, String id);
 	void updatePhoto (ContentResolver cr, byte[] image, String id);
+	Uri getContentUri();
 }

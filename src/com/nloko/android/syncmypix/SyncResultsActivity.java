@@ -63,6 +63,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.provider.Contacts.People;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -432,7 +433,7 @@ public class SyncResultsActivity extends Activity {
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					if (id != null) {
-						intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(People.CONTENT_URI, id));
+						intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(ContactUtils.getContentUri(), id));
 						startActivity(intent);
 					}
 				}
@@ -443,7 +444,7 @@ public class SyncResultsActivity extends Activity {
 				position = ((AdapterContextMenuInfo)menuInfo).position;
 				mUriOfSelected = getResultsUriFromListPosition(position);
 				
-				intent = new Intent(Intent.ACTION_PICK, People.CONTENT_URI);  
+				intent = new Intent(Intent.ACTION_PICK, ContactUtils.getContentUri());
 				startActivityForResult(intent, PICK_CONTACT);  
 				return true;
 				

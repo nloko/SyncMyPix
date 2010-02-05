@@ -49,4 +49,8 @@ public class ContactUtils {
 	{
 		ContactProxyFactory.create().updatePhoto(cr, image, id);
 	}
+	
+	public static Uri getContentUri() {
+		return ContactProxyFactory.create().getContentUri();
+	}
 }

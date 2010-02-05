@@ -23,6 +23,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -56,6 +57,7 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
 import com.nloko.android.syncmypix.R.id;
 import com.nloko.android.syncmypix.R.layout;
+import com.nloko.android.syncmypix.contactutils.ContactUtils;
 import com.nloko.android.syncmypix.graphics.HighlightView.ModifyMode;
 
 public class CropImage extends Activity {
@@ -399,7 +401,8 @@ public class CropImage extends Activity {
 
             if (mBitmap == null) {
             	Uri contact = intent.getData();
-            	mBitmap = People.loadContactPhoto(this, contact, 0, null);
+            	//mBitmap = People.loadContactPhoto(this, contact, 0, null);
+            	mBitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(mContentResolver, contact.getPathSegments().get(1)));
             }
             
             /*if (mBitmap == null) {
