@@ -28,5 +28,6 @@ public final class SocialNetworkUser {
 	public String lastName;
 	public String firstName;
 	public String name;
+	public String email;
 	public String picUrl;
 }

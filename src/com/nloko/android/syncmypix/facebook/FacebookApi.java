@@ -91,7 +91,7 @@ public class FacebookApi {
 		
 		Map <String, String> params = new HashMap <String, String> ();
 		params.put ("uids", uids);
-		params.put ("fields", "uid,first_name,last_name,name,pic_big");
+		params.put ("fields", "uid,first_name,last_name,name,email,pic_big");
 		FacebookJSONResponse response = (FacebookJSONResponse) client.getData ("Users.getInfo", params);
 		//Log.d(null, response.data);
 		if (response == null || response.isError()) {
@@ -113,6 +113,7 @@ public class FacebookApi {
             fbUser.firstName = user.getString("first_name");
             fbUser.lastName = user.getString("last_name");
             fbUser.name = user.getString("name");
+            fbUser.email = user.getString("email");
             fbUser.picUrl = (
             		user.getString("pic_big").equals("null") ||
             		user.getString("pic_big") == "") ? null : user.getString("pic_big");
