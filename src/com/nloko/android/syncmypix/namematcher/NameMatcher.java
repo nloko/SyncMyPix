@@ -179,6 +179,29 @@ public class NameMatcher {
     	}
     }
     
+    public void dump() {
+    	for(String name : mFirstNames.keySet()) {
+    		Log.d(TAG, String.format("First name:%s", name));
+    		for(PhoneContact c : mFirstNames.get(name)) {
+    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    		}
+    	}
+    	
+    	for(String name : mLastNames.keySet()) {
+    		Log.d(TAG, String.format("Last name:%s", name));
+    		for(PhoneContact c : mLastNames.get(name)) {
+    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    		}
+    	}
+    	
+    	for(Object o : mNickNames.keySet()) {
+    		Log.d(TAG, String.format("Nick name:%s", o));
+    		for(PhoneContact c : mNickNames.get(o)) {
+    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    		}
+    	}
+    }
+    
     private void loadDiminutives(InputStream diminutivesFile) {
         // Names are comma separated, across multiple lines. Names on a line
         // are deemed to be equivalent. The same name can appear on multiple
