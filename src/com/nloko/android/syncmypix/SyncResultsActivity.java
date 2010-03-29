@@ -25,7 +25,6 @@ package com.nloko.android.syncmypix;
 import java.lang.ref.WeakReference;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -178,15 +177,36 @@ public class SyncResultsActivity extends Activity {
         
         mCache.setImageListener(new ImageListener() {
 			public void onImageReady(final String url) {
-				//Log.d(TAG, "onImageReady called for " + url);
+				Log.d(TAG, "onImageReady called for " + url);
+				
+//				final int count = mListview.getChildCount();
+//				for (int i=0; i < count; i++) {
+//					final View view = mListview.getChildAt(i);
+//		            final Viewholder holder = (Viewholder) view.getTag();
+//		            if (holder != null) {
+//		            	if (url.equals(holder.url)) {
+//		            		runOnUiThread(new Runnable() {
+//								public void run() {
+//									holder.image.setImageBitmap(mCache.get(url));
+//								}
+//							});
+//		            	}
+//		            }
+//				}
+//				
+//				mListview.invalidate();
 				final ImageView image = (ImageView) mListview.findViewWithTag(url);
-				if (image != null) {
-					runOnUiThread(new Runnable() {
-						public void run() {
+				Log.d(TAG, "onImageReady updating image");
+				runOnUiThread(new Runnable() {
+					public void run() {
+						if (image != null) {
 							image.setImageBitmap(mCache.get(url));
+						} else {
+							// HACK sometimes the view can't be found, probably already recycled
+							((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
 						}
-					});
-				}
+					}
+				});
 			}
 		});
         
@@ -542,7 +562,6 @@ public class SyncResultsActivity extends Activity {
 		Intent intent = new Intent("com.android.camera.action.CROP");
 
 		intent.setClass(getApplicationContext(), CropImage.class);
-		//intent.putExtra("data", bitmap);
 		intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
 		intent.putExtra("crop", "true");
 		intent.putExtra("aspectX", 1);
@@ -595,8 +614,9 @@ public class SyncResultsActivity extends Activity {
 					try {
 						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 						if (bitmap != null) {
-							final String contactId = contactUri.getPathSegments().get(1);
-							
+							final List<String> segments = contactUri.getPathSegments();
+							final String contactId = segments.get(segments.size() - 1);
+							Log.d(TAG, contactUri.toString());
 							unlink(contactId);
 							if (oldContactId != null) {
 								unlink(oldContactId, true);
@@ -1023,7 +1043,7 @@ public class SyncResultsActivity extends Activity {
 				try {
 					Bitmap bitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(resolver, contactId));
 					if (bitmap != null) {
-						//Log.d(TAG, "ThumbnailHandler updated cache");
+						Log.d(TAG, "ThumbnailHandler updated cache " + url);
 						activity.mCache.add(url, bitmap);
 //						// HACK to force notifyDatasetUpdated() to be honoured
 //						ContentValues values = new ContentValues();
@@ -1127,7 +1147,7 @@ public class SyncResultsActivity extends Activity {
 			        	Results.DEFAULT_SORT_ORDER);
 				
 				while(running && cursor.moveToNext()) {
-					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL)).trim();
 					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					queueWork(id, url);
 				}
@@ -1247,9 +1267,10 @@ public class SyncResultsActivity extends Activity {
 		}	
 	}
 	
-	private static class ResultsListAdapter extends SimpleCursorAdapter
+	public static class ResultsListAdapter extends SimpleCursorAdapter
 	{
-		private static final class Viewholder {
+		public static final class Viewholder {
+			public String url;
 			public ImageView image;
 			public TextView name;
 			public TextView status;
@@ -1308,10 +1329,12 @@ public class SyncResultsActivity extends Activity {
 			long id = cursor.getLong(cursor.getColumnIndex(Results.CONTACT_ID));
 			String name = cursor.getString(cursor.getColumnIndex(Results.NAME));
 			String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+			url = url != null ? url.trim() : null;
 			String description = cursor.getString(cursor.getColumnIndex(Results.DESCRIPTION));
 			
 			holder.name.setText(name);
 			holder.status.setText(description);
+			holder.url = url;
 			
 			// this finds the right view to load the image into
 			// due to Android object recycling
