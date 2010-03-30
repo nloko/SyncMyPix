@@ -205,6 +205,7 @@ public class SyncResultsActivity extends Activity {
 							// HACK sometimes the view can't be found, probably already recycled
 							((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
 						}
+						mListview.invalidateViews();
 					}
 				});
 			}
