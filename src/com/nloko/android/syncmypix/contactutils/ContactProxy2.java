@@ -25,6 +25,7 @@ package com.nloko.android.syncmypix.contactutils;
 import java.io.InputStream;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -80,20 +81,26 @@ public class ContactProxy2 implements IContactProxy {
 		values.put(ContactsContract.Data.MIMETYPE, 
 				ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE); 
 		// append CALLER_IS_SYNCADAPTER to prevent sync
-		Uri.Builder builder = ContactsContract.Data.CONTENT_URI.buildUpon();
-		builder.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true");
-		
+		Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photoRow);
+		//Uri.Builder builder = ContactsContract.Data.CONTENT_URI.buildUpon();
+		//builder.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true");
+		Uri updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
 		if(photoRow >= 0){ 
 			if (photo == null) {
-				cr.delete(builder.build(), ContactsContract.Data._ID 
-					+ " = " + photoRow, null);
+				//cr.delete(builder.build(), ContactsContract.Data._ID 
+				//	+ " = " + photoRow, null);
+				cr.delete(updateUri, null, null);
 			} else {
-				cr.update 
-					(builder.build(), values, ContactsContract.Data._ID 
-					+ " = " + photoRow, null);
+				//cr.update 
+				//	(builder.build(), values, ContactsContract.Data._ID 
+				//	+ " = " + photoRow, null);
+				cr.update(updateUri, values, null, null);
 			}
 		} else { 
-			cr.insert(builder.build(), values); 
+			//cr.insert(builder.build(), values);
+			uri = ContactsContract.Data.CONTENT_URI;
+			updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+			cr.insert(updateUri, values);
 		} 
 	} 
 	
