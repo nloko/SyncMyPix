@@ -77,6 +77,9 @@ public class FacebookSyncService extends SyncService {
 			}
 			
 			FacebookRestClient client = null;
+			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("uid", null));
+			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("session_key", null));
+			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("secret", null));
 			
 			try {
 				client = new FacebookRestClient(FacebookApi.API_KEY, 
