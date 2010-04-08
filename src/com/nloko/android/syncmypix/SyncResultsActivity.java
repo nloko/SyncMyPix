@@ -1148,7 +1148,8 @@ public class SyncResultsActivity extends Activity {
 			        	Results.DEFAULT_SORT_ORDER);
 				
 				while(running && cursor.moveToNext()) {
-					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL)).trim();
+					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+					url = url != null ? url.trim() : null;
 					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					queueWork(id, url);
 				}
