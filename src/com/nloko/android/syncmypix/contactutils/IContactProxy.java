@@ -29,6 +29,6 @@ import android.net.Uri;
 
 public interface IContactProxy {
 	InputStream getPhoto(ContentResolver cr, String id);
-	void updatePhoto (ContentResolver cr, byte[] image, String id);
+	void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty);
 	Uri getContentUri();
 }

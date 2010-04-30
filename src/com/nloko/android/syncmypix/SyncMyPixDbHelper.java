@@ -221,6 +221,47 @@ public class SyncMyPixDbHelper {
 		}
 	}
 	
+	public void resetHashes(String source) {
+		if (source == null) {
+			throw new IllegalArgumentException("source");
+		}
+		
+		final ContentResolver resolver = mResolver.get();
+		if (resolver == null) {
+			return;
+		}
+
+		final Cursor cursor = resolver.query(Contacts.CONTENT_URI, 
+				new String[] { Contacts._ID, Contacts.PHOTO_HASH },
+				Contacts.SOURCE + "='" + source + "'",
+				null, 
+				null);
+		
+		InputStream is;
+		String hash;
+		String id;
+		
+		while(cursor.moveToNext()) {
+			id = cursor.getString(cursor.getColumnIndex(Contacts._ID));
+			is = ContactUtils.getPhoto(resolver, id);
+			if (is != null) {
+				hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+				Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+				ContentValues values = new ContentValues();
+				values.put(Contacts.PHOTO_HASH, hash);
+				resolver.update(uri, values, null, null);
+			}
+		}
+		
+		if (cursor != null) {
+			cursor.close();
+		}
+		
+		
+		
+		
+	}
+	
 	public void updateLink(String id, SocialNetworkUser user, String source)
 	{
 		updateLink(id, user.uid, source);

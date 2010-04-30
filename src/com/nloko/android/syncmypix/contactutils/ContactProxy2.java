@@ -45,7 +45,7 @@ public class ContactProxy2 implements IContactProxy {
 		return Contacts.openContactPhotoInputStream(cr, contact);
 	}
 	
-	public void updatePhoto(ContentResolver cr, byte[] photo, String id) { 
+	public void updatePhoto(ContentResolver cr, byte[] photo, String id, boolean markDirty) { 
 		if (cr == null || id == null) {
 			return;
 		}

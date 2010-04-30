@@ -43,6 +43,18 @@ public final class SyncMyPixPreferences {
 		getPreferences(context);
 	}
 	
+	private boolean googleSyncToggledOff;
+	public boolean isGoogleSyncToggledOff()
+	{
+		return googleSyncToggledOff;
+	}
+	
+	private boolean allowGoogleSync;
+	public boolean getAllowGoogleSync()
+	{
+		return allowGoogleSync;
+	}
+	
 	private boolean skipIfExists;
 	public boolean getSkipIfExists()
 	{
@@ -108,8 +120,10 @@ public final class SyncMyPixPreferences {
 	
 		//source = getSocialNetworkName(MainActivity.getSyncSource(context));
 		
+		googleSyncToggledOff = prefs.getBoolean("googleSyncToggledOff", false); 
 		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
 		maxQuality = prefs.getBoolean("maxQuality", false);
+		allowGoogleSync = prefs.getBoolean("allowGoogleSync", false);
     	skipIfExists = prefs.getBoolean("skipIfExists", true);
     	cropSquare = prefs.getBoolean("cropSquare", true);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);

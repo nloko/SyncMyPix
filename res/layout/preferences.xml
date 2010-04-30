@@ -28,6 +28,12 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences.matchingHeader">
     	<CheckBoxPreference
+            android:title="@string/preferences.allowGoogleSync"
+            android:defaultValue="false"
+            android:summary="@string/preferences.allowGoogleSync.summary"
+            android:key="allowGoogleSync" />
+            
+    	<CheckBoxPreference
             android:title="@string/preferences.skipIfExists"
             android:defaultValue="true"
             android:summary="@string/preferences.skipIfExists.summary"

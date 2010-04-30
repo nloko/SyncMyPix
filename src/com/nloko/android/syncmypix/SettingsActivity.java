@@ -22,7 +22,6 @@
 
 package com.nloko.android.syncmypix;
 
-
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
@@ -37,6 +36,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.Preference.OnPreferenceClickListener;
 
 public class SettingsActivity extends PreferenceActivity {
 	
@@ -87,6 +87,37 @@ public class SettingsActivity extends PreferenceActivity {
 			}
     		
     	});*/
+    	
+    	final CheckBoxPreference skip = (CheckBoxPreference) findPreference("skipIfExists");
+    	final CheckBoxPreference sync = (CheckBoxPreference) findPreference("allowGoogleSync");
+    	
+    	if (Utils.determineOsVersion() >= 5) {
+   			skip.setChecked(false);
+   			skip.setEnabled(false);
+   			sync.setChecked(true);
+   			sync.setEnabled(false);
+    	} else {
+    		// only allow one of either of these options to be selected
+    		sync.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+				public boolean onPreferenceClick(Preference preference) {
+					boolean checked = sync.isChecked();
+					if (checked) {
+						skip.setChecked(!checked);
+					}
+					return false;
+				}
+    		});
+    		
+    		skip.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+				public boolean onPreferenceClick(Preference preference) {
+					boolean checked = skip.isChecked();
+					if (checked) {
+						sync.setChecked(!checked);
+					}
+					return false;
+				}
+    		});
+    	}
     	
     	int freq = getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");

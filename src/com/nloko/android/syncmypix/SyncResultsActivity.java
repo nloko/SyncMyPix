@@ -179,31 +179,17 @@ public class SyncResultsActivity extends Activity {
 			public void onImageReady(final String url) {
 				Log.d(TAG, "onImageReady called for " + url);
 				
-//				final int count = mListview.getChildCount();
-//				for (int i=0; i < count; i++) {
-//					final View view = mListview.getChildAt(i);
-//		            final Viewholder holder = (Viewholder) view.getTag();
-//		            if (holder != null) {
-//		            	if (url.equals(holder.url)) {
-//		            		runOnUiThread(new Runnable() {
-//								public void run() {
-//									holder.image.setImageBitmap(mCache.get(url));
-//								}
-//							});
-//		            	}
-//		            }
-//				}
-//				
-//				mListview.invalidate();
 				final ImageView image = (ImageView) mListview.findViewWithTag(url);
 				Log.d(TAG, "onImageReady updating image");
 				runOnUiThread(new Runnable() {
 					public void run() {
-						if (image != null) {
+						if (mCache != null && image != null) {
 							image.setImageBitmap(mCache.get(url));
 						} else {
-							// HACK sometimes the view can't be found, probably already recycled
-							((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
+							if (mListview != null) {
+								// 	HACK sometimes the view can't be found, probably already recycled
+								((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
+							}
 						}
 						mListview.invalidateViews();
 					}

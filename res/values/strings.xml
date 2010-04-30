@@ -13,8 +13,10 @@
 	<string name="preferences.schedule.summary">Select a frequency for scheduling</string>
 	
 	<string name="preferences.matchingHeader">Matching</string>
+	<string name="preferences.allowGoogleSync">Allow Google Sync</string>
+    <string name="preferences.allowGoogleSync.summary">Allow pictures to be synced with contacts in GMail</string>
     <string name="preferences.skipIfExists">Skip existing pictures</string>
-    <string name="preferences.skipIfExists.summary">Skip contact if their picture was not set by SyncMyPix</string>
+    <string name="preferences.skipIfExists.summary">Android 1.x only. Skip contact if their picture was not set by SyncMyPix</string>
     <string name="preferences.skipIfConflict">Skip duplicate contacts</string>
     <string name="preferences.skipIfConflict.summary">Skip when multiple contacts are found for a single social networking friend</string>
     <string name="preferences.reverseNames">Reverse names</string>

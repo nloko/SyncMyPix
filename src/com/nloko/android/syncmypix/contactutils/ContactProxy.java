@@ -41,14 +41,17 @@ public class ContactProxy implements IContactProxy {
 		return People.openContactPhotoInputStream(cr, contact);
 	}
 	
-	public void updatePhoto (ContentResolver cr, byte[] image, String id) {
+	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty) {
 		if (cr == null || id == null) {
 			return;
 		}
 		
 		ContentValues values = new ContentValues();
         // we have to include this here otherwise the provider will set it to 1
-        values.put("_sync_dirty", 0);
+		if (markDirty) {
+			values.put("_sync_dirty", 0);
+		}
+		
         values.put(Photos.DATA, image);
         
 //        values.put("_sync_version", "SyncMyPix");

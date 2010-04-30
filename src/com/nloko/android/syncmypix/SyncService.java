@@ -47,6 +47,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -56,6 +57,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.preference.PreferenceManager;
 import android.provider.Contacts.People;
 import android.widget.Toast;
 
@@ -73,6 +75,7 @@ public abstract class SyncService extends Service {
     private boolean mExecuting = false;
     private boolean mStarted = false;
 	
+    protected boolean mAllowGoogleSync;
     protected boolean mSkipIfExists;
     protected boolean mSkipIfConflict;
     protected boolean mMaxQuality;
@@ -133,7 +136,9 @@ public abstract class SyncService extends Service {
 						listener.onSyncCompleted();
 					}
 					service.mResultsList.clear();
-					service.mWakeLock.release();
+					if (service.mWakeLock != null && service.mWakeLock.isHeld()) {
+						service.mWakeLock.release();
+					}
 					service.stopSelf();
 				}
 			}
@@ -263,6 +268,20 @@ public abstract class SyncService extends Service {
     	{
     		mService = new WeakReference<SyncService>(service);
     		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
+    		
+    		// if the last sync op allowed sync with Google, but the current sync op doesn't
+    		// picture tracking hashs need to be cleared, as the hashes between the phone pics and 
+    		// social network pics will not match up
+    		if (service.mAllowGoogleSync) {
+				Utils.setBoolean(service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "last_googlesync", true);
+			} else {
+				boolean lastSyncedWithGoogle = service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("last_googlesync", false);
+				if (lastSyncedWithGoogle) {
+					Log.d(TAG, "Resetting hashes...");
+					dbHelper.resetHashes(service.getSocialNetworkName());
+				}
+				Utils.setBoolean(service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "last_googlesync", false);
+			}
     	}
     	
         private void processUser(final SocialNetworkUser user, String contactId, Uri sync) 
@@ -339,7 +358,7 @@ public abstract class SyncService extends Service {
     							image = Utils.bitmapToJpeg(bitmap, 100);
     							updatedHash = Utils.getMd5Hash(image);
     						}
-    						ContactUtils.updatePhoto(resolver, image, contactId);
+    						ContactUtils.updatePhoto(resolver, image, contactId, service.mAllowGoogleSync);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
     						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
     						mUpdated++;
@@ -554,6 +573,7 @@ public abstract class SyncService extends Service {
     {
 		SyncMyPixPreferences prefs = new SyncMyPixPreferences(getApplicationContext());
 		
+		mAllowGoogleSync = prefs.getAllowGoogleSync();
 		mSkipIfConflict = prefs.getSkipIfConflict();
 		mMaxQuality = prefs.getMaxQuality();
 		mCropSquare = prefs.getCropSquare();
@@ -579,18 +599,15 @@ public abstract class SyncService extends Service {
 	}
 
 	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
-	}
-
-	@Override
 	public void onStart(Intent intent, int startId) {
     	super.onStart(intent, startId);
 
     	// keep CPU alive until we're done
+    	if (mWakeLock == null) {
+    		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
+    	}
+    	
     	mWakeLock.acquire();
     	
 		mExecuting = true;

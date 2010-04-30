@@ -47,7 +47,12 @@ public class ContactUtils {
 	
 	public static void updatePhoto (ContentResolver cr, byte[] image, String id)
 	{
-		ContactProxyFactory.create().updatePhoto(cr, image, id);
+		updatePhoto(cr, image, id, false);
+	}
+	
+	public static void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty)
+	{
+		ContactProxyFactory.create().updatePhoto(cr, image, id, markDirty);
 	}
 	
 	public static Uri getContentUri() {
