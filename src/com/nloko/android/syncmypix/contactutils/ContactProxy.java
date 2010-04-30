@@ -48,7 +48,7 @@ public class ContactProxy implements IContactProxy {
 		
 		ContentValues values = new ContentValues();
         // we have to include this here otherwise the provider will set it to 1
-		if (markDirty) {
+		if (!markDirty) {
 			values.put("_sync_dirty", 0);
 		}
 		
