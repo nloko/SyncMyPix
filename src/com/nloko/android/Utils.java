@@ -233,7 +233,7 @@ public final class Utils {
 	
 	public static Bitmap downloadPictureAsBitmap (String url) throws IOException
 	{
-		// quit after a minute
+		// quit after 30 seconds
 		final int timeout = 30000;
 		
 		if (url == null) {
