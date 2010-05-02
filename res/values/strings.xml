@@ -73,7 +73,7 @@
     
     <string name="syncservice.started">SyncMyPix syncing started</string>
     <string name="syncservice.stopped">SyncMyPix finished syncing</string>
-    <string name="syncservice.downloaderror">Error downloading from social network</string>
+    <string name="syncservice.downloaderror">Error downloading from social network. API may be unavailable. Please try later.</string>
     <string name="syncservice.canceled">Sync cancelled by user</string>
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.networkerror">No Internet connection available</string>
