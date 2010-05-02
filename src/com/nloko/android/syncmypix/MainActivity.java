@@ -41,6 +41,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -53,6 +56,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
@@ -302,9 +307,30 @@ public class MainActivity extends Activity {
 
 	private Dialog createAboutDialog()
 	{
+		// get version information
+		PackageManager pm = getPackageManager(); 
+		PackageInfo pi;
+		String version = null;
+		try {
+			pi = pm.getPackageInfo(getPackageName(), 0);
+			 version = pi.versionName;
+		} catch (NameNotFoundException e) {
+			e.printStackTrace();
+		} 
+		 
 		Dialog about = new Dialog(this);
 		about.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		about.setContentView(R.layout.about);
+		
+		// dynamically add a TextView for version
+		LinearLayout layout = (LinearLayout) about.findViewById(R.id.about_layout);
+		if (version != null) {
+			TextView versionView = new TextView(getBaseContext());
+			versionView.setText(" Version " + version);
+			versionView.setTextSize(10);
+			
+			layout.addView(versionView, 1);
+		}
 		
 		Button ok = (Button)about.findViewById(R.id.ok);
 		ok.setOnClickListener(new OnClickListener() {
