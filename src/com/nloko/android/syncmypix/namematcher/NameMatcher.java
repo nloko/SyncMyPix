@@ -464,6 +464,10 @@ public class NameMatcher {
     }
     
     private ArrayList<PhoneContact> nicknameMatch(String nickname) {
+    	if (nickname == null) {
+    		return null;
+    	}
+    	
         Object sentinel = mDiminutives.get(nickname);
         if (sentinel == null) 
             return null;
@@ -474,6 +478,11 @@ public class NameMatcher {
     // Tries to use prefix matching to find a match, eg "rob" -> "robert".
     private ArrayList<PhoneContact> prefixMatch(String part, TreeMap<String, ArrayList<PhoneContact>> map) {
         ArrayList<PhoneContact> results = new ArrayList<PhoneContact>(3);
+
+        if (map == null || part == null || part.length() == 0) {
+        	return results;
+        }
+        
         String startKey = part;
         StringBuffer endKey = new StringBuffer(startKey);
         endKey.setCharAt(startKey.length() - 1, (char) (startKey.charAt(startKey.length() - 1) + 1));
