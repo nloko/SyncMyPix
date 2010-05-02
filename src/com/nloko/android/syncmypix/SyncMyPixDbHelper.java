@@ -222,8 +222,15 @@ public class SyncMyPixDbHelper {
 	}
 	
 	public void resetHashes(String source) {
+		resetHashes(source, false, true);
+	}
+	
+	public void resetHashes(String source, boolean networkHash, boolean localHash) {
 		if (source == null) {
 			throw new IllegalArgumentException("source");
+		}
+		if (!networkHash && !localHash) {
+			throw new IllegalArgumentException("Both networkHash and localHash should not be false");
 		}
 		
 		final ContentResolver resolver = mResolver.get();
@@ -237,29 +244,34 @@ public class SyncMyPixDbHelper {
 				null, 
 				null);
 		
+		ContentValues values = new ContentValues();
 		InputStream is;
 		String hash;
 		String id;
 		
 		while(cursor.moveToNext()) {
+			
 			id = cursor.getString(cursor.getColumnIndex(Contacts._ID));
-			is = ContactUtils.getPhoto(resolver, id);
-			if (is != null) {
-				hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
-				Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
-				ContentValues values = new ContentValues();
-				values.put(Contacts.PHOTO_HASH, hash);
+			Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+			
+			if (localHash) {
+				is = ContactUtils.getPhoto(resolver, id);
+				if (is != null) {
+					hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
+					values.put(Contacts.PHOTO_HASH, hash);
+				}
+			}
+			if (networkHash) {
+				values.putNull(Contacts.NETWORK_PHOTO_HASH);
+			}
+			
+			if (values.size() > 0) {
 				resolver.update(uri, values, null, null);
+				values.clear();
 			}
 		}
 		
-		if (cursor != null) {
-			cursor.close();
-		}
-		
-		
-		
-		
+		cursor.close();
 	}
 	
 	public void updateLink(String id, SocialNetworkUser user, String source)

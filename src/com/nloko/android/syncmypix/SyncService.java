@@ -272,10 +272,14 @@ public abstract class SyncService extends Service {
     		// if the last sync op allowed sync with Google, but the current sync op doesn't
     		// picture tracking hashs need to be cleared, as the hashes between the phone pics and 
     		// social network pics will not match up
+    		boolean lastSyncedWithGoogle = service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("last_googlesync", false);
     		if (service.mAllowGoogleSync) {
+				if (!lastSyncedWithGoogle) {
+					Log.d(TAG, "Resetting hashes...");
+					dbHelper.resetHashes(service.getSocialNetworkName(), true, false);
+				}
 				Utils.setBoolean(service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "last_googlesync", true);
 			} else {
-				boolean lastSyncedWithGoogle = service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("last_googlesync", false);
 				if (lastSyncedWithGoogle) {
 					Log.d(TAG, "Resetting hashes...");
 					dbHelper.resetHashes(service.getSocialNetworkName());
