@@ -177,10 +177,8 @@ public class SyncResultsActivity extends Activity {
         
         mCache.setImageListener(new ImageListener() {
 			public void onImageReady(final String url) {
-				Log.d(TAG, "onImageReady called for " + url);
-				
 				final ImageView image = (ImageView) mListview.findViewWithTag(url);
-				Log.d(TAG, "onImageReady updating image");
+//				Log.d(TAG, "onImageReady updating image");
 				runOnUiThread(new Runnable() {
 					public void run() {
 						if (mCache != null && image != null) {
@@ -258,6 +256,7 @@ public class SyncResultsActivity extends Activity {
 	{
 		private final WeakReference<SyncResultsActivity> mActivity;
 		private final static int UNKNOWN_HOST_ERROR = 2;
+		private final static int MANUAL_LINK_ERROR =1;
 		
 		public MainHandler(SyncResultsActivity activity)
 		{
@@ -287,6 +286,9 @@ public class SyncResultsActivity extends Activity {
 				switch (msg.what) {
 					case UNKNOWN_HOST_ERROR:
 						Toast.makeText(activity.getApplicationContext(), R.string.syncresults_networkerror, Toast.LENGTH_LONG).show();
+						break;
+					case MANUAL_LINK_ERROR:
+						Toast.makeText(activity.getApplicationContext(), R.string.syncresults_manuallinkerror, Toast.LENGTH_LONG).show();
 						break;
 				}
 			}
@@ -641,6 +643,7 @@ public class SyncResultsActivity extends Activity {
 						mMainHandler.sendEmptyMessage(MainHandler.UNKNOWN_HOST_ERROR);
 					} catch (Exception e) {
 						e.printStackTrace();
+						mMainHandler.sendEmptyMessage(MainHandler.MANUAL_LINK_ERROR);
 					}
 					finally {
 						runOnUiThread(new Runnable() {
@@ -1036,7 +1039,7 @@ public class SyncResultsActivity extends Activity {
 				try {
 					Bitmap bitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(resolver, contactId));
 					if (bitmap != null) {
-						Log.d(TAG, "ThumbnailHandler updated cache " + url);
+						//Log.d(TAG, "ThumbnailHandler updated cache " + url);
 						activity.mCache.add(url, bitmap);
 //						// HACK to force notifyDatasetUpdated() to be honoured
 //						ContentValues values = new ContentValues();
@@ -1347,7 +1350,7 @@ public class SyncResultsActivity extends Activity {
 				}
 				image.setImageBitmap(activity.mCache.getDefaultImage());
 			} else if (activity.mCache.contains(url)) {
-				Log.d(TAG, id + " bindView attempting to get from cache " + url);
+				//Log.d(TAG, id + " bindView attempting to get from cache " + url);
 				image.setImageBitmap(activity.mCache.get(url));
 			} else if (description.equals(ResultsDescription.NOTFOUND.getDescription(context.getApplicationContext()))) {
 				image.setImageBitmap(mNeutralFace);
