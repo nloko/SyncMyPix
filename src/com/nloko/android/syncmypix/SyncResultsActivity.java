@@ -526,7 +526,8 @@ public class SyncResultsActivity extends Activity {
 					mCache.add(url, bitmap);
 					adapter.notifyDataSetChanged();
 				}
-				
+			
+				cursor.close();
 				break;
 		}
 	}
@@ -636,8 +637,11 @@ public class SyncResultsActivity extends Activity {
 
 						}
 					} catch (UnknownHostException ex) {
+						ex.printStackTrace();
 						mMainHandler.sendEmptyMessage(MainHandler.UNKNOWN_HOST_ERROR);
-					} catch (Exception e) {}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					finally {
 						runOnUiThread(new Runnable() {
 							public void run() {
@@ -650,6 +654,8 @@ public class SyncResultsActivity extends Activity {
 			
 			thread.start();
 		}
+		
+		cursor.close();
 	}
 	
 	private void unlink(String id)
@@ -1249,8 +1255,11 @@ public class SyncResultsActivity extends Activity {
 						}
 					}
 				} catch (UnknownHostException ex) {
+					ex.printStackTrace();
 					handler.sendEmptyMessage(MainHandler.UNKNOWN_HOST_ERROR);
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}	
 	}
