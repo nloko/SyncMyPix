@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
@@ -401,8 +402,9 @@ public class CropImage extends Activity {
 
             if (mBitmap == null) {
             	Uri contact = intent.getData();
-            	//mBitmap = People.loadContactPhoto(this, contact, 0, null);
-            	mBitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(mContentResolver, contact.getPathSegments().get(1)));
+            	List<String> segments = contact.getPathSegments();
+				String contactId = segments.get(segments.size() - 1);
+            	mBitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(mContentResolver, contactId));
             }
             
             /*if (mBitmap == null) {
