@@ -256,7 +256,7 @@ public class SyncResultsActivity extends Activity {
 	{
 		private final WeakReference<SyncResultsActivity> mActivity;
 		private final static int UNKNOWN_HOST_ERROR = 2;
-		private final static int MANUAL_LINK_ERROR =1;
+		private final static int MANUAL_LINK_ERROR = 3;
 		
 		public MainHandler(SyncResultsActivity activity)
 		{
@@ -520,13 +520,15 @@ public class SyncResultsActivity extends Activity {
 					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 					
 					Bitmap bitmap = (Bitmap) data.getParcelableExtra("data");
-					byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
+					if (bitmap != null) {
+						byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 					
-					ContactUtils.updatePhoto(getContentResolver(), bytes, id);
-					mDbHelper.updateHashes(id, null, bytes);
+						ContactUtils.updatePhoto(getContentResolver(), bytes, id);
+						mDbHelper.updateHashes(id, null, bytes);
 					
-					mCache.add(url, bitmap);
-					adapter.notifyDataSetChanged();
+						mCache.add(url, bitmap);
+						adapter.notifyDataSetChanged();
+					}
 				}
 			
 				cursor.close();
@@ -637,6 +639,8 @@ public class SyncResultsActivity extends Activity {
 								}
 							});
 
+						} else {
+							mMainHandler.sendEmptyMessage(MainHandler.MANUAL_LINK_ERROR);
 						}
 					} catch (UnknownHostException ex) {
 						ex.printStackTrace();
