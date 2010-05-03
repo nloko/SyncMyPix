@@ -58,6 +58,7 @@
     <string name="syncresults.menu.unlink">Unlink contact</string>
     <string name="syncresults.networkerror">Unable to resolve host. Do you have network connectivity?</string>
     <string name="syncresults.manuallinkerror">Unable manually link. Possibly due to inability to download picture. Please try switching between 3G / WiFi</string>
+    <string name="syncresults.contactunlinkableerror">This contact is read-only and can not be linked</string>
     <string name="syncresults.filterButton">Filter Results</string>
     <string name="syncresults.deleteButton">Delete</string>
     <string name="syncresults.loadingDialog">Loading...</string>

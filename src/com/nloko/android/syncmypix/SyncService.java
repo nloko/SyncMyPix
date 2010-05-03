@@ -317,7 +317,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		if (contactId == null) {
+    		if (contactId == null || !ContactUtils.isContactUpdatable(resolver, contactId)) {
     			Log.d(TAG, "Contact not found in database.");
     			mNotFound++;
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));

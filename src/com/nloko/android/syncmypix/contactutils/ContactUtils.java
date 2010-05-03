@@ -45,6 +45,10 @@ public class ContactUtils {
 		return ContactProxyFactory.create().getPhoto(cr, id);
 	}
 	
+	public static boolean isContactUpdatable(ContentResolver cr, String id) {
+		return ContactProxyFactory.create().isContactUpdatable(cr, id);
+	}
+	
 	public static void updatePhoto (ContentResolver cr, byte[] image, String id)
 	{
 		updatePhoto(cr, image, id, false);

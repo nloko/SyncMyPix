@@ -33,8 +33,11 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
+import android.util.Log;
 
 public class ContactProxy2 implements IContactProxy {
+	
+	private final static String TAG = "ContactProxy2";
 
 	public InputStream getPhoto(ContentResolver cr, String id) {
 		if (cr == null || id == null) {
@@ -104,6 +107,11 @@ public class ContactProxy2 implements IContactProxy {
 		} 
 	} 
 	
+	public boolean isContactUpdatable(ContentResolver cr, String id) {
+		long rawId = queryForRawContactId(cr, Long.parseLong(id));
+		return rawId > -1;
+	}
+	
 	private long queryForRawContactId(ContentResolver cr, long contactId) {
         Cursor rawContactIdCursor = null;
         long rawContactId = -1;
@@ -111,11 +119,19 @@ public class ContactProxy2 implements IContactProxy {
         if (cr != null) {
 	        try {
 	            rawContactIdCursor = cr.query(RawContacts.CONTENT_URI,
-	                    new String[] {RawContacts._ID},
+	                    new String[] { RawContacts._ID, RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE },
 	                    RawContacts.CONTACT_ID + "=" + contactId, null, null);
 	            if (rawContactIdCursor != null && rawContactIdCursor.moveToFirst()) {
 	                // Just return the first one.
-	                rawContactId = rawContactIdCursor.getLong(0);
+	            	String accountName = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_NAME));
+	            	String accountType = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_TYPE));
+	            	Log.d(TAG, accountName != null ? accountName : "empty");
+	            	Log.d(TAG, accountType != null ? accountType : "empty");
+	            	
+	            	// a HACK to exclude read only accounts
+	            	if (accountType == null || accountType.toLowerCase().contains("google") || accountType.length() == 0) {
+	            		rawContactId = rawContactIdCursor.getLong(0);
+	            	}
 	            }
 	        } finally {
 	            if (rawContactIdCursor != null) {

@@ -41,6 +41,10 @@ public class ContactProxy implements IContactProxy {
 		return People.openContactPhotoInputStream(cr, contact);
 	}
 	
+	public boolean isContactUpdatable(ContentResolver cr, String id) {
+		return true;
+	}
+	
 	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty) {
 		if (cr == null || id == null) {
 			return;

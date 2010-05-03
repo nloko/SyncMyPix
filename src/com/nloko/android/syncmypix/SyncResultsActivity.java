@@ -591,10 +591,18 @@ public class SyncResultsActivity extends Activity {
 				null);
 		
 		if (cursor.moveToFirst()) {
+			final Uri contactUri = contact;
+			final List<String> segments = contactUri.getPathSegments();
+			final String contactId = segments.get(segments.size() - 1);
+			if (!ContactUtils.isContactUpdatable(resolver, contactId)) {
+				Toast.makeText(getApplicationContext(),
+						R.string.syncresults_contactunlinkableerror, 
+						Toast.LENGTH_LONG).show();
+				return;
+			}
 			
 			showDialog(UPDATE_CONTACT);
 			
-			final Uri contactUri = contact;
 			final long id  = cursor.getLong(cursor.getColumnIndex(Results._ID));
 			final String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 			final String friendId = cursor.getString(cursor.getColumnIndex(Results.FRIEND_ID));
@@ -606,8 +614,7 @@ public class SyncResultsActivity extends Activity {
 					try {
 						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
 						if (bitmap != null) {
-							final List<String> segments = contactUri.getPathSegments();
-							final String contactId = segments.get(segments.size() - 1);
+							
 							Log.d(TAG, contactUri.toString());
 							unlink(contactId);
 							if (oldContactId != null) {
