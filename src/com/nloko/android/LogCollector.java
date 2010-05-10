@@ -55,33 +55,43 @@ public class LogCollector {
     	
 		@Override
 		public void handleMessage(Message msg) {
-			Log.d(TAG, "handleMessage");
 			super.handleMessage(msg);
 			if (mCollector == null) {
 				return;
 			}
 			
+			LogCollectorNotifier notifier = mCollector.mNotifier;
+			if (notifier == null) {
+				return;
+			}
+			
 			switch(msg.what) {
 				case COMPLETED:
-					Log.d(TAG, "COMPLETED");
 					mCollector.mCollected = true;
 					mCollector.mCollecting = false;
-					if (mCollector.mNotifier != null) {
-						mCollector.mNotifier.onComplete();
-					}
+					notifier.onComplete();
 					break;
 				case ERROR:
 					mCollector.mCollected = false;
 					mCollector.mCollecting = false;
-					if (mCollector.mNotifier != null) {
-						mCollector.mNotifier.onError();
-					}
-
+					notifier.onError();
 					break;
 			}
 		}
     }
     
+    public void destroy() {
+    	//stopCollecting();
+    	//mHandler = null;
+    	//mThread = null;
+    }
+    
+	@Override
+	protected void finalize() throws Throwable {
+		Log.d(TAG, "FINALIZED");
+		super.finalize();
+	}
+
 	public LogCollector() {
 		mHandler = new LogHandler(this);
 	}
@@ -136,7 +146,6 @@ public class LogCollector {
 					
 					Log.d(TAG, "collected log");
 					if (mHandler != null) {
-						Log.d(TAG, "sending complete msg");
 						mHandler.sendEmptyMessage(LogHandler.COMPLETED);
 					}
 				} catch (IOException e) {

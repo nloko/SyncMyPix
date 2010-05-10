@@ -32,6 +32,7 @@ import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.views.ConfirmSyncDialog;
+import com.nloko.simplyfacebook.util.Utilities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -218,17 +219,18 @@ public class MainActivity extends Activity {
 					return;
 				}
 				
-				Log.d(TAG, "Collecting log...");
 				String log = collector.getLog();
-				Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-            	emailIntent.setType("text/html");
-            	emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
-                  new String[]{ DEV_EMAIL } );
-
-            	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, R.string.app_name + " Log" );
-            	emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, log);
-            	
-            	startActivity(Intent.createChooser(emailIntent, "Send Log via"));
+				if (log != null) {
+					Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+	            	emailIntent.setType("text/html");
+	            	emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+	                  new String[]{ DEV_EMAIL } );
+	
+	            	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Log" );
+	            	emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, log);
+	            	
+	            	startActivity(Intent.createChooser(emailIntent, "Send Log via"));
+				}
 			}
 
 			public void onError() {
@@ -306,7 +308,7 @@ public class MainActivity extends Activity {
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	
     	item = menu.add(0, MENU_LOG, 0, R.string.main_sendLogButton);
-    	item.setIcon(android.R.drawable.ic_dialog_email);
+    	item.setIcon(android.R.drawable.ic_menu_send);
     	
     	return true;
 	}
