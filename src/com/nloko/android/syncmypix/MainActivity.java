@@ -26,6 +26,8 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 import com.nloko.android.Log;
+import com.nloko.android.LogCollector;
+import com.nloko.android.LogCollectorNotifier;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
 import com.nloko.android.syncmypix.facebook.FacebookSyncService;
@@ -64,10 +66,12 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 public class MainActivity extends Activity {
 
 	private final static String TAG = "MainActivity";
+	private final static String DEV_EMAIL = "neil.loknath@gmail.com";
 	private final static int SOCIAL_NETWORK_LOGIN = 0;
 
 	private final int MENU_LOGOUT = 3;
     private final int MENU_ABOUT = 4;
+    private final int MENU_LOG = 5;
 
 	private final int ABOUT_DIALOG = 2;
 	private final int CONFIRM_DIALOG = 3;
@@ -205,6 +209,37 @@ public class MainActivity extends Activity {
     	Utils.setString(getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "uid", null);
     }  
     
+    private void sendLog()
+    {
+    	final LogCollector collector = new LogCollector();
+    	collector.setNotifier(new LogCollectorNotifier() {
+			public void onComplete() {
+				if (collector == null) {
+					return;
+				}
+				
+				Log.d(TAG, "Collecting log...");
+				String log = collector.getLog();
+				Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+            	emailIntent.setType("text/html");
+            	emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+                  new String[]{ DEV_EMAIL } );
+
+            	emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, R.string.app_name + " Log" );
+            	emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, log);
+            	
+            	startActivity(Intent.createChooser(emailIntent, "Send Log via"));
+			}
+
+			public void onError() {
+				Toast.makeText(getApplicationContext(), 
+						R.string.main_error_Logerror, 
+						Toast.LENGTH_LONG).show();
+			}
+    	});
+    	collector.collect();
+    }
+    
     private void sync()
     {
     	if (!Utils.hasInternetConnection(getApplicationContext())) {
@@ -270,6 +305,9 @@ public class MainActivity extends Activity {
     	item = menu.add(0, MENU_LOGOUT, 0, R.string.main_logoutButton);
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	
+    	item = menu.add(0, MENU_LOG, 0, R.string.main_sendLogButton);
+    	item.setIcon(android.R.drawable.ic_dialog_email);
+    	
     	return true;
 	}
 
@@ -278,6 +316,9 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 			case MENU_LOGOUT:
 				logout();
+				return true;
+			case MENU_LOG:
+				sendLog();
 				return true;
 	    }
 		

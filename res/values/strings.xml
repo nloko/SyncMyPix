@@ -37,8 +37,10 @@
     <string name="main.resultsButton">Results</string>
     <string name="main.donateButton">Donate</string>
     <string name="main.logoutButton">Logout</string>
+    <string name="main.sendLogButton">Send Log</string>
     <string name="main.aboutButton">About</string>
     <string name="main.friendsDialog">Getting friends from social network...</string>
+    <string name="main.error.Logerror">Error sending log</string>
     
     <string name="syncprogress">Syncing contacts...</string>
     <string name="syncprogress.cancel">Cancelling sync...</string>
