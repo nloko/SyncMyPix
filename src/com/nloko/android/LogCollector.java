@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 
@@ -136,8 +137,17 @@ public class LogCollector {
 					reader = new BufferedReader(new InputStreamReader(proc.getInputStream()), BUFFER_SIZE);
 					
 					String line;
-					mLog = new StringBuilder();
 					String separator = System.getProperty("line.separator");
+					
+					// Initialize and add Android info
+					mLog = new StringBuilder();
+					mLog.append("Model: " + Build.MODEL);
+					mLog.append(separator);
+					mLog.append("Display: " + Build.DISPLAY);
+					mLog.append(separator);
+					mLog.append("Release: " + Build.VERSION.RELEASE);
+					mLog.append(separator);
+					mLog.append(separator);
 					
 					while((line = reader.readLine()) != null) {
 						mLog.append(line);
