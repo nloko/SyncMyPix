@@ -14,7 +14,7 @@
             </intent-filter>
             <intent-filter>
             	<action android:name="android.intent.action.PACKAGE_REPLACED" />
-            	<data android:scheme="package" />
+            	<data android:scheme="package" android:path="com.nloko.android.syncmypix" />
             </intent-filter><!--
             <intent-filter>
             	<action android:name="android.intent.action.SYNC_STATE_CHANGED" />
