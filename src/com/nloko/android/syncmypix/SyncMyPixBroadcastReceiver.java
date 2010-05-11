@@ -46,6 +46,8 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		}
 		
 		else if (action.equals(Intent.ACTION_PACKAGE_REPLACED)) {
+			Log.d(TAG, "ACTION_PACKAGE_REPLACED");
+
 			// show about dialog on upgrades
 			Utils.setBoolean(context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "do_not_show_about", false);
 			
@@ -70,7 +72,7 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		}
 		
 		if (interval > 0) {
-			Log.d(TAG, "SCHEDULING SERVICE");
+			Log.d(TAG, "Scheduling Service...");
 			SyncService.updateSchedule(context, 
 					MainActivity.getSyncSource(context), 
 					time, 
