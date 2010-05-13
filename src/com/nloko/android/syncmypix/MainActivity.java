@@ -67,7 +67,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 public class MainActivity extends Activity {
 
 	private final static String TAG = "MainActivity";
-	private final static String DEV_EMAIL = "neil.loknath@gmail.com";
+	private final static String DEV_EMAIL = "neil.loknath+syncmypix@gmail.com";
 	private final static int SOCIAL_NETWORK_LOGIN = 0;
 
 	private final int MENU_LOGOUT = 3;
