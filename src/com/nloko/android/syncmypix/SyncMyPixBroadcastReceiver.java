@@ -66,8 +66,13 @@ public class SyncMyPixBroadcastReceiver extends BroadcastReceiver {
 		long time = settings.getLong("sched_time", 0);
 		long interval = SettingsActivity.getScheduleInterval(freq);
 		
+		Log.d(TAG, "freq: " + freq);
+		Log.d(TAG, "time: " + time);
+		Log.d(TAG, "interval: " + interval);
+		
 		if (time < System.currentTimeMillis()) {
 			time += interval;
+			Log.d(TAG, "time + interval: " + time);
 			Utils.setLong(context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0), "sched_time", time);
 		}
 		
