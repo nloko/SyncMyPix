@@ -42,7 +42,7 @@ public class SyncWakeLock {
 	}
 	
 	public static void releaseWakeLock() {
-    	if (mWakeLock != null && mWakeLock.isHeld()) {
+    	if (mWakeLock != null) {
     		mWakeLock.release();
     		mWakeLock = null;
     	}
