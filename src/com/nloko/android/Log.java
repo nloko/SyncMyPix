@@ -23,7 +23,7 @@ package com.nloko.android;
 
 public class Log {
 
-	private static boolean debug = true;
+	private static boolean debug = false;
 	public static void setLogging(boolean value)
 	{
 		debug = value;
