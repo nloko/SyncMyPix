@@ -29,6 +29,7 @@ import android.provider.BaseColumns;
 public final class SyncMyPix {
 	
     public static final String AUTHORITY = "com.nloko.provider.SyncMyPix";
+    public static final String SYNC_INTENT = "com.nloko.android.syncmypix.SYNC";
     
 	private SyncMyPix() {}
 	

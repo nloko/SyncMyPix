@@ -9,6 +9,9 @@
     	android:debuggable="false">
     	
     	<receiver android:name=".SyncMyPixBroadcastReceiver">
+    		<intent-filter>
+            	<action android:name="com.nloko.android.syncmypix.SYNC" />
+            </intent-filter>
             <intent-filter>
             	<action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

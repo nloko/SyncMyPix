@@ -56,7 +56,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.provider.Contacts.People;
 import android.widget.Toast;
@@ -69,8 +68,7 @@ public abstract class SyncService extends Service {
 	private SyncServiceStatus mStatus = SyncServiceStatus.IDLE;
 	private SyncTask mSyncOperation;
 	private NotificationManager mNotifyManager;
-	private WakeLock mWakeLock;
-    
+	    
 	private boolean mCancel = false;
     private boolean mExecuting = false;
     private boolean mStarted = false;
@@ -136,9 +134,7 @@ public abstract class SyncService extends Service {
 						listener.onSyncCompleted();
 					}
 					service.mResultsList.clear();
-					if (service.mWakeLock != null && service.mWakeLock.isHeld()) {
-						service.mWakeLock.release();
-					}
+					SyncWakeLock.releaseWakeLock();
 					service.stopSelf();
 				}
 			}
@@ -607,12 +603,7 @@ public abstract class SyncService extends Service {
     	super.onStart(intent, startId);
 
     	// keep CPU alive until we're done
-    	if (mWakeLock == null) {
-    		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
-    	}
-    	
-    	mWakeLock.acquire();
+    	SyncWakeLock.acquireWakeLock(getApplicationContext());
     	
 		mExecuting = true;
 		mStarted = true;
@@ -634,10 +625,7 @@ public abstract class SyncService extends Service {
         unsetListener();
 
         mStarted = false;
-        // ensure this is released
-    	if (mWakeLock != null && mWakeLock.isHeld()) {
-    		mWakeLock.release();
-    	}
+        SyncWakeLock.releaseWakeLock();
         super.onDestroy();
     }
 
@@ -741,9 +729,13 @@ public abstract class SyncService extends Service {
     		throw new IllegalArgumentException("context");
     	}
     	
-    	PendingIntent alarmSender = PendingIntent.getService(context,
-                0, new Intent(context, cls), 0);
+    	//PendingIntent alarmSender = PendingIntent.getService(context,
+        //        0, new Intent(context, cls), 0);
     	
+    	PendingIntent alarmSender = PendingIntent.getBroadcast(context, 
+    			0, 
+    			new Intent(SyncMyPix.SYNC_INTENT), 
+    			0);
     	AlarmManager am = (AlarmManager)context.getSystemService(ALARM_SERVICE);
     	am.setRepeating(AlarmManager.RTC_WAKEUP, startTime, interval, alarmSender);
     }
