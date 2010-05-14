@@ -107,7 +107,7 @@ public class FacebookLoginWebView extends Activity {
 			
 			FacebookLoginWebView activity = mActivity.get();
 			if (activity != null) {
-				android.util.Log.e(activity.TAG, msg);
+				Log.e(activity.TAG, msg);
 				Toast.makeText(activity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
 				
 				Dialog dialog = activity.authDialog;
