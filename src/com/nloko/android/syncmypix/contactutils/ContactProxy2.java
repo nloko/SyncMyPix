@@ -131,6 +131,7 @@ public class ContactProxy2 implements IContactProxy {
 	            	// a HACK to exclude read only accounts
 	            	if (accountType == null || 
 	            			accountType.toLowerCase().contains("google") ||
+	            			accountType.toLowerCase().contains("exchange") ||
 	            			accountType.toLowerCase().contains("htc.android.pcsc") ||
 	            			accountType.length() == 0) {
 	            		rawContactId = rawContactIdCursor.getLong(0);
