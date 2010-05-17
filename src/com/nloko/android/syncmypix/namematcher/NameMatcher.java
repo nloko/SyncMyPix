@@ -70,10 +70,13 @@ public class NameMatcher {
 	}
 	
     protected final String TAG = "NameMatcher";
+    protected final String mBadChars  = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ,";
+    protected final String mGoodChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy ";
     
-    private TreeMap<String, ArrayList<PhoneContact>> mFirstNames, mLastNames;
-    private HashMap<Object, ArrayList<PhoneContact>> mNickNames;
-    private HashMap<String, Object> mDiminutives;
+    private final TreeMap<String, ArrayList<PhoneContact>> mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();; 
+    private final TreeMap<String, ArrayList<PhoneContact>> mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();
+    private final HashMap<Object, ArrayList<PhoneContact>> mNickNames = new HashMap<Object, ArrayList<PhoneContact>>();;
+    private final HashMap<String, Object> mDiminutives = new HashMap<String, Object>();
     
     protected final WeakReference<Context> mContext;
     
@@ -82,9 +85,7 @@ public class NameMatcher {
     	loadDiminutives(diminutives);
         // Build data structures for the first and last names, so we can
         // efficiently do partial matches (eg "Rob" -> "Robert").
-        mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();
-        mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();
-        mNickNames = new HashMap<Object, ArrayList<PhoneContact>>();
+         
     	loadPhoneContacts(withPhone);
     }
     
@@ -95,7 +96,7 @@ public class NameMatcher {
     	
     	String id = cursor.getString(cursor.getColumnIndex(People._ID));
 		String name = cursor.getString(cursor.getColumnIndex(People.NAME));
-		Log.d(TAG, "NameMatcher is processing contact " + name);
+		if (Log.debug) Log.d(TAG, "NameMatcher is processing contact " + name);
 		return new PhoneContact(id, name);
     }
     
@@ -126,7 +127,7 @@ public class NameMatcher {
             if (mFirstNames.get(fname) == null)
                 mFirstNames.put(fname, new ArrayList<PhoneContact>(3));
             mFirstNames.get(fname).add(contact);
-            Log.d(TAG, "added " + fname + " to mFirstNames = " + contact.name);
+            if (Log.debug) Log.d(TAG, "added " + fname + " to mFirstNames = " + contact.name);
             
             if (mLastNames.get(lname) == null)
                 mLastNames.put(lname, new ArrayList<PhoneContact>(3));
@@ -138,7 +139,7 @@ public class NameMatcher {
                 if (mNickNames.get(sentinel) == null) {
                     mNickNames.put(sentinel, new ArrayList<PhoneContact>(3));
                 }
-                Log.d(TAG, "linking " + sentinel + " with " + contact.name);
+                if (Log.debug) Log.d(TAG, "linking " + sentinel + " with " + contact.name);
                 mNickNames.get(sentinel).add(contact);
             }
         }
@@ -181,23 +182,23 @@ public class NameMatcher {
     
     public void dump() {
     	for(String name : mFirstNames.keySet()) {
-    		Log.d(TAG, String.format("First name:%s", name));
+    		if (Log.debug) Log.d(TAG, String.format("First name:%s", name));
     		for(PhoneContact c : mFirstNames.get(name)) {
-    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    			if (Log.debug) Log.d(TAG, String.format("Phone Contact:%s", c.name));
     		}
     	}
     	
     	for(String name : mLastNames.keySet()) {
-    		Log.d(TAG, String.format("Last name:%s", name));
+    		if (Log.debug) Log.d(TAG, String.format("Last name:%s", name));
     		for(PhoneContact c : mLastNames.get(name)) {
-    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    			if (Log.debug) Log.d(TAG, String.format("Phone Contact:%s", c.name));
     		}
     	}
     	
     	for(Object o : mNickNames.keySet()) {
-    		Log.d(TAG, String.format("Nick name:%s", o));
+    		if (Log.debug) Log.d(TAG, String.format("Nick name:%s", o));
     		for(PhoneContact c : mNickNames.get(o)) {
-    			Log.d(TAG, String.format("Phone Contact:%s", c.name));
+    			if (Log.debug) Log.d(TAG, String.format("Phone Contact:%s", c.name));
     		}
     	}
     }
@@ -219,10 +220,11 @@ public class NameMatcher {
         // looked up in the map. If any name on the line is mapped, all the 
         // names on that line are mapped to the same value. Otherwise, a new
         // Object is allocated, and all the names are mapped to that new value.
+    	BufferedReader reader = null;
+    	
         try {
-            mDiminutives = new HashMap<String, Object>();
             // Specify 8kb buffer explicitly to avoid it whinging to the logs.
-            BufferedReader reader = new BufferedReader(new InputStreamReader(diminutivesFile, "UTF-8"), 8 * 1024);   
+            reader = new BufferedReader(new InputStreamReader(diminutivesFile, "UTF-8"), 8 * 1024);   
             String line;
             while ((line = reader.readLine()) != null) {
                 Object sentinel = null;
@@ -249,7 +251,7 @@ public class NameMatcher {
                         // This happens if a name is shared between more than two
                         // lines. This is rare so just merge them down to two by 
                         // hand.
-                        Log.d(TAG, "THREE LINE CONFLICT  " + sentinel + " " + mDiminutives.get(names[i]));
+                        if (Log.debug) Log.d(TAG, "THREE LINE CONFLICT  " + sentinel + " " + mDiminutives.get(names[i]));
                     } else {
                         mDiminutives.put(names[i], sentinel);
                     }
@@ -268,6 +270,12 @@ public class NameMatcher {
             // Impossible: the diminutives file should always be readable.
             e.printStackTrace();
             throw new Error(e);
+        } finally {
+        	try {
+	        	if (reader != null) {
+	        		reader.close();
+	        	}
+        	} catch (IOException e) {}
         }
     }
 
@@ -280,17 +288,16 @@ public class NameMatcher {
     	}
     	
         StringBuffer newName = new StringBuffer(name.toLowerCase().trim());
-        final String badChars  = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ,";
-        final String goodChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy ";
+        
         int bracket = 0;
         int newNameLength = newName.length();
         for (int i = 0; i < newNameLength; i++) {
             char c = newName.charAt(i);
             
             // Filter out accented characters.
-            int badIndex = badChars.indexOf(c); 
+            int badIndex = mBadChars.indexOf(c); 
             if (badIndex > -1)
-                newName.setCharAt(i, goodChars.charAt(badIndex));
+                newName.setCharAt(i, mGoodChars.charAt(badIndex));
             
             // Delete text in brackets, the - character if it's the last one,
             // commas and duplicate whitespace.
@@ -334,9 +341,9 @@ public class NameMatcher {
         
         ArrayList<PhoneContact> possibilities = mFirstNames.get(components[0]);
         if (possibilities != null) {
-            Log.d(TAG, "prefix match from " + components[0] + " to ");
+            if (Log.debug) Log.d(TAG, "prefix match from " + components[0] + " to ");
             for (PhoneContact u : possibilities) {
-                Log.d(TAG, "   " + u.name);
+                if (Log.debug) Log.d(TAG, "   " + u.name);
                 
                 String[] matchParts = normalizeName(u.name).split(" ");
                 String lname = matchParts[matchParts.length - 1];
@@ -372,7 +379,7 @@ public class NameMatcher {
             components = reverse(components);
         }
         
-        Log.d(TAG, "Trying to match: " + Utils.join(components, ' '));
+        if (Log.debug) Log.d(TAG, "Trying to match: " + Utils.join(components, ' '));
         
         // Compile all the possibilities based on first name match only.
         //TreeSet<PhoneContact> possibilities = getRecycledTreeSet();
@@ -386,22 +393,22 @@ public class NameMatcher {
         //TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(fnameMatches);
         TreeSet<PhoneContact> possibilities = new TreeSet<PhoneContact>(prefixMatch(components[0], mFirstNames));
         if (possibilities.size() > 0) {
-            Log.d(TAG, "prefix match from " + components[0] + " to ");
+            if (Log.debug) Log.d(TAG, "prefix match from " + components[0] + " to ");
             for (PhoneContact u : possibilities) 
-                Log.d(TAG, "   " + u.name);
+                if (Log.debug) Log.d(TAG, "   " + u.name);
         }
         
         ArrayList<PhoneContact> matches = nicknameMatch(components[0]);
         if (matches != null) { 
             if (matches.size() > 1) {
-                Log.d(TAG, "multiple nickname matches:");
-                for (PhoneContact temp : matches) Log.d(TAG, "   " + temp.name);
+                if (Log.debug) Log.d(TAG, "multiple nickname matches:");
+                for (PhoneContact temp : matches) if (Log.debug) Log.d(TAG, "   " + temp.name);
             } else if (matches.size() == 1) {
-                Log.d(TAG, "nickname matched " + components[0] + " to " + matches.get(0).name);
+                if (Log.debug) Log.d(TAG, "nickname matched " + components[0] + " to " + matches.get(0).name);
             } 
             possibilities.addAll(matches);
         } else 
-            Log.d(TAG, "no nickname matches");
+            if (Log.debug) Log.d(TAG, "no nickname matches");
         
         if (possibilities.size() > 0) {
             // We have at least one match on first name.
@@ -412,11 +419,11 @@ public class NameMatcher {
                     String lname = matchParts[matchParts.length - 1];
                     if (lname.startsWith(components[components.length - 1]) ||
                     		components[components.length - 1].startsWith(lname)) {
-                        Log.d(TAG, "matched " + name + " to " + possibility.name);
+                        if (Log.debug) Log.d(TAG, "matched " + name + " to " + possibility.name);
                         return possibility;
                     }
                 }
-                Log.d(TAG, "all inexact first name matches violated last name constraints");
+                if (Log.debug) Log.d(TAG, "all inexact first name matches violated last name constraints");
             } if (firstNameOnlyMatches) {
                 if (possibilities.size() == 1) {
                     // We only have a first name in the contacts list, but 
@@ -424,7 +431,7 @@ public class NameMatcher {
                     PhoneContact answer = possibilities.iterator().next(); 
                     // only return if no last name
                     if (getWordCount(answer.name) == 1) {
-                    	Log.d(TAG, "only one possibility, matched " + name + " to " + answer.name);
+                    	if (Log.debug) Log.d(TAG, "only one possibility, matched " + name + " to " + answer.name);
                     	return answer;
                     }
                 } else {
@@ -438,10 +445,10 @@ public class NameMatcher {
                     if (exactMatches != null 
                     		&& exactMatches.size() == 1 
                     		&& getWordCount(exactMatches.get(0).name) == 1) {
-                        Log.d(TAG, "exact first name match " + components[0] + " to " + exactMatches.get(0).name);
+                        if (Log.debug) Log.d(TAG, "exact first name match " + components[0] + " to " + exactMatches.get(0).name);
                         return exactMatches.get(0);
                     }
-                    Log.d(TAG, "first name matched multiple people and there is no disambiguating last name");
+                    if (Log.debug) Log.d(TAG, "first name matched multiple people and there is no disambiguating last name");
                 }
             }
         }
@@ -450,7 +457,7 @@ public class NameMatcher {
         if (components.length == 1) {
             ArrayList<PhoneContact> users = mLastNames.get(components[0]);
             if (users != null && users.size() == 1) {
-                Log.d(TAG, "exact last name match: " + users.get(0).name);
+                if (Log.debug) Log.d(TAG, "exact last name match: " + users.get(0).name);
                 return users.get(0);
             }
         } else if (!reverse) {
@@ -459,7 +466,7 @@ public class NameMatcher {
             return match(name, firstNameOnlyMatches, true);
         }
         
-        Log.d(TAG, "No match found for " + name);
+        if (Log.debug) Log.d(TAG, "No match found for " + name);
         return null;
     }
     
@@ -492,7 +499,7 @@ public class NameMatcher {
             if (s.startsWith(part)) {
                 results.addAll(selection.get(s));
             } else {
-                Log.d(TAG, "unexpected: " + s + ", " + part);
+                if (Log.debug) Log.d(TAG, "unexpected: " + s + ", " + part);
             }
         }
         return results;

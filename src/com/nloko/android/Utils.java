@@ -90,13 +90,16 @@ public final class Utils {
               MessageDigest md = MessageDigest.getInstance("MD5");
               byte[] messageDigest = md.digest(input);
               BigInteger number = new BigInteger(1,messageDigest);
-              String md5 = number.toString(16);
+              //String md5 = number.toString(16);
+              StringBuffer md5 = new StringBuffer();
+              md5.append(number.toString(16));
 
               while (md5.length() < 32) {
-                  md5 = "0" + md5;
+                  //md5 = "0" + md5;
+                  md5.insert(0, "0");
               }
               
-              return md5;
+              return md5.toString();
           } 
           catch(NoSuchAlgorithmException e) {
         	  Log.e("MD5", e.getMessage());
@@ -140,6 +143,7 @@ public final class Utils {
 		int read = 0;
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream(size);
 		byte[] buffer = new byte[size];
+		byte[] array = null;
 		
 		try {
 			while ((read = is.read(buffer, 0, buffer.length)) > 0) {
@@ -148,9 +152,16 @@ public final class Utils {
 		}
 		catch (IOException ex) {
 			return null;
+		} finally {
+			try {
+				if (bytes != null) {
+					array = bytes.toByteArray();
+				 	bytes.close();
+				}
+			} catch (IOException e) {}
 		}
 		
-		return bytes.toByteArray();
+		return array;
 	}
 
 	public static Bitmap centerCrop (Bitmap bitmap, int destHeight, int destWidth)
@@ -168,15 +179,15 @@ public final class Utils {
 	
 	public static Bitmap crop(Bitmap bitmapToCrop, int destHeight, int destWidth)
 	{
-		Bitmap b = Bitmap.createBitmap(destHeight, destWidth, Bitmap.Config.RGB_565);
-        Canvas c1 = new Canvas(b);
-
         int width = bitmapToCrop.getWidth();
         int height = bitmapToCrop.getHeight();
         if (width <= destWidth && height <= destHeight) {
         	return bitmapToCrop;
         }
         
+        Bitmap b = Bitmap.createBitmap(destHeight, destWidth, Bitmap.Config.RGB_565);
+        Canvas c1 = new Canvas(b);
+
         int midpointX =  width / 2;
         int midpointY =  height / 2;
         
@@ -240,19 +251,25 @@ public final class Utils {
     		throw new IllegalArgumentException ("url");
     	}
     	
+		URLConnection conn = null;
+		InputStream stream = null;
     	Bitmap image = null;
     	try {
 	    	URL fetchUrl = new URL(url);
-	    	URLConnection conn = (URLConnection) fetchUrl.openConnection();
+	    	conn = (URLConnection) fetchUrl.openConnection();
 	    	conn.setConnectTimeout(timeout);
 	    	conn.setReadTimeout(timeout);
 	    	
-	    	InputStream stream = conn.getInputStream();
+	    	stream = conn.getInputStream();
 	    	image = BitmapFactory.decodeStream(stream);
     	}
 	    catch (IOException ex) {
 	    	Log.e(null, android.util.Log.getStackTraceString(ex));
 	    	throw ex;
+	    } finally {
+	    	if (stream != null) {
+	    		stream.close();
+	    	}
 	    }
 	    
 	    return image;
@@ -268,12 +285,15 @@ public final class Utils {
 	{
 		byte[] image = null;
 		
-		if (bitmap != null) {
-			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			
-			bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
-			image =  bytes.toByteArray();
-		}
+		try {
+			if (bitmap != null) {
+				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+				
+				bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
+				image =  bytes.toByteArray();
+				bytes.close();
+			}
+		} catch (IOException e) {}
 
 		return image;
 	}
@@ -281,13 +301,16 @@ public final class Utils {
 	public static byte[] bitmapToPNG(Bitmap bitmap)
 	{
 		byte[] image = null;
-		
-		if (bitmap != null) {
-			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
-			image =  bytes.toByteArray();
-		}
+	
+		try {
+			if (bitmap != null) {
+				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+				
+				bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
+				image =  bytes.toByteArray();
+				bytes.close();
+			}
+		} catch (IOException e) {}
 
 		return image;
 	}

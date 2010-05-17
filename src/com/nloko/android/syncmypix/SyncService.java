@@ -22,6 +22,7 @@
 
 package com.nloko.android.syncmypix;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -396,6 +397,11 @@ public abstract class SyncService extends Service {
     			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(service));
     		} finally {
     			addResult(valuesCopy);
+    			try {
+	    			if (is != null) {
+	    				is.close();
+	    			}
+    			} catch(IOException e) {}
     		}
     	}
 
@@ -485,8 +491,8 @@ public abstract class SyncService extends Service {
 								handler.sendMessage(handler.obtainMessage(MainHandler.SHOW_ERROR, 
 										R.string.syncservice_canceled, 
 										0));
-								break;
 							}
+							break;
 						} else if (service.mResultsList.size() == service.RESULTS_THRESH) {
 							service.updateResults(false);
 						}
@@ -567,7 +573,7 @@ public abstract class SyncService extends Service {
     }
     
     public boolean isExecuting() { 	return mExecuting; }
-    public boolean ismStarted () { 	return mStarted; }
+    public boolean isStarted () { 	return mStarted; }
     
     private void getPreferences()
     {
