@@ -1094,7 +1094,7 @@ public class SyncResultsActivity extends Activity {
 		}
 		
 		// use a pool to support extremely popular people
-		private static final int MAX_THREADS = 2; 
+		private static final int MAX_THREADS = 3; 
 		private int mThreadIndex = 0;
 		private final List<WorkerThread> mThreadPool = new ArrayList<WorkerThread>();
 		
