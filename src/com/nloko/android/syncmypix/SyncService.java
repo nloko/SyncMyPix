@@ -302,7 +302,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		Log.d(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
+    		if (Log.debug) Log.d(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
     		ContentValues values = createResult(syncId, user);
@@ -337,19 +337,20 @@ public abstract class SyncService extends Service {
     			is = ContactUtils.getPhoto(resolver, contactId);
     			// photo is set, so let's get its hash
     			if (is != null) {
-    				Log.d(TAG, "CONTACT PIC IS NOT NULL!!");
+    				//Log.d(TAG, "CONTACT PIC IS NOT NULL!!");
     				contactHash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
     			}
 
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
-    				if (image == null) {
-    					try {
-    						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
-    						originalBitmap = bitmap;
-    						image = Utils.bitmapToJpeg(bitmap, 100);
-    						hash = Utils.getMd5Hash(image);
-    					} catch (Exception e) {}
-    				}
+   					try {
+   						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+   						originalBitmap = bitmap;
+   						image = Utils.bitmapToJpeg(bitmap, 100);
+   						hash = Utils.getMd5Hash(image);
+   					} catch (Exception e) {
+   						e.printStackTrace();
+   					}
+
     				if (image != null) {
     					// picture is a new one and we should sync it
     					if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
