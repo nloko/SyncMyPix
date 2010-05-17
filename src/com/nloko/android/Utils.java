@@ -48,8 +48,7 @@ public final class Utils {
 	private Utils() {}
 	public static int determineOsVersion()
 	{
-		String version = Build.VERSION.SDK;
-		return Integer.parseInt(version);
+		return Integer.parseInt(Build.VERSION.SDK);
 	}
 	
 	public static String join(String[] array, char separator)
@@ -277,8 +276,7 @@ public final class Utils {
 	
 	public static byte[] downloadPicture (String url) throws IOException
     {
-		Bitmap bitmap = downloadPictureAsBitmap(url);
-    	return bitmapToJpeg(bitmap, 100);
+    	return bitmapToJpeg(downloadPictureAsBitmap(url), 100);
     }
     
 	public static byte[] bitmapToJpeg(Bitmap bitmap, int quality)
