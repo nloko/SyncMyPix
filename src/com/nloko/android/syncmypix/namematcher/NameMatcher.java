@@ -324,7 +324,7 @@ public class NameMatcher {
         return reversedComponents;
     }
     
-    public PhoneContact exactMatch(String name) {
+    public final PhoneContact exactMatch(String name) {
     	return exactMatch(name, false);
     }
     
@@ -363,7 +363,7 @@ public class NameMatcher {
     
     // Takes a name from the local contact list and tries to find the right
     // PhoneContact for it.
-    public PhoneContact match(String name, boolean firstNameOnlyMatches) {
+    public final PhoneContact match(String name, boolean firstNameOnlyMatches) {
         return match(name, firstNameOnlyMatches, false);
     }
     
