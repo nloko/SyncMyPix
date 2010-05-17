@@ -602,6 +602,8 @@ public abstract class SyncService extends Service {
 		super.onLowMemory();
 		// update results table and clear list
 		updateResults(false);
+		// remove notification in case kernel kills our process
+		cancelNotification(R.string.syncservice_started);
 	}
 
 	@Override
