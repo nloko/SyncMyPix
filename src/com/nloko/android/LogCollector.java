@@ -62,20 +62,21 @@ public class LogCollector {
 			}
 			
 			LogCollectorNotifier notifier = mCollector.mNotifier;
-			if (notifier == null) {
-				return;
-			}
 			
 			switch(msg.what) {
 				case COMPLETED:
 					mCollector.mCollected = true;
 					mCollector.mCollecting = false;
-					notifier.onComplete();
+					if (notifier != null) {
+						notifier.onComplete();
+					}
 					break;
 				case ERROR:
 					mCollector.mCollected = false;
 					mCollector.mCollecting = false;
-					notifier.onError();
+					if (notifier != null) {
+						notifier.onError();
+					}
 					break;
 			}
 		}
