@@ -44,10 +44,12 @@ public class SyncMyPixDbHelper {
 	private static final String TAG = "SyncMyPixDbHelper";
 	
 	private final WeakReference<ContentResolver> mResolver;
+	private final ContactUtils mContactUtils;
 	
 	public SyncMyPixDbHelper(Context context)
 	{
 		mResolver = new WeakReference<ContentResolver>(context.getContentResolver());
+		mContactUtils = new ContactUtils();
 	}
 
 	public void deleteAllPictures()
@@ -130,11 +132,11 @@ public class SyncMyPixDbHelper {
 			return;
 		}
 		
-		InputStream stream = ContactUtils.getPhoto(resolver, id);
+		InputStream stream = mContactUtils.getPhoto(resolver, id);
 		if (stream != null) {
 			String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
 			if (dbHash.equals(hash)) {
-				ContactUtils.updatePhoto(resolver, null, id);
+				mContactUtils.updatePhoto(resolver, null, id);
 			}
 		}
 	}
@@ -255,7 +257,7 @@ public class SyncMyPixDbHelper {
 			Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
 			
 			if (localHash) {
-				is = ContactUtils.getPhoto(resolver, id);
+				is = mContactUtils.getPhoto(resolver, id);
 				if (is != null) {
 					hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(is));
 					values.put(Contacts.PHOTO_HASH, hash);

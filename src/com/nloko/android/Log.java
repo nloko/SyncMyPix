@@ -21,7 +21,7 @@
 
 package com.nloko.android;
 
-public class Log {
+public final class Log {
 
 	public static boolean debug = false;
 	

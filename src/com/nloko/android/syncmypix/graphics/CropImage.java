@@ -404,7 +404,7 @@ public class CropImage extends Activity {
             	Uri contact = intent.getData();
             	List<String> segments = contact.getPathSegments();
 				String contactId = segments.get(segments.size() - 1);
-            	mBitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(mContentResolver, contactId));
+            	mBitmap = BitmapFactory.decodeStream(new ContactUtils().getPhoto(mContentResolver, contactId));
             }
             
             /*if (mBitmap == null) {

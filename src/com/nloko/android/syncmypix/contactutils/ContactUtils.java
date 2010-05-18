@@ -35,31 +35,31 @@ import android.provider.Contacts.People;
 import android.provider.Contacts.Photos;
 import android.provider.ContactsContract.Contacts;
 
-public class ContactUtils {
+public final class ContactUtils {
 	private static final String TAG = "ContactServices";
+
+	private final IContactProxy mInstance = ContactProxyFactory.create();
 	
-	// proxy is created each call to allow garbage collection
-	// slightly inefficient, but whatever
-	public static InputStream getPhoto(ContentResolver cr, String id)
+	public InputStream getPhoto(ContentResolver cr, String id)
 	{
-		return ContactProxyFactory.create().getPhoto(cr, id);
+		return mInstance.getPhoto(cr, id);
 	}
 	
-	public static boolean isContactUpdatable(ContentResolver cr, String id) {
-		return ContactProxyFactory.create().isContactUpdatable(cr, id);
+	public boolean isContactUpdatable(ContentResolver cr, String id) {
+		return mInstance.isContactUpdatable(cr, id);
 	}
 	
-	public static void updatePhoto (ContentResolver cr, byte[] image, String id)
+	public void updatePhoto (ContentResolver cr, byte[] image, String id)
 	{
 		updatePhoto(cr, image, id, false);
 	}
 	
-	public static void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty)
+	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty)
 	{
-		ContactProxyFactory.create().updatePhoto(cr, image, id, markDirty);
+		mInstance.updatePhoto(cr, image, id, markDirty);
 	}
 	
-	public static Uri getContentUri() {
-		return ContactProxyFactory.create().getContentUri();
+	public Uri getContentUri() {
+		return mInstance.getContentUri();
 	}
 }

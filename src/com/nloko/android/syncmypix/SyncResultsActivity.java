@@ -85,6 +85,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SyncResultsActivity extends Activity {
 
+	private ContactUtils mContactUtils;
 	private SyncMyPixDbHelper mDbHelper;
 	private ListView mListview;
 	
@@ -142,6 +143,8 @@ public class SyncResultsActivity extends Activity {
 		
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
+		
+		mContactUtils = new ContactUtils();
 		
 		Bitmap defaultImage = BitmapFactory.decodeResource(getResources(), R.drawable.default_face);
 		mCache.setDefaultImage(Bitmap.createScaledBitmap(defaultImage, 40, 40, false));
@@ -442,7 +445,7 @@ public class SyncResultsActivity extends Activity {
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					if (id != null) {
-						intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(ContactUtils.getContentUri(), id));
+						intent = new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(mContactUtils.getContentUri(), id));
 						startActivity(intent);
 					}
 				}
@@ -453,7 +456,7 @@ public class SyncResultsActivity extends Activity {
 				position = ((AdapterContextMenuInfo)menuInfo).position;
 				mUriOfSelected = getResultsUriFromListPosition(position);
 				
-				intent = new Intent(Intent.ACTION_PICK, ContactUtils.getContentUri());
+				intent = new Intent(Intent.ACTION_PICK, mContactUtils.getContentUri());
 				startActivityForResult(intent, PICK_CONTACT);  
 				return true;
 				
@@ -523,7 +526,7 @@ public class SyncResultsActivity extends Activity {
 					if (bitmap != null) {
 						byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
 					
-						ContactUtils.updatePhoto(getContentResolver(), bytes, id);
+						mContactUtils.updatePhoto(getContentResolver(), bytes, id);
 						mDbHelper.updateHashes(id, null, bytes);
 					
 						mCache.add(url, bitmap);
@@ -594,7 +597,7 @@ public class SyncResultsActivity extends Activity {
 			final Uri contactUri = contact;
 			final List<String> segments = contactUri.getPathSegments();
 			final String contactId = segments.get(segments.size() - 1);
-			if (!ContactUtils.isContactUpdatable(resolver, contactId)) {
+			if (!mContactUtils.isContactUpdatable(resolver, contactId)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.syncresults_contactunlinkableerror, 
 						Toast.LENGTH_LONG).show();
@@ -622,7 +625,7 @@ public class SyncResultsActivity extends Activity {
 							}
 							
 							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
-							ContactUtils.updatePhoto(resolver, bytes, contactId);
+							mContactUtils.updatePhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, bytes, bytes);
 							
 							if (friendId != null && !friendId.equals("")) {
@@ -1047,8 +1050,13 @@ public class SyncResultsActivity extends Activity {
 					return;
 				}
 			
+				final ContactUtils utils = activity.mContactUtils;
+				if (utils == null) {
+					return;
+				}
+				
 				try {
-					Bitmap bitmap = BitmapFactory.decodeStream(ContactUtils.getPhoto(resolver, contactId));
+					Bitmap bitmap = BitmapFactory.decodeStream(utils.getPhoto(resolver, contactId));
 					if (bitmap != null) {
 						//Log.d(TAG, "ThumbnailHandler updated cache " + url);
 						activity.mCache.add(url, bitmap);
