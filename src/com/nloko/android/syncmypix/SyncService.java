@@ -66,7 +66,7 @@ public abstract class SyncService extends Service {
 	private final static String TAG = "SyncService";
 	public final static Object mSyncLock = new Object();
 	
-	private ContactUtils mContactUtils;
+	
 	private SyncServiceStatus mStatus = SyncServiceStatus.IDLE;
 	private SyncTask mSyncOperation;
 	private NotificationManager mNotifyManager;
@@ -258,12 +258,15 @@ public abstract class SyncService extends Service {
     {
     	private final WeakReference<SyncService> mService;
     	private final SyncMyPixDbHelper dbHelper;
+    	private final ContactUtils mContactUtils;
+    	
     	private int mUpdated = 0;
     	private int mSkipped = 0;
     	private int mNotFound = 0;
     	    	    	
     	public SyncTask (SyncService service)
     	{
+    		mContactUtils = new ContactUtils();
     		mService = new WeakReference<SyncService>(service);
     		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
     		
@@ -303,11 +306,6 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		final ContactUtils utils = service.mContactUtils;
-    		if (utils == null) {
-    			return;
-    		}
-    		
     		if (Log.debug) Log.d(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
@@ -320,7 +318,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		if (contactId == null || !utils.isContactUpdatable(resolver, contactId)) {
+    		if (contactId == null || !mContactUtils.isContactUpdatable(resolver, contactId)) {
     			Log.d(TAG, "Contact not found in database.");
     			mNotFound++;
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
@@ -340,7 +338,7 @@ public abstract class SyncService extends Service {
 
     		try {
     			DBHashes hashes = dbHelper.getHashes(contactId);
-    			is = utils.getPhoto(resolver, contactId);
+    			is = mContactUtils.getPhoto(resolver, contactId);
     			// photo is set, so let's get its hash
     			if (is != null) {
     				//Log.d(TAG, "CONTACT PIC IS NOT NULL!!");
@@ -366,7 +364,7 @@ public abstract class SyncService extends Service {
     							image = Utils.bitmapToJpeg(bitmap, 100);
     							updatedHash = Utils.getMd5Hash(image);
     						}
-    						utils.updatePhoto(resolver, image, contactId, service.mAllowGoogleSync);
+    						mContactUtils.updatePhoto(resolver, image, contactId, service.mAllowGoogleSync);
     						dbHelper.updateHashes(contactId, hash, updatedHash);
     						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
     						mUpdated++;
@@ -619,7 +617,7 @@ public abstract class SyncService extends Service {
 
     	// keep CPU alive until we're done
     	SyncWakeLock.acquireWakeLock(getApplicationContext());
-    	mContactUtils = new ContactUtils();
+    	
     	
 		mExecuting = true;
 		mStarted = true;
