@@ -121,21 +121,23 @@ public class ContactProxy2 implements IContactProxy {
 	            rawContactIdCursor = cr.query(RawContacts.CONTENT_URI,
 	                    new String[] { RawContacts._ID, RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE },
 	                    RawContacts.CONTACT_ID + "=" + contactId, null, null);
-	            if (rawContactIdCursor != null && rawContactIdCursor.moveToFirst()) {
-	                // Just return the first one.
-	            	String accountName = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_NAME));
-	            	String accountType = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_TYPE));
-	            	Log.d(TAG, accountName != null ? accountName : "empty");
-	            	Log.d(TAG, accountType != null ? accountType : "empty");
-	            	
-	            	// a HACK to exclude read only accounts
-	            	if (accountType == null || 
-	            			accountType.toLowerCase().contains("google") ||
-	            			accountType.toLowerCase().contains("exchange") ||
-	            			accountType.toLowerCase().contains("htc.android.mail") ||
-	            			accountType.toLowerCase().contains("htc.android.pcsc") ||
-	            			accountType.length() == 0) {
-	            		rawContactId = rawContactIdCursor.getLong(0);
+	            if (rawContactIdCursor != null) {
+//	            	Log.d(TAG, "JKLFJDLKSFJLSJFLSD");
+	            	while(rawContactIdCursor.moveToNext() && rawContactId < 0) {
+		            	String accountName = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_NAME));
+		            	String accountType = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_TYPE));
+		            	Log.d(TAG, accountName != null ? accountName : "empty");
+		            	Log.d(TAG, accountType != null ? accountType : "empty");
+		            	
+		            	// a HACK to exclude read only accounts
+		            	if (accountType == null || 
+		            			accountType.toLowerCase().contains("google") ||
+		            			accountType.toLowerCase().contains("exchange") ||
+		            			accountType.toLowerCase().contains("htc.android.mail") ||
+		            			accountType.toLowerCase().contains("htc.android.pcsc") ||
+		            			accountType.length() == 0) {
+		            		rawContactId = rawContactIdCursor.getLong(0);
+		            	}
 	            	}
 	            }
 	        } finally {
