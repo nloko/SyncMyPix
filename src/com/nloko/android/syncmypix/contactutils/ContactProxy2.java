@@ -108,8 +108,7 @@ public class ContactProxy2 implements IContactProxy {
 	} 
 	
 	public boolean isContactUpdatable(ContentResolver cr, String id) {
-		long rawId = queryForRawContactId(cr, Long.parseLong(id));
-		return rawId > -1;
+		return queryForRawContactId(cr, Long.parseLong(id)) > -1;
 	}
 	
 	private long queryForRawContactId(ContentResolver cr, long contactId) {
