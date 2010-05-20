@@ -126,7 +126,7 @@ public class ContactProxy2 implements IContactProxy {
 	            	while(rawContactIdCursor.moveToNext() && rawContactId < 0) {
 		            	String accountName = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_NAME));
 		            	String accountType = rawContactIdCursor.getString(rawContactIdCursor.getColumnIndex(RawContacts.ACCOUNT_TYPE));
-		            	Log.d(TAG, accountName != null ? accountName : "empty");
+		            	//Log.d(TAG, accountName != null ? accountName : "empty");
 		            	Log.d(TAG, accountType != null ? accountType : "empty");
 		            	
 		            	// a HACK to exclude read only accounts
