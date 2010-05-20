@@ -181,16 +181,16 @@ public class SyncResultsActivity extends Activity {
         mCache.setImageListener(new ImageListener() {
 			public void onImageReady(final String url) {
 				final ImageView image = (ImageView) mListview.findViewWithTag(url);
+
 //				Log.d(TAG, "onImageReady updating image");
 				runOnUiThread(new Runnable() {
 					public void run() {
+						if (mListview == null) return;
 						if (mCache != null && image != null) {
 							image.setImageBitmap(mCache.get(url));
 						} else {
-							if (mListview != null) {
-								// 	HACK sometimes the view can't be found, probably already recycled
-								((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
-							}
+							// 	HACK sometimes the view can't be found, probably already recycled
+							((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
 						}
 						mListview.invalidateViews();
 					}
@@ -365,7 +365,7 @@ public class SyncResultsActivity extends Activity {
 		}
 		mCache.destroy();
 		// allow proper GC
-		mListview = null;
+		//mListview = null;
 	}
 		
 	@Override
