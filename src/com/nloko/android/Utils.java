@@ -261,7 +261,7 @@ public final class Utils {
 		
 		Bitmap image = null;
 		for(int i=0; i<=retries; i++) {
-			Log.e(TAG, "try "+i);
+			//Log.d(TAG, "try "+i);
 			try {
 				if ((image = downloadPictureAsBitmap(url)) != null) break;
 			} catch (IOException e) {
