@@ -259,6 +259,7 @@ public final class Utils {
 		
 		Bitmap image = null;
 		for(int i=0; i<=retries; i++) {
+			Log.e(TAG, "try "+i);
 			try {
 				if ((image = downloadPictureAsBitmap(url)) != null) break;
 			} catch (IOException e) {
@@ -327,13 +328,11 @@ public final class Utils {
 		byte[] image = null;
 		
 		try {
-			if (bitmap != null) {
-				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 				
-				bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
-				image =  bytes.toByteArray();
-				bytes.close();
-			}
+			bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bytes);
+			image =  bytes.toByteArray();
+			bytes.close();
 		} catch (IOException e) {}
 
 		return image;
@@ -348,13 +347,11 @@ public final class Utils {
 		byte[] image = null;
 	
 		try {
-			if (bitmap != null) {
-				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 				
-				bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
-				image =  bytes.toByteArray();
-				bytes.close();
-			}
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
+			image =  bytes.toByteArray();
+			bytes.close();
 		} catch (IOException e) {}
 
 		return image;
