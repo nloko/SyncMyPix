@@ -93,7 +93,7 @@ public class ContactProxy2 implements IContactProxy {
 				//cr.delete(builder.build(), ContactsContract.Data._ID 
 				//	+ " = " + photoRow, null);
 				//Log.d(TAG, "deleting");
-				cr.delete(updateUri, null, null);
+				cr.delete(uri, null, null);
 			} else {
 				//cr.update 
 				//	(builder.build(), values, ContactsContract.Data._ID 
