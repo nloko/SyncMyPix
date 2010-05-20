@@ -253,6 +253,10 @@ public final class Utils {
 	
 	public static Bitmap downloadPictureAsBitmap (String url, int retries) throws IOException
 	{
+		if (url == null) {
+    		throw new IllegalArgumentException ("url");
+    	}
+		
 		Bitmap image = null;
 		for(int i=0; i<=retries; i++) {
 			try {
@@ -316,6 +320,10 @@ public final class Utils {
     
 	public static byte[] bitmapToJpeg(Bitmap bitmap, int quality)
 	{
+		if (bitmap == null) {
+    		throw new IllegalArgumentException ("bitmap");
+    	}
+		
 		byte[] image = null;
 		
 		try {
@@ -333,6 +341,10 @@ public final class Utils {
 	
 	public static byte[] bitmapToPNG(Bitmap bitmap)
 	{
+		if (bitmap == null) {
+    		throw new IllegalArgumentException ("bitmap");
+    	}
+		
 		byte[] image = null;
 	
 		try {
