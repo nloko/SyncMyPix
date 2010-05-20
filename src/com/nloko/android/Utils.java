@@ -32,8 +32,10 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -293,14 +295,14 @@ public final class Utils {
             HttpResponse response = httpclient.execute(httpget);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
-            	stream  = entity.getContent();
+            	BufferedHttpEntity buff = new BufferedHttpEntity(entity);
+            	stream  = buff.getContent();
             	image = BitmapFactory.decodeStream(stream);
             }
-    	}
-	    catch (IOException ex) {
+    	} catch (IOException ex) {
 	    	Log.e(null, android.util.Log.getStackTraceString(ex));
 	    	throw ex;
-	    } finally {
+    	} finally {
 	    	try {
 		    	if (httpclient != null) {
 		    		httpclient.getConnectionManager().shutdown();
