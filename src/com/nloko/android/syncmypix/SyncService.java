@@ -347,7 +347,7 @@ public abstract class SyncService extends Service {
 
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
    					try {
-   						bitmap = Utils.downloadPictureAsBitmap(user.picUrl);
+   						bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
    						originalBitmap = bitmap;
    						image = Utils.bitmapToJpeg(bitmap, 100);
    						hash = Utils.getMd5Hash(image);

@@ -30,6 +30,15 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -45,6 +54,7 @@ import com.nloko.android.Log;
 
 public final class Utils {
 
+	private static final String TAG = "Utils";
 	private Utils() {}
 	public static int determineOsVersion()
 	{
@@ -241,34 +251,59 @@ public final class Utils {
 		return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true); 
 	}
 	
+	public static Bitmap downloadPictureAsBitmap (String url, int retries) throws IOException
+	{
+		Bitmap image = null;
+		for(int i=0; i<=retries; i++) {
+			try {
+				if ((image = downloadPictureAsBitmap(url)) != null) break;
+			} catch (IOException e) {
+				if (i == retries) throw e;
+			}
+		}
+		
+		return image;
+	}
+
 	public static Bitmap downloadPictureAsBitmap (String url) throws IOException
 	{
-		// quit after 30 seconds
-		final int timeout = 30000;
-		
 		if (url == null) {
     		throw new IllegalArgumentException ("url");
     	}
     	
-		URLConnection conn = null;
+		HttpClient httpclient = null;
 		InputStream stream = null;
     	Bitmap image = null;
     	try {
-	    	URL fetchUrl = new URL(url);
-	    	conn = (URLConnection) fetchUrl.openConnection();
-	    	conn.setConnectTimeout(timeout);
-	    	conn.setReadTimeout(timeout);
-	    	
-	    	stream = conn.getInputStream();
-	    	image = BitmapFactory.decodeStream(stream);
+    		HttpParams params = new BasicHttpParams();
+    		// Set the timeout in milliseconds until a connection is established.
+    		HttpConnectionParams.setConnectionTimeout(params, 5000);
+    		// Set the default socket timeout (SO_TIMEOUT) 
+    		// in milliseconds which is the timeout for waiting for data.
+    		HttpConnectionParams.setSoTimeout(params, 10000);
+    		
+            httpclient = new DefaultHttpClient(params);
+            HttpGet httpget = new HttpGet(url); 
+            
+            HttpResponse response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+            	stream  = entity.getContent();
+            	image = BitmapFactory.decodeStream(stream);
+            }
     	}
 	    catch (IOException ex) {
 	    	Log.e(null, android.util.Log.getStackTraceString(ex));
 	    	throw ex;
 	    } finally {
-	    	if (stream != null) {
-	    		stream.close();
-	    	}
+	    	try {
+		    	if (httpclient != null) {
+		    		httpclient.getConnectionManager().shutdown();
+		    	}
+		    	if (stream != null) {
+		    		stream.close();
+		    	}
+	    	} catch (Exception e) {}
 	    }
 	    
 	    return image;
