@@ -135,9 +135,9 @@ public class SyncMyPixDbHelper {
 		InputStream stream = mContactUtils.getPhoto(resolver, id);
 		if (stream != null) {
 			String hash = Utils.getMd5Hash(Utils.getByteArrayFromInputStream(stream));
-			if (dbHash.equals(hash)) {
+			//if (dbHash.equals(hash)) {
 				mContactUtils.updatePhoto(resolver, null, id);
-			}
+			//}
 		}
 	}
 	

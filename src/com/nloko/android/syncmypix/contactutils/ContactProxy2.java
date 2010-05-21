@@ -82,7 +82,7 @@ public class ContactProxy2 implements IContactProxy {
 		values.put(ContactsContract.Data.IS_SUPER_PRIMARY, 1); 
 		values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, photo); 
 		values.put(ContactsContract.Data.MIMETYPE, 
-				ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE); 
+				ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE);
 		// append CALLER_IS_SYNCADAPTER to prevent sync
 		Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photoRow);
 		//Uri.Builder builder = ContactsContract.Data.CONTENT_URI.buildUpon();
@@ -98,13 +98,13 @@ public class ContactProxy2 implements IContactProxy {
 				//cr.update 
 				//	(builder.build(), values, ContactsContract.Data._ID 
 				//	+ " = " + photoRow, null);
-				cr.update(updateUri, values, null, null);
+				cr.update(uri, values, null, null);
 			}
 		} else { 
 			//cr.insert(builder.build(), values);
 			uri = ContactsContract.Data.CONTENT_URI;
-			updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-			cr.insert(updateUri, values);
+			//updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+			cr.insert(uri, values);
 		} 
 	} 
 	
