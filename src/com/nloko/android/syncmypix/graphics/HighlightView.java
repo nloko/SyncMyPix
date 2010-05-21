@@ -18,7 +18,6 @@
 package com.nloko.android.syncmypix.graphics;
 
 import com.nloko.android.syncmypix.R;
-import com.nloko.android.syncmypix.R.drawable;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;

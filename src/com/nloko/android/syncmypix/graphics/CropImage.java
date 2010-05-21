@@ -38,7 +38,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.provider.Contacts.People;
 import android.util.AttributeSet;
 import android.util.Config;
 import android.util.Log;
@@ -46,7 +45,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,10 +54,7 @@ import java.util.List;
 
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.R;
-import com.nloko.android.syncmypix.R.id;
-import com.nloko.android.syncmypix.R.layout;
 import com.nloko.android.syncmypix.contactutils.ContactUtils;
-import com.nloko.android.syncmypix.graphics.HighlightView.ModifyMode;
 
 public class CropImage extends Activity {
     private static final String TAG = "CropImage";

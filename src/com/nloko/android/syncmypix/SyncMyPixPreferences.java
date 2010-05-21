@@ -22,11 +22,8 @@
 
 package com.nloko.android.syncmypix;
 
-import java.lang.reflect.Method;
-
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 public final class SyncMyPixPreferences {

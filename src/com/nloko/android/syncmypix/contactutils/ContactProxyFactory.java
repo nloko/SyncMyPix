@@ -22,10 +22,6 @@
 
 package com.nloko.android.syncmypix.contactutils;
 
-import java.io.InputStream;
-
-import android.content.ContentResolver;
-
 import com.nloko.android.Utils;
 
 public class ContactProxyFactory {

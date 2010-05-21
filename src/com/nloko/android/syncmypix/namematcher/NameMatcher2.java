@@ -27,15 +27,10 @@ package com.nloko.android.syncmypix.namematcher;
 import java.io.InputStream;
 
 import com.nloko.android.Log;
-import com.nloko.android.syncmypix.namematcher.NameMatcher.PhoneContact;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import android.provider.Contacts.People;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.RawContacts;
 
 public class NameMatcher2 extends NameMatcher {
 

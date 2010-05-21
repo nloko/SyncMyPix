@@ -27,7 +27,6 @@ import com.nloko.android.Log;
 import com.nloko.android.Utils;
 
 import android.content.Context;
-import android.os.Build;
 
 public class NameMatcherFactory {
 	private static String TAG = "NameMatcherFactory";

@@ -27,7 +27,6 @@ import java.io.InputStream;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.provider.Contacts.People;
 import android.provider.Contacts.Photos;
 

@@ -24,16 +24,8 @@ package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
 
-import com.nloko.android.Log;
-
 import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.provider.Contacts.People;
-import android.provider.Contacts.Photos;
-import android.provider.ContactsContract.Contacts;
 
 public final class ContactUtils {
 	private static final String TAG = "ContactServices";
