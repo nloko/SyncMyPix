@@ -86,7 +86,7 @@ public class DonateActivity extends Activity {
 			
 		   	DonateActivity activity = mActivity.get();
 			if (activity != null) {
-				android.util.Log.e(activity.TAG, msg);
+				android.util.Log.e(DonateActivity.TAG, msg);
 				Toast.makeText(activity.getApplicationContext(), msg, Toast.LENGTH_LONG).show();
 				
 				activity.finish();

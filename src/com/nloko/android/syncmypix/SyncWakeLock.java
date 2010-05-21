@@ -35,7 +35,7 @@ public class SyncWakeLock {
 		}
 		
 		if (mWakeLock == null) {
-    		PowerManager pm = (PowerManager) context.getSystemService(context.POWER_SERVICE);
+    		PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SyncMyPix WakeLock");
             mWakeLock.acquire();
     	}
