@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.nloko.android.syncmypix"
       android:versionCode="46"
-      android:versionName="0.12.3">
+      android:versionName="0.12.3"
+      android:installLocation="auto" >
     <application 
     	android:icon="@drawable/icon" 
     	android:label="@string/app_name"
