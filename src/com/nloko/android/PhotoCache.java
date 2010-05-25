@@ -105,8 +105,12 @@ public class PhotoCache {
 		}
 		
 		mSized = true;
+		File[] files = mPath.listFiles();
+		if (files == null) {
+			return;
+		}
 		
-		for(File f : mPath.listFiles()) {
+		for(File f : files) {
 			updateSize(f);
 		}
 	}
@@ -133,7 +137,12 @@ public class PhotoCache {
 	}
 	
 	public synchronized void deleteAll() {
-		for(File f : mPath.listFiles()) {
+		File[] files = mPath.listFiles();
+		if (files == null) {
+			return;
+		}
+		
+		for(File f : files) {
 			if (mExternalStorageWriteable) {
 				if (mSized) {
 					mSize -= f.length();
