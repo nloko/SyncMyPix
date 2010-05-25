@@ -38,7 +38,6 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -68,6 +67,7 @@ public class PhotoCache {
 	private boolean mSized = false;
 	
 	private final AsyncHandler mHandler;
+	private PhotoCacheListener mListener;
 	
 	public PhotoCache(Context context, long maxBytes) {
 		this(context);
@@ -89,11 +89,9 @@ public class PhotoCache {
 		thread.start();
 		mHandler = new AsyncHandler(thread);
 	}
-
-	private void ensurePath() {
-		if (mExternalStorageWriteable) {
-			mPath.mkdirs();
-		}
+	
+	public void setListener(PhotoCacheListener listener) {
+		mListener = listener;
 	}
 	
 	public void delete(String name) {
@@ -105,53 +103,6 @@ public class PhotoCache {
 
 	public void deleteAll() {
 		mHandler.sendEmptyMessage(DELETE_ALL);
-	}
-	
-	private synchronized void resize() {
-		Log.d(TAG, String.format("resize() map size %d", mPhotos.size()));
-		// delete the oldest in the cache
-		while (!mPhotos.isEmpty() && mSize > mMaxBytes) {
-			for(String name : mPhotos.get(mPhotos.firstKey())) {
-				File f = new File(mPath, name);
-				if (mExternalStorageWriteable && f.exists()) {
-					mSize -= f.length();
-					f.delete();
-					Log.d(TAG, String.format("resize() deleted %s", name));
-				}
-				
-				Log.v(TAG, String.format("resize() %d", mSize));
-			}
-			
-			mPhotos.remove(mPhotos.firstKey());
-		}
-	}
-	
-	private synchronized void calculateSize() {
-		if (!mExternalStorageAvailable) {
-			return;
-		}
-		
-		mSized = true;
-		File[] files = mPath.listFiles();
-		if (files == null) {
-			return;
-		}
-		
-		for(File f : files) {
-			updateSize(f);
-		}
-	}
-
-	private synchronized void updateSize(File f) {
-		long modified = f.lastModified();
-		if (!mPhotos.containsKey(modified)) {
-			mPhotos.put(modified, new ArrayList<String>());
-		}
-		
-		mPhotos.get(modified).add(f.getName());
-		mSize += f.length();
-		Log.d(TAG, String.format("updateSize() %d", mSize));
-		resize();
 	}
 	
 	public void releaseResources() {
@@ -235,6 +186,53 @@ public class PhotoCache {
 			super(t.getLooper());
 		}
 
+		private synchronized void ensurePath() {
+			if (mExternalStorageWriteable) {
+				mPath.mkdirs();
+			}
+		}
+		
+		private synchronized void resize() {
+			Log.d(TAG, String.format("resize() map size %d", mPhotos.size()));
+			// delete the oldest in the cache
+			while (!mPhotos.isEmpty() && mSize > mMaxBytes) {
+				for(String name : mPhotos.get(mPhotos.firstKey())) {
+					delete(name);
+					Log.v(TAG, String.format("resize() %d", mSize));
+				}
+				
+				mPhotos.remove(mPhotos.firstKey());
+			}
+		}
+		
+		private synchronized void calculateSize() {
+			if (!mExternalStorageAvailable) {
+				return;
+			}
+			
+			mSized = true;
+			File[] files = mPath.listFiles();
+			if (files == null) {
+				return;
+			}
+			
+			for(File f : files) {
+				updateSize(f);
+			}
+		}
+
+		private synchronized void updateSize(File f) {
+			long modified = f.lastModified();
+			if (!mPhotos.containsKey(modified)) {
+				mPhotos.put(modified, new ArrayList<String>());
+			}
+			
+			mPhotos.get(modified).add(f.getName());
+			mSize += f.length();
+			Log.d(TAG, String.format("updateSize() %d", mSize));
+			resize();
+		}
+
 		private synchronized void delete(String name) {
 			if (!mExternalStorageWriteable || name == null) {
 				return;
@@ -244,6 +242,10 @@ public class PhotoCache {
 			if (f.exists()) {
 				mSize -= f.length();
 				f.delete();
+				if (mListener != null) {
+					mListener.onDeleted(name);
+				}
+				Log.d(TAG, String.format("delete() deleted %s", name));
 			}
 		}
 	
@@ -260,6 +262,10 @@ public class PhotoCache {
 					}
 					f.delete();
 				}
+			}
+			
+			if (mListener != null) {
+				mListener.onAllDeleted();
 			}
 		}
 
@@ -287,6 +293,10 @@ public class PhotoCache {
 					bitmap.compress(CompressFormat.JPEG, 100, os);
 					os.close();
 					updateSize(photo);
+					
+					if (mListener != null) {
+						mListener.onAdded(file);
+					}
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
