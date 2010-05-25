@@ -30,6 +30,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.nloko.android.Log;
+import com.nloko.android.PhotoCache;
 import com.nloko.android.ThumbnailCache;
 import com.nloko.android.Utils;
 import com.nloko.android.ThumbnailCache.ImageListener;
@@ -93,6 +94,7 @@ public class SyncResultsActivity extends Activity {
 	
 	private Bitmap mContactImage;
 	private final ThumbnailCache mCache = new ThumbnailCache();
+	private PhotoCache mSdCache;
 
 	private Uri mUriOfSelected = null;
 	
@@ -143,6 +145,7 @@ public class SyncResultsActivity extends Activity {
 		
 		mContactUtils = new ContactUtils();
 		
+		mSdCache = new PhotoCache(getApplicationContext());
 		Bitmap defaultImage = BitmapFactory.decodeResource(getResources(), R.drawable.default_face);
 		mCache.setDefaultImage(Bitmap.createScaledBitmap(defaultImage, 40, 40, false));
 		
@@ -361,6 +364,10 @@ public class SyncResultsActivity extends Activity {
 			mThumbnailHandler.stopRunning();
 		}
 		mCache.destroy();
+		
+		if (mSdCache != null) {
+			mSdCache.releaseResources();
+		}
 		// allow proper GC
 		//mListview = null;
 	}
@@ -1108,7 +1115,7 @@ public class SyncResultsActivity extends Activity {
 			super(looper);
 			mActivity = new WeakReference<SyncResultsActivity>(activity);
 			initThreadPool(activity);
-			init();
+			//init();
 		}
 		
 		private void initThreadPool(SyncResultsActivity activity)
@@ -1261,9 +1268,20 @@ public class SyncResultsActivity extends Activity {
 					
 			if (url != null) {
 				try {
-					Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
+					Bitmap bitmap = null;
+					String filename = Uri.parse(url).getLastPathSegment();
+					if (activity.mSdCache != null) {
+						bitmap = activity.mSdCache.get(filename);
+					}
+					
+					// cache miss
+					if (bitmap == null) {
+						bitmap = Utils.downloadPictureAsBitmap(url);
+					}
+					
 					synchronized(this) {
 						if (running && bitmap != null) {
+							activity.mSdCache.add(filename, bitmap);
 							Message mainMsg = handler.obtainMessage();
 							mainMsg.obj = bitmap;
 							mainMsg.what = msg.what;
@@ -1358,12 +1376,12 @@ public class SyncResultsActivity extends Activity {
 			image.setTag(url);
 			
 			if (id > 0 && !activity.mCache.contains(url)) {
-				if (!activity.mThumbnailHandler.isLoading()) {
+				//if (!activity.mThumbnailHandler.isLoading()) {
 					//Log.d(TAG, "bindView attempting to load into cache " + url);
 					Message msg = activity.mThumbnailHandler.obtainMessage();
 					msg.obj = url;
 					activity.mThumbnailHandler.sendMessage(msg);
-				}
+				//}
 				image.setImageBitmap(activity.mCache.getDefaultImage());
 			} else if (activity.mCache.contains(url)) {
 				//Log.d(TAG, id + " bindView attempting to get from cache " + url);

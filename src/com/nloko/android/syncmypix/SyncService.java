@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.nloko.android.Log;
+import com.nloko.android.PhotoCache;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
 import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
@@ -255,6 +256,7 @@ public abstract class SyncService extends Service {
     	private final WeakReference<SyncService> mService;
     	private final SyncMyPixDbHelper dbHelper;
     	private final ContactUtils mContactUtils;
+    	private final PhotoCache mCache;
     	
     	private int mUpdated = 0;
     	private int mSkipped = 0;
@@ -263,6 +265,7 @@ public abstract class SyncService extends Service {
     	public SyncTask (SyncService service)
     	{
     		mContactUtils = new ContactUtils();
+    		mCache = new PhotoCache(service);
     		mService = new WeakReference<SyncService>(service);
     		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
     		
@@ -344,6 +347,7 @@ public abstract class SyncService extends Service {
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
    					try {
    						bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
+   						mCache.add(Uri.parse(user.picUrl).getLastPathSegment(), bitmap);
    						originalBitmap = bitmap;
    						image = Utils.bitmapToJpeg(bitmap, 100);
    						hash = Utils.getMd5Hash(image);
@@ -458,6 +462,7 @@ public abstract class SyncService extends Service {
 					//matcher.dump();
 					
 					// clear previous results, if any
+					mCache.deleteAll();
 					dbHelper.deleteResults(source);
 					ContentValues syncValues = new ContentValues();
 					syncValues.put(Sync.SOURCE, source);
@@ -520,6 +525,9 @@ public abstract class SyncService extends Service {
 					}
 					if (userList != null) {
 						userList.clear();
+					}
+					if (mCache != null) {
+						mCache.releaseResources();
 					}
 					handler.post(handler.resetExecuting);
 				}
