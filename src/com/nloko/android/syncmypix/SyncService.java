@@ -266,7 +266,10 @@ public abstract class SyncService extends Service {
     	public SyncTask (SyncService service)
     	{
     		mContactUtils = new ContactUtils();
+    		
     		mCache = new PhotoCache(service.getApplicationContext());
+    		mCache.setDeleteOrder(PhotoCache.DELETE_NEWEST);
+    		
     		mService = new WeakReference<SyncService>(service);
     		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
     		
@@ -347,9 +350,14 @@ public abstract class SyncService extends Service {
 
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
    					try {
-   						bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
+   						String filename =  Uri.parse(user.picUrl).getLastPathSegment();
+   						bitmap = mCache.get(filename);
+   						if (bitmap == null) {
+   							Log.d(TAG, "cache miss");
+   							bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
+   						}
    						if (service.mCacheOn) {
-   							mCache.add(Uri.parse(user.picUrl).getLastPathSegment(), bitmap);
+   							mCache.add(filename, bitmap);
    						}
    						originalBitmap = bitmap;
    						image = Utils.bitmapToJpeg(bitmap, 100);
@@ -465,7 +473,7 @@ public abstract class SyncService extends Service {
 					//matcher.dump();
 					
 					// clear previous results, if any
-					mCache.deleteAll();
+					//mCache.deleteAll();
 					dbHelper.deleteResults(source);
 					ContentValues syncValues = new ContentValues();
 					syncValues.put(Sync.SOURCE, source);
