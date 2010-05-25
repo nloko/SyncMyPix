@@ -211,16 +211,19 @@ public class PhotoCache {
 			return;
 		}
 		
+		Log.v(TAG, "Registering BroadcastReceiver");
 	    mExternalStorageReceiver = new BroadcastReceiver() {
 	        @Override
 	        public void onReceive(Context context, Intent intent) {
-	            Log.d("test", "Storage: " + intent.getData());
+	            Log.d(TAG, "Storage: " + intent.getData());
 	            updateExternalStorageState();
 	        }
 	    };
 	    IntentFilter filter = new IntentFilter();
 	    filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
 	    filter.addAction(Intent.ACTION_MEDIA_REMOVED);
+	    filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
+	    filter.addDataScheme("file");
 	    context.registerReceiver(mExternalStorageReceiver, filter);
 	    updateExternalStorageState();
 	}
