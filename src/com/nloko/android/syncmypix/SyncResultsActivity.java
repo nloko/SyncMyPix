@@ -621,11 +621,13 @@ public class SyncResultsActivity extends Activity {
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
 					try {
-						Bitmap bitmap = sdCache.get(Uri.parse(url).getLastPathSegment());
+						String filename = Uri.parse(url).getLastPathSegment();
+						Bitmap bitmap = sdCache.get(filename);
 						if (bitmap == null) {
 							bitmap = Utils.downloadPictureAsBitmap(url);
 						}
 						if (bitmap != null) {
+							sdCache.add(filename, bitmap);
 							
 							Log.d(TAG, contactUri.toString());
 							unlink(contactId);
