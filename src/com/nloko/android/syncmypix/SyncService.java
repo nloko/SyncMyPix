@@ -266,7 +266,7 @@ public abstract class SyncService extends Service {
     	public SyncTask (SyncService service)
     	{
     		mContactUtils = new ContactUtils();
-    		mCache = new PhotoCache(service);
+    		mCache = new PhotoCache(service.getApplicationContext());
     		mService = new WeakReference<SyncService>(service);
     		dbHelper = new SyncMyPixDbHelper(mService.get().getApplicationContext());
     		
