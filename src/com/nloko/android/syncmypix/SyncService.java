@@ -79,6 +79,7 @@ public abstract class SyncService extends Service {
     protected boolean mCropSquare;
     protected boolean mIntelliMatch;
     protected boolean mPhoneOnly;
+    protected boolean mCacheOn;
     protected SyncServiceListener mListener;
 	protected final MainHandler mMainHandler = new MainHandler(this);
 
@@ -347,7 +348,9 @@ public abstract class SyncService extends Service {
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
    					try {
    						bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
-   						mCache.add(Uri.parse(user.picUrl).getLastPathSegment(), bitmap);
+   						if (service.mCacheOn) {
+   							mCache.add(Uri.parse(user.picUrl).getLastPathSegment(), bitmap);
+   						}
    						originalBitmap = bitmap;
    						image = Utils.bitmapToJpeg(bitmap, 100);
    						hash = Utils.getMd5Hash(image);
@@ -595,6 +598,7 @@ public abstract class SyncService extends Service {
     	mSkipIfExists = prefs.getSkipIfExists();
     	mIntelliMatch = prefs.getIntelliMatch();
     	mPhoneOnly = prefs.getPhoneOnly();
+    	mCacheOn = prefs.getCache();
     	
     	Log.d(TAG, "PhoneOnly is " + mPhoneOnly);
     }

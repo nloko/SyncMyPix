@@ -1269,8 +1269,9 @@ public class SyncResultsActivity extends Activity {
 				return;
 			}
 			
+			final SyncMyPixPreferences prefs = new SyncMyPixPreferences(activity.getApplicationContext());
+			
 			String url = (String) msg.obj;
-					
 			if (url != null) {
 				try {
 					Bitmap bitmap = null;
@@ -1286,7 +1287,9 @@ public class SyncResultsActivity extends Activity {
 					
 					synchronized(this) {
 						if (running && bitmap != null) {
-							activity.mSdCache.add(filename, bitmap);
+							if (prefs.getCache()) {
+								activity.mSdCache.add(filename, bitmap);
+							}
 							Message mainMsg = handler.obtainMessage();
 							mainMsg.obj = bitmap;
 							mainMsg.what = msg.what;

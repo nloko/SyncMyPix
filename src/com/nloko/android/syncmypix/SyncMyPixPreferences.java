@@ -76,6 +76,12 @@ public final class SyncMyPixPreferences {
 		return cropSquare;
 	}
     
+    private boolean cache;
+    public boolean getCache()
+	{
+		return cache;
+	}
+    
     private boolean intelliMatch;
     public boolean getIntelliMatch()
 	{
@@ -125,5 +131,6 @@ public final class SyncMyPixPreferences {
     	cropSquare = prefs.getBoolean("cropSquare", true);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);
     	phoneOnly = prefs.getBoolean("phoneOnly", false);
+    	cache = prefs.getBoolean("cache", true);
     }
 }

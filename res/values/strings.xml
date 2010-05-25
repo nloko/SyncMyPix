@@ -5,6 +5,8 @@
 	<string name="preferences.maxquality.summary">Download maximum resolution / size</string>
 	<string name="preferences.cropsquare">Crop</string>
 	<string name="preferences.cropsquare.summary">Crop a 96px square using midpoint of downloaded picture</string>
+	<string name="preferences.cache">Cache on SD Card</string>
+	<string name="preferences.cache.summary">Cache up to 5Mb of pictures to SD card to save data usage</string>
 	
 	<string name="preferences.sourceHeader">Sync Source</string>
 	<string name="preferences.source">Social Network</string>
