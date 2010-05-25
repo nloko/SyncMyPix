@@ -156,7 +156,6 @@ public class PhotoCache {
 	
 	public void releaseResources() {
 		mHandler.sendEmptyMessage(SHUTDOWN);
-		stopWatchingExternalStorage();
 	}
 	
 	public void destroy() {
@@ -230,7 +229,6 @@ public class PhotoCache {
 		    mExternalStorageAvailable = mExternalStorageWriteable = false;
 		}
 	}
-	
 	
 	private final class AsyncHandler extends Handler { 
 		public AsyncHandler(HandlerThread t) {
@@ -317,6 +315,7 @@ public class PhotoCache {
 				break;
 
 			case SHUTDOWN:
+				stopWatchingExternalStorage();
 				getLooper().quit();
 				break;
 			}
