@@ -616,10 +616,15 @@ public class SyncResultsActivity extends Activity {
 			final String source = cursor.getString(cursor.getColumnIndex(Sync.SOURCE));
 			final String oldContactId = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 			
+			final PhotoCache sdCache = mSdCache;
+			
 			Thread thread = new Thread(new Runnable() {
 				public void run() {
 					try {
-						Bitmap bitmap = Utils.downloadPictureAsBitmap(url);
+						Bitmap bitmap = sdCache.get(Uri.parse(url).getLastPathSegment());
+						if (bitmap == null) {
+							bitmap = Utils.downloadPictureAsBitmap(url);
+						}
 						if (bitmap != null) {
 							
 							Log.d(TAG, contactUri.toString());
