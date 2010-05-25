@@ -216,6 +216,7 @@ public class MainActivity extends Activity {
 					return;
 				}
 				
+				collector.appendMessage(getString(R.string.main_logMsg));
 				String log = collector.getLog();
 				if (log != null) {
 					Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);

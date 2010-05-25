@@ -126,6 +126,20 @@ public class LogCollector {
 		return null;
 	}
 	
+	public void appendMessage(String msg) {
+		if (mCollected) {
+			if (mLog != null) {
+				StringBuffer buffer = new StringBuffer();
+				String separator = System.getProperty("line.separator");
+				buffer.append(msg);
+				buffer.append(separator);
+				buffer.append(separator);
+				
+				mLog.insert(0, buffer.toString());
+			}
+		}
+	}
+	
 	public void collect() {
 		mCollected = false;
 		
