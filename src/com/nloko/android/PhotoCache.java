@@ -39,7 +39,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
 import android.os.Environment;
-import android.util.Log;
 
 public class PhotoCache {
 	// this location is important, as it allows automatic removal when the app is
@@ -82,7 +81,7 @@ public class PhotoCache {
 	}
 	
 	private synchronized void resize() {
-		Log.v(TAG, String.format("resize() map size %d", mPhotos.size()));
+		Log.d(TAG, String.format("resize() map size %d", mPhotos.size()));
 		// delete the oldest in the cache
 		while (!mPhotos.isEmpty() && mSize > mMaxBytes) {
 			for(String name : mPhotos.get(mPhotos.firstKey())) {
@@ -90,7 +89,7 @@ public class PhotoCache {
 				if (mExternalStorageWriteable && f.exists()) {
 					mSize -= f.length();
 					f.delete();
-					Log.v(TAG, String.format("resize() deleted %s", name));
+					Log.d(TAG, String.format("resize() deleted %s", name));
 				}
 				
 				Log.v(TAG, String.format("resize() %d", mSize));
@@ -124,7 +123,7 @@ public class PhotoCache {
 		
 		mPhotos.get(modified).add(f.getName());
 		mSize += f.length();
-		Log.v(TAG, String.format("updateSize() %d", mSize));
+		Log.d(TAG, String.format("updateSize() %d", mSize));
 		resize();
 	}
 	
