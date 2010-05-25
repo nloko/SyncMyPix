@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -49,7 +50,7 @@ public class PhotoCache {
 	private static final String TAG = "PhotoCache";
 	
 	private BroadcastReceiver mExternalStorageReceiver;
-	private Context mContext;
+	private WeakReference<Context> mContext;
 	private boolean mExternalStorageAvailable;
 	private boolean mExternalStorageWriteable;
 	private File mPath;
@@ -68,7 +69,7 @@ public class PhotoCache {
 			throw new IllegalArgumentException("context");
 		}
 		
-		mContext = context;
+		mContext = new WeakReference<Context>(context);
 		File path = Environment.getExternalStorageDirectory();
 		mPath = new File(path, String.format(BASE_DIR, context.getPackageName()));
 		startWatchingExternalStorage();
@@ -206,6 +207,11 @@ public class PhotoCache {
 	}
 	
 	private void startWatchingExternalStorage() {
+		Context context = mContext.get();
+		if (context == null) {
+			return;
+		}
+		
 	    mExternalStorageReceiver = new BroadcastReceiver() {
 	        @Override
 	        public void onReceive(Context context, Intent intent) {
@@ -216,12 +222,17 @@ public class PhotoCache {
 	    IntentFilter filter = new IntentFilter();
 	    filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
 	    filter.addAction(Intent.ACTION_MEDIA_REMOVED);
-	    mContext.registerReceiver(mExternalStorageReceiver, filter);
+	    context.registerReceiver(mExternalStorageReceiver, filter);
 	    updateExternalStorageState();
 	}
 
 	private void stopWatchingExternalStorage() {
-	    mContext.unregisterReceiver(mExternalStorageReceiver);
+		Context context = mContext.get();
+		if (context == null) {
+			return;
+		}
+		
+	    context.unregisterReceiver(mExternalStorageReceiver);
 	}
 	
 	private synchronized void updateExternalStorageState() {
