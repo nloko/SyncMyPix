@@ -55,6 +55,9 @@ public class PhotoCache {
 	private static final int DELETE = 2;
 	private static final int ADD = 3;
 	private static final int SHUTDOWN = 4;
+	
+	public static final int DELETE_OLDEST = 0;
+	public static final int DELETE_NEWEST = 1;
 		
 	private BroadcastReceiver mExternalStorageReceiver;
 	private WeakReference<Context> mContext;
@@ -65,6 +68,7 @@ public class PhotoCache {
 	private final TreeMap<Long, List<String>> mPhotos = new TreeMap<Long, List<String>>();
 	private long mSize = 0;
 	private boolean mSized = false;
+	private int mDeleteOrder = DELETE_OLDEST;
 	
 	private final AsyncHandler mHandler;
 	private PhotoCacheListener mListener;
@@ -88,6 +92,12 @@ public class PhotoCache {
 				Process.THREAD_PRIORITY_BACKGROUND);
 		thread.start();
 		mHandler = new AsyncHandler(thread);
+	}
+	
+	public void setDeleteOrder(int order) {
+		if (order == DELETE_OLDEST || order == DELETE_NEWEST) {
+			mDeleteOrder = order;
+		}
 	}
 	
 	public void setListener(PhotoCacheListener listener) {
@@ -196,12 +206,18 @@ public class PhotoCache {
 			Log.d(TAG, String.format("resize() map size %d", mPhotos.size()));
 			// delete the oldest in the cache
 			while (!mPhotos.isEmpty() && mSize > mMaxBytes) {
-				for(String name : mPhotos.get(mPhotos.firstKey())) {
+				long key;
+				if (mDeleteOrder == DELETE_OLDEST) {
+					key = mPhotos.firstKey();
+				} else {
+					key = mPhotos.lastKey();
+				}
+				for(String name : mPhotos.get(key)) {
 					delete(name);
 					Log.v(TAG, String.format("resize() %d", mSize));
 				}
 				
-				mPhotos.remove(mPhotos.firstKey());
+				mPhotos.remove(key);
 			}
 		}
 		
