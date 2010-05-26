@@ -57,6 +57,10 @@ public final class ContactUtils {
 		return mInstance.confirmContact(cr, id, lookup);
 	}
 	
+	public String getLookup(ContentResolver resolver, Uri contact) {
+		return mInstance.getLookup(resolver, contact);
+	}
+	
 	public Uri getContentUri() {
 		return mInstance.getContentUri();
 	}

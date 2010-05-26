@@ -22,7 +22,6 @@
 
 package com.nloko.android.syncmypix;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.UnknownHostException;
@@ -64,7 +63,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Contacts.People;
-import android.provider.ContactsContract.Contacts;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -593,27 +591,9 @@ public class SyncResultsActivity extends Activity {
 		final Uri contactUri = contact;
 		final List<String> segments = contactUri.getPathSegments();
 		final String contactId = segments.get(segments.size() - 1);
-		final String lookup;
+		final String lookup = mContactUtils.getLookup(resolver, contactUri);
 		
-		Cursor cursor = null;
-		try {
-			cursor = resolver.query(contact, 
-					new String[] { Contacts._ID, Contacts.LOOKUP_KEY }, 
-					null, 
-					null, 
-					null);
-			if (cursor.moveToFirst()) {
-				lookup = cursor.getString(cursor.getColumnIndex(Contacts.LOOKUP_KEY));
-			} else {
-				lookup = null;
-			}
-		} finally {
-			if (cursor != null) {
-				cursor.close();
-			}
-		}
-		
-		cursor = resolver.query(mUriOfSelected, 
+		Cursor cursor = resolver.query(mUriOfSelected, 
 				new String[] { Results._ID, 
 					Results.CONTACT_ID,
 					Results.PIC_URL,

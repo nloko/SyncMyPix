@@ -70,6 +70,10 @@ public class ContactProxy implements IContactProxy {
         cr.update(photoUri, values, null, null);
 	}
 	
+	public String getLookup(ContentResolver resolver, Uri contact) {
+		return null;
+	}
+	
 	public Uri getContentUri() {
 		return People.CONTENT_URI;
 	}

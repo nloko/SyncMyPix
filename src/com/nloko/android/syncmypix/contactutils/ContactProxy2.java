@@ -166,6 +166,29 @@ public class ContactProxy2 implements IContactProxy {
         return rawContactId;
     }
 	
+	public String getLookup(ContentResolver resolver, Uri contact) {
+		Cursor cursor = null;
+		String lookup = null;
+		try {
+			cursor = resolver.query(contact, 
+					new String[] { Contacts._ID, Contacts.LOOKUP_KEY }, 
+					null, 
+					null, 
+					null);
+			if (cursor.moveToFirst()) {
+				lookup = cursor.getString(cursor.getColumnIndex(Contacts.LOOKUP_KEY));
+			} else {
+				lookup = null;
+			}
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+		
+		return lookup;
+	}
+	
 	public Uri getContentUri() {
 		return ContactsContract.Contacts.CONTENT_URI;
 	}

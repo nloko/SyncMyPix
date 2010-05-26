@@ -35,4 +35,5 @@ public interface IContactProxy {
 	PhoneContact confirmContact(ContentResolver cr, String id, String lookup);
 	void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty);
 	Uri getContentUri();
+	String getLookup(ContentResolver cr, Uri contact);
 }
