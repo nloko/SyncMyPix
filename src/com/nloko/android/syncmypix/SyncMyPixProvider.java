@@ -210,10 +210,14 @@ public class SyncMyPixProvider extends ContentProvider {
             	db.execSQL("INSERT INTO contacts_new (" 
 	            		+ Contacts._ID + ","
 	            		+ Contacts.NETWORK_PHOTO_HASH + ","
+	            		+ Contacts.FRIEND_ID + ","
+	            		+ Contacts.SOURCE + ","
 	            		+ Contacts.PHOTO_HASH + ")"
 	            		+ "SELECT "
 	            		+ Contacts._ID + ","
 	            		+ Contacts.NETWORK_PHOTO_HASH + ","
+	            		+ Contacts.FRIEND_ID + ","
+	            		+ Contacts.SOURCE + ","
 	            		+ Contacts.PHOTO_HASH
 	            		+ " FROM " + CONTACTS_TABLE_NAME + ";");
             }
