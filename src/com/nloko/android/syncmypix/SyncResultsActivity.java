@@ -641,9 +641,12 @@ public class SyncResultsActivity extends Activity {
 								unlink(oldContactId, true);
 							}
 							
+							String origHash = Utils.getMd5Hash(bytes);
 							bytes = Utils.bitmapToPNG(bitmap);
+							String dbHash = Utils.getMd5Hash(bytes);
+							
 							mContactUtils.updatePhoto(resolver, bytes, contactId);
-							mDbHelper.updateHashes(contactId, lookup, bytes, bytes);
+							mDbHelper.updateHashes(contactId, lookup, origHash, dbHash);
 							
 							if (friendId != null && !friendId.equals("")) {
 								mDbHelper.updateLink(contactId, lookup, friendId, source);
