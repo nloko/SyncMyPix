@@ -34,9 +34,7 @@ public final class Log {
 	
 	public static void w(String tag, String message)
 	{
-		if (debug) {
-			android.util.Log.w(tag, message);
-		}
+		android.util.Log.w(tag, message);
 	}
 	
 	public static void e(String tag, String message)
