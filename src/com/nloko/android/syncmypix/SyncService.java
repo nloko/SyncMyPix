@@ -309,7 +309,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		Log.v(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
+    		Log.i(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
     		ContentValues values = createResult(syncId, user);
@@ -325,9 +325,11 @@ public abstract class SyncService extends Service {
 			String contactId = null;
 			String lookup = null;
 			String aggregatedId = null;
+			String name = null;
 			// check to ensure matched contact is not linked to another friend
 			if (contact != null) {
 				contactId = contact.id;
+				name = contact.name;
 				contact = mContactUtils.confirmContact(resolver, contact.id, contact.lookup);
 				if (contact != null) {
 					aggregatedId = contact.id;
@@ -345,7 +347,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		Log.v(TAG, String.format("Matched to %s with aggregated id %s", contact.name, aggregatedId));
+    		Log.i(TAG, String.format("Matched to %s with aggregated id %s and lookup %s", name, aggregatedId, lookup));
     		
     		InputStream is = null;
     		InputStream friend = null;

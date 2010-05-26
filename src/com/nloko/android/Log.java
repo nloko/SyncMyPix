@@ -48,4 +48,9 @@ public final class Log {
 	{
 		android.util.Log.v(tag, message);
 	}
+	
+	public static void i(String tag, String message)
+	{
+		android.util.Log.i(tag, message);
+	}
 }

@@ -58,7 +58,7 @@ public class ContactProxy2 implements IContactProxy {
 		Cursor c = cr.query(lookupUri, new String[] { Contacts._ID, Contacts.LOOKUP_KEY }, null, null, null);
 		try {
 			if (c.moveToFirst()) {
-				Log.d(TAG, "confirmContact() lookup success");
+				//Log.d(TAG, "confirmContact() lookup success");
 				id = c.getString(c.getColumnIndex(Contacts._ID));
 				lookup = c.getString(c.getColumnIndex(Contacts.LOOKUP_KEY));
 			}
