@@ -329,7 +329,7 @@ public abstract class SyncService extends Service {
 
 			// For Android 2.x, need to ensure the contact id has not changed
 			if (contact != null) {
-				contactId = contact.id;
+				contactId = aggregatedId = contact.id;
 				name = contact.name;
 				contact = mContactUtils.confirmContact(resolver, contact.id, contact.lookup);
 				if (contact != null) {
