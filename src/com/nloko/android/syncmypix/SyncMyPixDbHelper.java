@@ -60,6 +60,14 @@ public class SyncMyPixDbHelper {
 		}
 	}
 	
+	public void deleteData(String id) {
+		ContentResolver resolver = mResolver.get();
+		if (resolver != null) {
+			Uri uri = Uri.withAppendedPath(Contacts.CONTENT_URI, id);
+			resolver.delete(uri, null, null);
+		}
+	}
+	
 	public void deleteAllPictures()
 	{
 		deleteAllPictures(null);

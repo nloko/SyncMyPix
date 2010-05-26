@@ -328,10 +328,13 @@ public abstract class SyncService extends Service {
 			// check to ensure matched contact is not linked to another friend
 			if (contact != null) {
 				contactId = contact.id;
-				lookup = contact.lookup;
-				contact = mContactUtils.confirmContact(resolver, contactId, lookup);
-				aggregatedId = contact.id;
-				lookup = contact.lookup;
+				contact = mContactUtils.confirmContact(resolver, contact.id, contact.lookup);
+				if (contact != null) {
+					aggregatedId = contact.id;
+					lookup = contact.lookup;
+				} else {
+					dbHelper.deleteData(contactId);
+				}
 			}
 			
     		if (contact == null || !mContactUtils.isContactUpdatable(resolver, aggregatedId)) {
