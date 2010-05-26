@@ -250,17 +250,17 @@ public final class Utils {
 		return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true); 
 	}
 	
-	public static Bitmap downloadPictureAsBitmap (String url, int retries) throws IOException
+	public static InputStream downloadPictureAsStream (String url, int retries) throws IOException
 	{
 		if (url == null) {
     		throw new IllegalArgumentException ("url");
     	}
 		
-		Bitmap image = null;
+		InputStream image = null;
 		for(int i=0; i<=retries; i++) {
 			//Log.d(TAG, "try "+i);
 			try {
-				if ((image = downloadPictureAsBitmap(url)) != null) break;
+				if ((image = downloadPictureAsStream(url)) != null) break;
 			} catch (IOException e) {
 				if (i == retries) throw e;
 			}
@@ -269,7 +269,7 @@ public final class Utils {
 		return image;
 	}
 
-	public static Bitmap downloadPictureAsBitmap (String url) throws IOException
+	public static InputStream downloadPictureAsStream (String url) throws IOException
 	{
 		if (url == null) {
     		throw new IllegalArgumentException ("url");
@@ -277,7 +277,6 @@ public final class Utils {
     	
 		HttpClient httpclient = null;
 		InputStream stream = null;
-    	Bitmap image = null;
     	try {
     		HttpParams params = new BasicHttpParams();
     		// Set the timeout in milliseconds until a connection is established.
@@ -294,7 +293,7 @@ public final class Utils {
             if (entity != null) {
             	BufferedHttpEntity buff = new BufferedHttpEntity(entity);
             	stream  = buff.getContent();
-            	image = BitmapFactory.decodeStream(stream);
+            //	image = BitmapFactory.decodeStream(stream);
             }
     	} catch (IOException ex) {
 	    	Log.e(null, android.util.Log.getStackTraceString(ex));
@@ -310,14 +309,9 @@ public final class Utils {
 	    	} catch (Exception e) {}
 	    }
 	    
-	    return image;
+    	return stream;
 	}
 	
-	public static byte[] downloadPicture (String url) throws IOException
-    {
-    	return bitmapToJpeg(downloadPictureAsBitmap(url), 100);
-    }
-    
 	public static byte[] bitmapToJpeg(Bitmap bitmap, int quality)
 	{
 		if (bitmap == null) {
@@ -348,7 +342,7 @@ public final class Utils {
 		try {
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 				
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 0, bytes);
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
 			image =  bytes.toByteArray();
 			bytes.close();
 		} catch (IOException e) {}

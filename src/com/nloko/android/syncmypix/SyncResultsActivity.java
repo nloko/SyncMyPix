@@ -22,6 +22,8 @@
 
 package com.nloko.android.syncmypix;
 
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -528,7 +530,7 @@ public class SyncResultsActivity extends Activity {
 					
 					Bitmap bitmap = (Bitmap) data.getParcelableExtra("data");
 					if (bitmap != null) {
-						byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
+						byte[] bytes = Utils.bitmapToPNG(bitmap);
 					
 						mContactUtils.updatePhoto(getContentResolver(), bytes, id);
 						mDbHelper.updateHashes(id, null, bytes);
@@ -622,12 +624,15 @@ public class SyncResultsActivity extends Activity {
 				public void run() {
 					try {
 						String filename = Uri.parse(url).getLastPathSegment();
-						Bitmap bitmap = sdCache.get(filename);
-						if (bitmap == null) {
-							bitmap = Utils.downloadPictureAsBitmap(url);
+						InputStream friend = sdCache.get(filename);
+						if (friend == null) {
+							friend = Utils.downloadPictureAsStream(url);
 						}
-						if (bitmap != null) {
-							sdCache.add(filename, bitmap);
+						if (friend != null) {
+							byte[] bytes = Utils.getByteArrayFromInputStream(friend);
+							friend.close();
+							Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+							sdCache.add(filename, bytes);
 							
 							Log.d(TAG, contactUri.toString());
 							unlink(contactId);
@@ -635,7 +640,7 @@ public class SyncResultsActivity extends Activity {
 								unlink(oldContactId, true);
 							}
 							
-							byte[] bytes = Utils.bitmapToJpeg(bitmap, 100);
+							bytes = Utils.bitmapToPNG(bitmap);
 							mContactUtils.updatePhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, bytes, bytes);
 							
@@ -1276,21 +1281,25 @@ public class SyncResultsActivity extends Activity {
 			String url = (String) msg.obj;
 			if (url != null) {
 				try {
-					Bitmap bitmap = null;
+					InputStream friend = null;
 					String filename = Uri.parse(url).getLastPathSegment();
 					if (activity.mSdCache != null) {
-						bitmap = activity.mSdCache.get(filename);
+						friend = activity.mSdCache.get(filename);
 					}
 					
 					// cache miss
-					if (bitmap == null) {
-						bitmap = Utils.downloadPictureAsBitmap(url);
+					if (friend == null) {
+						friend = Utils.downloadPictureAsStream(url);
 					}
 					
 					synchronized(this) {
-						if (running && bitmap != null) {
+						if (running && friend != null) {
+							byte[] bytes = Utils.getByteArrayFromInputStream(friend);
+							friend.close();
+							
+							Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 							if (prefs.getCache()) {
-								activity.mSdCache.add(filename, bitmap);
+								activity.mSdCache.add(filename, bytes);
 							}
 							Message mainMsg = handler.obtainMessage();
 							mainMsg.obj = bitmap;

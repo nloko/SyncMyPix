@@ -22,9 +22,11 @@
 package com.nloko.android;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -35,9 +37,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Bitmap.CompressFormat;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -124,19 +123,23 @@ public class PhotoCache {
 		releaseResources();
 	}
 	
-	public Bitmap get(String file) {
+	public InputStream get(String file) {
 		if (file == null) {
 			return null;
 		}
 		
 		File path = new File(mPath, file);
-		return BitmapFactory.decodeFile(path.getAbsolutePath());
+		try {
+			return new FileInputStream(path.getAbsolutePath());
+		} catch (FileNotFoundException e) {}
+		
+		return null;
 	}
-
-	public void add(String file, Bitmap bitmap) {
+	
+	public void add(String file, byte[] b) {
 		Message msg = mHandler.obtainMessage();
 		msg.what = ADD;
-		msg.obj = new Photo(file, bitmap);
+		msg.obj = new Photo(file, b);
 		mHandler.sendMessage(msg);
 	}
 	
@@ -285,9 +288,9 @@ public class PhotoCache {
 			}
 		}
 
-		private synchronized void add(String file, Bitmap bitmap) {
-			if (bitmap == null) {
-				throw new IllegalArgumentException("bitmap");
+		private synchronized void add(String file, byte[] bytes) {
+			if (bytes == null) {
+				throw new IllegalArgumentException("bytes");
 			}
 			if (file == null) {
 				throw new IllegalArgumentException("file");
@@ -306,7 +309,7 @@ public class PhotoCache {
 				try {
 					ensurePath();
 					OutputStream os = new FileOutputStream(photo);
-					bitmap.compress(CompressFormat.JPEG, 100, os);
+					os.write(bytes);
 					os.close();
 					updateSize(photo);
 					
@@ -329,7 +332,7 @@ public class PhotoCache {
 			case ADD:
 				Photo p = (Photo)msg.obj;
 				if (p != null) {
-					add(p.file, p.bitmap);
+					add(p.file, p.bytes);
 				}
 				break;
 			case DELETE_ALL:
@@ -350,11 +353,11 @@ public class PhotoCache {
 	
 	private static final class Photo {
 		public String file;
-		public Bitmap bitmap;
+		public byte[] bytes;
 		
-		public Photo(String f, Bitmap b) {
+		public Photo(String f, byte[] b) {
 			file = f;
-			bitmap = b;
+			bytes = b;
 		}
 	}
 }

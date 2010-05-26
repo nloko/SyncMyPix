@@ -50,6 +50,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -330,6 +331,7 @@ public abstract class SyncService extends Service {
     		}
     		
     		InputStream is = null;
+    		InputStream friend = null;
     		Bitmap bitmap = null, originalBitmap = null;
     		byte[] image = null;
 
@@ -351,16 +353,21 @@ public abstract class SyncService extends Service {
     			if (dbHelper.isSyncablePicture(contactId, hashes.updatedHash, contactHash, service.mSkipIfExists)) {
    					try {
    						String filename =  Uri.parse(user.picUrl).getLastPathSegment();
-   						bitmap = mCache.get(filename);
-   						if (bitmap == null) {
+   						friend = mCache.get(filename);
+   						if (friend == null) {
    							Log.d(TAG, "cache miss");
-   							bitmap = Utils.downloadPictureAsBitmap(user.picUrl, 2);
+   							friend = Utils.downloadPictureAsStream(user.picUrl, 2);
    						}
+   						
+   						image = Utils.getByteArrayFromInputStream(friend);
+   						friend.close();
+   						bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
+   						
    						if (service.mCacheOn) {
-   							mCache.add(filename, bitmap);
+   							mCache.add(filename, image);
    						}
    						originalBitmap = bitmap;
-   						image = Utils.bitmapToJpeg(bitmap, 100);
+   						
    						hash = Utils.getMd5Hash(image);
    					} catch (Exception e) {
    						e.printStackTrace();
@@ -372,7 +379,7 @@ public abstract class SyncService extends Service {
     						String updatedHash = hash;
     						if (service.mCropSquare) {
     							bitmap = Utils.centerCrop(bitmap, 96, 96);
-    							image = Utils.bitmapToJpeg(bitmap, 100);
+    							image = Utils.bitmapToPNG(bitmap);
     							updatedHash = Utils.getMd5Hash(image);
     						}
     						mContactUtils.updatePhoto(resolver, image, contactId, service.mAllowGoogleSync);

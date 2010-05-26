@@ -24,6 +24,7 @@ package com.nloko.android;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -229,9 +230,12 @@ public class ThumbnailCache {
 					while(!paused) {
 						try {
 							url = urlQueue.take();
-							Bitmap image;
-							image = Utils.downloadPictureAsBitmap(url);
-							add(url, image, true, true);
+							InputStream friend = Utils.downloadPictureAsStream(url);
+							if (friend != null) {
+								Bitmap image = BitmapFactory.decodeStream(friend);
+								add(url, image, true, true);	
+							}
+							
 						} catch (InterruptedException e) {
 							Log.d(TAG, "INTERRUPTED!");
 						} catch (IOException e) {
