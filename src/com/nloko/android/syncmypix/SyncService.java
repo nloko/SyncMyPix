@@ -326,7 +326,8 @@ public abstract class SyncService extends Service {
 			String lookup = null;
 			String aggregatedId = null;
 			String name = null;
-			// check to ensure matched contact is not linked to another friend
+
+			// For Android 2.x, need to ensure the contact id has not changed
 			if (contact != null) {
 				contactId = contact.id;
 				name = contact.name;
@@ -362,7 +363,7 @@ public abstract class SyncService extends Service {
 
     		try {
     			DBHashes hashes = dbHelper.getHashes(contactId);
-    			is = mContactUtils.getPhoto(resolver, contactId);
+    			is = mContactUtils.getPhoto(resolver, aggregatedId);
     			// photo is set, so let's get its hash
     			if (is != null) {
     				//Log.d(TAG, "CONTACT PIC IS NOT NULL!!");
