@@ -166,7 +166,7 @@ public class SyncMyPixDbHelper {
 		cursor.close();
 	}
 	
-	public void updateHashes(String id, byte[] origImage, byte[] modifiedImage)
+	public void updateHashes(String id, String lookup, byte[] origImage, byte[] modifiedImage)
 	{
 		String networkHash = null;
 		String hash = null;
@@ -179,10 +179,10 @@ public class SyncMyPixDbHelper {
 			hash = Utils.getMd5Hash(modifiedImage);
 		}
 
-		updateHashes(id, networkHash, hash);
+		updateHashes(id, lookup, networkHash, hash);
 	}
 	
-	public void updateHashes(String id, String networkHash, String updatedHash)
+	public void updateHashes(String id, String lookup, String networkHash, String updatedHash)
 	{
 		if (id == null) {
     		throw new IllegalArgumentException("id");
@@ -201,6 +201,7 @@ public class SyncMyPixDbHelper {
 						null);	
 		
 		ContentValues values = new ContentValues();
+		values.put(Contacts.LOOKUP_KEY, lookup);
 		
 		if (networkHash != null) {
 			values.put(Contacts.NETWORK_PHOTO_HASH, networkHash);
@@ -275,12 +276,12 @@ public class SyncMyPixDbHelper {
 		cursor.close();
 	}
 	
-	public void updateLink(String id, SocialNetworkUser user, String source)
+	public void updateLink(String id, String lookup, SocialNetworkUser user, String source)
 	{
-		updateLink(id, user.uid, source);
+		updateLink(id, lookup, user.uid, source);
 	}
 	
-	public void updateLink(String id, String friendId, String source)
+	public void updateLink(String id, String lookup, String friendId, String source)
 	{
 		if (id == null) {
     		throw new IllegalArgumentException("id");
@@ -301,6 +302,7 @@ public class SyncMyPixDbHelper {
 		ContentValues values = new ContentValues();
 		values.put(Contacts.FRIEND_ID, friendId);
 		values.put(Contacts.SOURCE, source);
+		values.put(Contacts.LOOKUP_KEY, lookup);
 		if (cursor.moveToFirst()) {
 			resolver.update(uri, values, null, null);
 		} else {
@@ -339,7 +341,7 @@ public class SyncMyPixDbHelper {
     	return answer;
 	}
 	
-	public String getLinkedContact(String id, String source)
+	public PhoneContact getLinkedContact(String id, String source)
 	{
 		if (id == null) {
     		throw new IllegalArgumentException("id");
@@ -353,18 +355,20 @@ public class SyncMyPixDbHelper {
     	}
     	
     	Cursor cursor = resolver.query(Contacts.CONTENT_URI, 
-				new String[] { Contacts._ID },
+				new String[] { Contacts._ID, Contacts.LOOKUP_KEY },
 				Contacts.FRIEND_ID + "='" + id + "' AND " + Contacts.SOURCE + "='" + source + "'",
 				null, 
 				null);
     	
     	String contactId = null;
+    	String lookup = null;
     	if (cursor.moveToNext()) {
     		contactId = cursor.getString(cursor.getColumnIndex(Contacts._ID));
+    		lookup = cursor.getString(cursor.getColumnIndex(Contacts.LOOKUP_KEY));
     	}
 
     	cursor.close();
-    	return contactId;
+    	return new PhoneContact(contactId, null, lookup);
 	}
 	
     public DBHashes getHashes(String id)

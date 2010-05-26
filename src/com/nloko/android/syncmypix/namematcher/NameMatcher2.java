@@ -27,6 +27,7 @@ package com.nloko.android.syncmypix.namematcher;
 import java.io.InputStream;
 
 import com.nloko.android.Log;
+import com.nloko.android.syncmypix.PhoneContact;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -41,7 +42,6 @@ public class NameMatcher2 extends NameMatcher {
 		super(context, diminutives, withPhone);
 	}
 
-	
 	@Override
 	protected PhoneContact createFromCursor(Cursor cursor) {
     	if (cursor == null || cursor.isClosed()) {
@@ -50,8 +50,9 @@ public class NameMatcher2 extends NameMatcher {
     	
     	String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
 		String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-		Log.d(TAG, "NameMatcher is processing contact " + name);
-		return new PhoneContact(id, name);
+		String lookup = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+		Log.d(TAG, "NameMatcher is processing contact " + name + " " + lookup);
+		return new PhoneContact(id, name, lookup);
 	}
 
 

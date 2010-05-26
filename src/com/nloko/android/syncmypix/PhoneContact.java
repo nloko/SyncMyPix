@@ -1,5 +1,5 @@
 //
-//    IContactProxy.java is part of SyncMyPix
+//    PhoneContact.java is part of SyncMyPix
 //
 //    Authors:
 //        Neil Loknath <neil.loknath@gmail.com>
@@ -20,19 +20,25 @@
 //    along with SyncMyPix.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-package com.nloko.android.syncmypix.contactutils;
+package com.nloko.android.syncmypix;
 
-import java.io.InputStream;
-
-import com.nloko.android.syncmypix.PhoneContact;
-
-import android.content.ContentResolver;
-import android.net.Uri;
-
-public interface IContactProxy {
-	InputStream getPhoto(ContentResolver cr, String id);
-	boolean isContactUpdatable(ContentResolver cr, String id);
-	PhoneContact confirmContact(ContentResolver cr, String id, String lookup);
-	void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty);
-	Uri getContentUri();
+public final class PhoneContact implements Comparable<PhoneContact> {
+	
+	public PhoneContact(String id, String name) {
+		this(id, name, null);
+	}
+	
+	public PhoneContact(String id, String name, String lookup) {
+		this.id = id;
+		this.name = name;
+		this.lookup = lookup;
+	}
+	
+	public String id;
+	public String name;
+	public String lookup;
+	
+	public int compareTo(PhoneContact another) {
+		return name.compareTo(another.name);
+	}
 }

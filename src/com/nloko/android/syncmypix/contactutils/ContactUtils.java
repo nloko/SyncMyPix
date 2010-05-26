@@ -24,6 +24,8 @@ package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
 
+import com.nloko.android.syncmypix.PhoneContact;
+
 import android.content.ContentResolver;
 import android.net.Uri;
 
@@ -49,6 +51,10 @@ public final class ContactUtils {
 	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty)
 	{
 		mInstance.updatePhoto(cr, image, id, markDirty);
+	}
+	
+	public PhoneContact confirmContact(ContentResolver cr, String id, String lookup) {
+		return mInstance.confirmContact(cr, id, lookup);
 	}
 	
 	public Uri getContentUri() {

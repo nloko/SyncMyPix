@@ -67,6 +67,8 @@ public final class SyncMyPix {
         public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.nloko.contact";
 		
 		public static final String DEFAULT_SORT_ORDER = "_id ASC";
+		public static final String LOOKUP_KEY = "lookup_key";
+		public static final String PIC_URL = "pic_url";
 		public static final String PHOTO_HASH = "photo_hash";
 		public static final String NETWORK_PHOTO_HASH = "network_photo_hash";
 		public static final String FRIEND_ID = "friend_id";
@@ -84,6 +86,7 @@ public final class SyncMyPix {
         public static final String DESCRIPTION = "description";
         public static final String FRIEND_ID = "friend_id";
         public static final String CONTACT_ID = "contact_id";
+        public static final String LOOKUP_KEY = "lookup_key";
         public static final String SYNC_ID = "sync_id";
     }
 	
@@ -100,5 +103,4 @@ public final class SyncMyPix {
 		public static final String NOT_FOUND = "not_found";
 		public static final String SOURCE = "source";
 	}
-
 }

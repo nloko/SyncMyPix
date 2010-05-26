@@ -64,6 +64,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Contacts.People;
+import android.provider.ContactsContract.Contacts;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -517,7 +518,7 @@ public class SyncResultsActivity extends Activity {
 				
 				ContentResolver resolver = getContentResolver();
 				Cursor cursor = resolver.query(mUriOfSelected, 
-						new String[] { Results.CONTACT_ID, Results.PIC_URL }, 
+						new String[] { Results.CONTACT_ID, Results.PIC_URL, Results.LOOKUP_KEY }, 
 						null, 
 						null, 
 						null);
@@ -527,13 +528,14 @@ public class SyncResultsActivity extends Activity {
 				if (cursor.moveToFirst()) {
 					String id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
 					String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
+					String lookup = cursor.getString(cursor.getColumnIndex(Results.LOOKUP_KEY));
 					
 					Bitmap bitmap = (Bitmap) data.getParcelableExtra("data");
 					if (bitmap != null) {
 						byte[] bytes = Utils.bitmapToPNG(bitmap);
 					
 						mContactUtils.updatePhoto(getContentResolver(), bytes, id);
-						mDbHelper.updateHashes(id, null, bytes);
+						mDbHelper.updateHashes(id, lookup, null, bytes);
 					
 						mCache.add(url, bitmap);
 						adapter.notifyDataSetChanged();
@@ -588,8 +590,30 @@ public class SyncResultsActivity extends Activity {
 		}
 		
 		final ContentResolver resolver = getContentResolver();
+		final Uri contactUri = contact;
+		final List<String> segments = contactUri.getPathSegments();
+		final String contactId = segments.get(segments.size() - 1);
+		final String lookup;
 		
-		Cursor cursor = resolver.query(mUriOfSelected, 
+		Cursor cursor = null;
+		try {
+			cursor = resolver.query(contact, 
+					new String[] { Contacts._ID, Contacts.LOOKUP_KEY }, 
+					null, 
+					null, 
+					null);
+			if (cursor.moveToFirst()) {
+				lookup = cursor.getString(cursor.getColumnIndex(Contacts.LOOKUP_KEY));
+			} else {
+				lookup = null;
+			}
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+		
+		cursor = resolver.query(mUriOfSelected, 
 				new String[] { Results._ID, 
 					Results.CONTACT_ID,
 					Results.PIC_URL,
@@ -600,9 +624,6 @@ public class SyncResultsActivity extends Activity {
 				null);
 		
 		if (cursor.moveToFirst()) {
-			final Uri contactUri = contact;
-			final List<String> segments = contactUri.getPathSegments();
-			final String contactId = segments.get(segments.size() - 1);
 			if (!mContactUtils.isContactUpdatable(resolver, contactId)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.syncresults_contactunlinkableerror, 
@@ -642,10 +663,10 @@ public class SyncResultsActivity extends Activity {
 							
 							bytes = Utils.bitmapToPNG(bitmap);
 							mContactUtils.updatePhoto(resolver, bytes, contactId);
-							mDbHelper.updateHashes(contactId, bytes, bytes);
+							mDbHelper.updateHashes(contactId, lookup, bytes, bytes);
 							
 							if (friendId != null && !friendId.equals("")) {
-								mDbHelper.updateLink(contactId, friendId, source);
+								mDbHelper.updateLink(contactId, lookup, friendId, source);
 							}
 							
 							mCache.add(url, bitmap);

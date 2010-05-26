@@ -44,28 +44,13 @@ import java.util.TreeSet;
 
 import com.nloko.android.Log;
 import com.nloko.android.Utils;
+import com.nloko.android.syncmypix.PhoneContact;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.Contacts.People;
 
 public class NameMatcher {
-	
-	public final class PhoneContact implements Comparable<PhoneContact> {
-		
-		public PhoneContact(String id, String name) {
-			this.id = id;
-			this.name = name;
-		}
-		
-		public String id;
-		public String name;
-		
-		public int compareTo(PhoneContact another) {
-			return name.compareTo(another.name);
-		}
-	}
-	
     protected final String TAG = "NameMatcher";
     protected final String mBadChars  = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ,";
     protected final String mGoodChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy ";

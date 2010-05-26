@@ -24,6 +24,8 @@ package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
 
+import com.nloko.android.syncmypix.PhoneContact;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
@@ -42,6 +44,10 @@ public class ContactProxy implements IContactProxy {
 	
 	public boolean isContactUpdatable(ContentResolver cr, String id) {
 		return true;
+	}
+	
+	public PhoneContact confirmContact(ContentResolver cr, String id, String lookup) {
+		return new PhoneContact(id, null, lookup);
 	}
 	
 	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty) {

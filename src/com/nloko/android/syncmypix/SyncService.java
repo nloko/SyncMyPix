@@ -38,7 +38,6 @@ import com.nloko.android.syncmypix.SyncMyPixDbHelper.DBHashes;
 import com.nloko.android.syncmypix.contactutils.ContactUtils;
 import com.nloko.android.syncmypix.namematcher.NameMatcher;
 import com.nloko.android.syncmypix.namematcher.NameMatcherFactory;
-import com.nloko.android.syncmypix.namematcher.NameMatcher.PhoneContact;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -293,7 +292,7 @@ public abstract class SyncService extends Service {
 			}
     	}
     	
-        private void processUser(final SocialNetworkUser user, String contactId, Uri sync) 
+        private void processUser(final SocialNetworkUser user, PhoneContact contact, Uri sync) 
         {
     		if (user == null) {
     			throw new IllegalArgumentException ("user");
@@ -322,7 +321,20 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		if (contactId == null || !mContactUtils.isContactUpdatable(resolver, contactId)) {
+    		// For Android < 2.0, aggregatedId is always the same contactId
+			String contactId = null;
+			String lookup = null;
+			String aggregatedId = null;
+			// check to ensure matched contact is not linked to another friend
+			if (contact != null) {
+				contactId = contact.id;
+				lookup = contact.lookup;
+				contact = mContactUtils.confirmContact(resolver, contactId, lookup);
+				aggregatedId = contact.id;
+				lookup = contact.lookup;
+			}
+			
+    		if (contact == null || !mContactUtils.isContactUpdatable(resolver, aggregatedId)) {
     			Log.d(TAG, "Contact not found in database.");
     			mNotFound++;
     			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
@@ -382,9 +394,9 @@ public abstract class SyncService extends Service {
     							image = Utils.bitmapToPNG(bitmap);
     							updatedHash = Utils.getMd5Hash(image);
     						}
-    						mContactUtils.updatePhoto(resolver, image, contactId, service.mAllowGoogleSync);
-    						dbHelper.updateHashes(contactId, hash, updatedHash);
-    						dbHelper.updateLink(contactId, user, service.getSocialNetworkName());
+    						mContactUtils.updatePhoto(resolver, image, aggregatedId, service.mAllowGoogleSync);
+    						dbHelper.updateHashes(aggregatedId, lookup, hash, updatedHash);
+    						dbHelper.updateLink(aggregatedId, lookup, user, service.getSocialNetworkName());
     						mUpdated++;
     					} else {
     						mSkipped++;
@@ -405,7 +417,8 @@ public abstract class SyncService extends Service {
 							});
 						}
 						
-    					valuesCopy.put(Results.CONTACT_ID, contactId);
+    					valuesCopy.put(Results.CONTACT_ID, aggregatedId);
+    					valuesCopy.put(Results.LOOKUP_KEY, lookup);
     				} else {
     					valuesCopy.put(Results.DESCRIPTION, 
     							ResultsDescription.DOWNLOAD_FAILED.getDescription(service));
@@ -492,22 +505,22 @@ public abstract class SyncService extends Service {
 					for(int i=size-1; i>=0; i--) {
 						SocialNetworkUser user = userList.remove(i);
 						
-						String id = dbHelper.getLinkedContact(user.uid, source);
-						if (id == null) {
-							PhoneContact contact = null;
+						PhoneContact linked = dbHelper.getLinkedContact(user.uid, source);
+						PhoneContact contact = null;
+						if (linked.id == null) {
 							if (service.mIntelliMatch) {
 								contact = matcher.match(user.name, true);
 							} else {
 								contact = matcher.exactMatch(user.name);
 							}
-							id = contact == null ? null : contact.id;
-							// check to ensure matched contact is not linked to another friend
-							if (id != null && dbHelper.hasLink(id, source)) {
-								id = null;
+							if (contact != null && dbHelper.hasLink(contact.id, service.getSocialNetworkName())) {
+								contact = null;
 							}
+						} else {
+							contact = linked;
 						}
 						
-						processUser(user, id, sync);
+						processUser(user, contact, sync);
 						publishProgress((int) ((index++ / (float) size) * 100), index, size);
 	
 						if (service.mCancel) {

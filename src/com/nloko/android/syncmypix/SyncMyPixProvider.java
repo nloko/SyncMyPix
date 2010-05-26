@@ -48,7 +48,7 @@ public class SyncMyPixProvider extends ContentProvider {
 	private static final String TAG = "SyncMyPixProvider";
 	
     private static final String DATABASE_NAME = "syncpix.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
     
     private static final String CONTACTS_TABLE_NAME = "contacts";
     private static final String RESULTS_TABLE_NAME = "results";
@@ -79,6 +79,8 @@ public class SyncMyPixProvider extends ContentProvider {
         // Map columns to resolve ambiguity
         contactsProjection = new HashMap<String, String>();
         contactsProjection.put(Contacts._ID, Contacts._ID);
+        contactsProjection.put(Contacts.LOOKUP_KEY, Contacts.LOOKUP_KEY);
+        contactsProjection.put(Contacts.PIC_URL, Contacts.PIC_URL);
         contactsProjection.put(Contacts.PHOTO_HASH, Contacts.PHOTO_HASH);
         contactsProjection.put(Contacts.NETWORK_PHOTO_HASH, Contacts.NETWORK_PHOTO_HASH);
         contactsProjection.put(Contacts.FRIEND_ID, Contacts.FRIEND_ID);
@@ -108,6 +110,7 @@ public class SyncMyPixProvider extends ContentProvider {
         resultsProjection.put(Results.PIC_URL, Results.PIC_URL);
         resultsProjection.put(Results.DESCRIPTION, Results.DESCRIPTION);
         resultsProjection.put(Results.CONTACT_ID, Results.CONTACT_ID);
+        resultsProjection.put(Results.LOOKUP_KEY, Results.LOOKUP_KEY);
         resultsProjection.put(Results.FRIEND_ID, Results.FRIEND_ID);
     }
 
@@ -121,6 +124,8 @@ public class SyncMyPixProvider extends ContentProvider {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL("CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
                     + Contacts._ID + " INTEGER PRIMARY KEY,"
+                    + Contacts.LOOKUP_KEY + " TEXT DEFAULT NULL,"
+                    + Contacts.PIC_URL + " TEXT DEFAULT NULL,"
                     + Contacts.PHOTO_HASH + " TEXT,"
                     + Contacts.NETWORK_PHOTO_HASH + " TEXT,"
                     + Contacts.FRIEND_ID + " TEXT DEFAULT NULL,"
@@ -134,6 +139,7 @@ public class SyncMyPixProvider extends ContentProvider {
                     + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
                     + Results.PIC_URL + " TEXT  DEFAULT NULL,"
                     + Results.CONTACT_ID + " INTEGER,"
+                    + Results.LOOKUP_KEY + " TEXT DEFAULT NULL,"
                     + Results.FRIEND_ID + " TEXT DEFAULT NULL"
                     + ");");
             
@@ -161,6 +167,7 @@ public class SyncMyPixProvider extends ContentProvider {
 	                    + Results.DESCRIPTION + " TEXT DEFAULT NULL,"
 	                    + Results.PIC_URL + " TEXT  DEFAULT NULL,"
 	                    + Results.CONTACT_ID + " INTEGER,"
+	                    + Results.LOOKUP_KEY + " TEXT DEFAULT NULL,"
 	                    + Results.FRIEND_ID + " TEXT DEFAULT NULL"
 	                    + ");");
 	            
@@ -183,6 +190,8 @@ public class SyncMyPixProvider extends ContentProvider {
             
             db.execSQL("CREATE TABLE contacts_new ("
                     + Contacts._ID + " INTEGER PRIMARY KEY,"
+                    + Contacts.LOOKUP_KEY + " TEXT DEFAULT NULL,"
+                    + Contacts.PIC_URL + " TEXT DEFAULT NULL,"
                     + Contacts.PHOTO_HASH + " TEXT,"
                     + Contacts.NETWORK_PHOTO_HASH + " TEXT,"
                     + Contacts.FRIEND_ID + " TEXT DEFAULT NULL,"
