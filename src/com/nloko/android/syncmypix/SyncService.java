@@ -333,7 +333,7 @@ public abstract class SyncService extends Service {
 					aggregatedId = contact.id;
 					lookup = contact.lookup;
 				} else {
-					dbHelper.deleteData(contactId);
+					//dbHelper.deleteData(contactId);
 				}
 			}
 			

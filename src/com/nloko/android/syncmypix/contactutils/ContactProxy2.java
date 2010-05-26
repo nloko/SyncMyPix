@@ -51,22 +51,22 @@ public class ContactProxy2 implements IContactProxy {
 	}
 	
 	public PhoneContact confirmContact(ContentResolver cr, String id, String lookup) {
-		String newId = null;
-		String newLookup = null;
+		//String newId = null;
+		//String newLookup = null;
 		
 		Uri lookupUri = Contacts.getLookupUri(Long.parseLong(id), lookup);
 		Cursor c = cr.query(lookupUri, new String[] { Contacts._ID, Contacts.LOOKUP_KEY }, null, null, null);
 		try {
 			if (c.moveToFirst()) {
 				Log.d(TAG, "confirmContact() lookup success");
-				newId = c.getString(c.getColumnIndex(Contacts._ID));
-				newLookup = c.getString(c.getColumnIndex(Contacts.LOOKUP_KEY));
+				id = c.getString(c.getColumnIndex(Contacts._ID));
+				lookup = c.getString(c.getColumnIndex(Contacts.LOOKUP_KEY));
 			}
 		} finally {
 			c.close();
 		}
 		
-		return newId == null ? null : new PhoneContact(newId, null, newLookup);
+		return new PhoneContact(id, null, lookup);
 	}
 	
 	public void updatePhoto(ContentResolver cr, byte[] photo, String id, boolean markDirty) { 
