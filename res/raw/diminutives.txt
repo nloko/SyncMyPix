@@ -116,7 +116,7 @@ katie,katherine
 kay,katherine
 ken,kenneth
 kenny,kenneth
-kim,kimberly,kimball,joachim
+kim,kimberly,kimberley,kimball,joachim
 kitty,katherine
 krista,kristina
 kristi,kristina
