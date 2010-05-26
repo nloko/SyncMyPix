@@ -51,6 +51,15 @@ public class SyncMyPixDbHelper {
 		mContactUtils = new ContactUtils();
 	}
 
+	public void deleteData() {
+		ContentResolver resolver = mResolver.get();
+		if (resolver != null) {
+			resolver.delete(Contacts.CONTENT_URI, null, null);
+			resolver.delete(Results.CONTENT_URI, null, null);
+			resolver.delete(Sync.CONTENT_URI, null, null);
+		}
+	}
+	
 	public void deleteAllPictures()
 	{
 		deleteAllPictures(null);
@@ -78,10 +87,7 @@ public class SyncMyPixDbHelper {
 						deletePicture(id, dbHash);
 					}
 					
-					resolver.delete(Contacts.CONTENT_URI, null, null);
-					resolver.delete(Results.CONTENT_URI, null, null);
-					resolver.delete(Sync.CONTENT_URI, null, null);
-
+					deleteData();
 				}
 				
 				if (notifier != null) {
