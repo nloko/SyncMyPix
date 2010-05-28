@@ -4,17 +4,8 @@
 	android:orientation="vertical"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
-	<ImageView android:id="@+id/icon"
-               android:layout_width="fill_parent"
-               android:layout_height="68dip"
-               android:scaleType="fitStart"
-               android:paddingBottom="2dip"
-               android:paddingLeft="6dip"
-               android:paddingRight="6dip"
-               android:src="@drawable/title" 
-               android:background="#00d400"
-               />
-
+	<include android:id="@+id/titleBar" layout="@layout/title_bar" />
+		
 	<TextView 
 		android:text="@string/syncresults.updated" 
 		android:id="@+id/updatedLabel" 
@@ -23,7 +14,7 @@
 		android:layout_height="wrap_content" 
 		android:layout_marginTop="4dip"
 		android:layout_marginLeft="4dip"
-		android:layout_below="@id/icon"
+		android:layout_below="@id/titleBar"
 		android:textSize="16dip" 
 		/>
 		
@@ -33,7 +24,7 @@
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent"
 		android:layout_toRightOf="@id/updatedLabel"
-		android:layout_below="@id/icon"
+		android:layout_below="@id/titleBar"
 		android:layout_marginLeft="4dip" 
 		android:textColor="#000000" />
 

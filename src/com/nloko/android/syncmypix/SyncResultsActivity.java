@@ -75,6 +75,7 @@ import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,6 +98,8 @@ public class SyncResultsActivity extends Activity {
 	private final ThumbnailCache mCache = new ThumbnailCache();
 	private PhotoCache mSdCache;
 
+	private ProgressBar mProgress;
+	
 	private Uri mUriOfSelected = null;
 	
 	private final int MENU_HELP = 0;
@@ -154,6 +157,7 @@ public class SyncResultsActivity extends Activity {
 		
         Cursor cursor = managedQuery(Results.CONTENT_URI, mProjection, null, null, Results.DEFAULT_SORT_ORDER);
         
+        mProgress = (ProgressBar) findViewById(R.id.progress);
         mListview = (ListView) findViewById(R.id.resultList);
         
 		final SimpleCursorAdapter adapter = new ResultsListAdapter(
@@ -216,7 +220,8 @@ public class SyncResultsActivity extends Activity {
 				
 				String url = cursor.getString(cursor.getColumnIndex(Results.PIC_URL));
 				if (url != null) {
-					setProgressBarIndeterminateVisibility(true);
+					//setProgressBarIndeterminateVisibility(true);
+					mProgress.setVisibility(View.VISIBLE);
 					
 					Message msg = mDownloadHandler.obtainMessage();
 					msg.what = ZOOM_PIC;
@@ -279,7 +284,8 @@ public class SyncResultsActivity extends Activity {
 					activity.showDialog(activity.ZOOM_PIC);
 				}
 				
-				activity.setProgressBarIndeterminateVisibility(false);
+				//activity.setProgressBarIndeterminateVisibility(false);
+				activity.mProgress.setVisibility(View.INVISIBLE);
 				handleWhat(msg);
 			}
 		}

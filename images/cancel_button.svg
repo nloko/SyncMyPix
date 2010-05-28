@@ -14,7 +14,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="New document 1">
+   sodipodi:docname="cancel_button.svg"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button.png"
+   inkscape:export-xdpi="100"
+   inkscape:export-ydpi="100">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -37,19 +40,19 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.16417584"
-     inkscape:cx="372.04724"
+     inkscape:zoom="0.79630379"
+     inkscape:cx="652.16165"
      inkscape:cy="526.18109"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="676"
-     inkscape:window-height="499"
-     inkscape:window-x="58"
-     inkscape:window-y="186"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1280"
+     inkscape:window-height="682"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -74,21 +77,24 @@
        x="350.85632"
        y="458.07745"
        rx="9.3634033"
-       ry="0" />
+       ry="0"
+       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button_pressed.png"
+       inkscape:export-xdpi="100"
+       inkscape:export-ydpi="100" />
     <path
        style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
-       d="M 446.53125 479.21875 C 406.96372 479.21875 374.875 511.27623 374.875 550.84375 C 374.875 590.41127 406.96372 622.5 446.53125 622.5 C 486.09878 622.5 518.15625 590.41127 518.15625 550.84375 C 518.15625 511.27623 486.09878 479.21875 446.53125 479.21875 z M 446.625 490.3125 C 479.80538 490.3125 506.71875 517.2008 506.71875 550.375 C 506.71875 583.5492 479.80538 610.4375 446.625 610.4375 C 413.44462 610.4375 386.5625 583.5492 386.5625 550.375 C 386.5625 517.2008 413.44462 490.3125 446.625 490.3125 z "
+       d="m 446.53453,464.17422 c -47.87671,0 -86.70406,38.78955 -86.70406,86.66625 0,47.8767 38.82735,86.70406 86.70406,86.70406 47.87672,0 86.66625,-38.82736 86.66625,-86.70406 0,-47.8767 -38.78953,-86.66625 -86.66625,-86.66625 z m 0.11344,13.42343 c 40.14826,0 72.71343,32.53485 72.71343,72.67563 0,40.14078 -32.56517,72.67562 -72.71343,72.67562 -40.14826,0 -72.67562,-32.53484 -72.67562,-72.67562 0,-40.14078 32.52736,-72.67563 72.67562,-72.67563 z"
        id="path2818" />
     <text
        xml:space="preserve"
-       style="font-size:113.68728638px;font-style:normal;font-weight:normal;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
-       x="363.42725"
-       y="653.23395"
+       style="font-size:151.31777954px;font-style:normal;font-weight:normal;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
+       x="350.71649"
+       y="666.95862"
        id="text2843"
        transform="scale(1.112161,0.89915039)"><tspan
          sodipodi:role="line"
          id="tspan2845"
-         x="363.42725"
-         y="653.23395">X</tspan></text>
+         x="350.71649"
+         y="666.95862">X</tspan></text>
   </g>
 </svg>
