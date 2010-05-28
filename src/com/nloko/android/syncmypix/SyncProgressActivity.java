@@ -42,6 +42,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageSwitcher;
 import android.widget.ProgressBar;
 import android.widget.TextSwitcher;
@@ -53,7 +54,7 @@ public class SyncProgressActivity extends Activity {
 	private ImageSwitcher mImageSwitcher;
 	private TextSwitcher mTextSwitcher;
 	private TextSwitcher mStatusSwitcher;
-	private Button mCancelButton;
+	private ImageButton mCancelButton;
 
     private final int FRIENDS_PROGRESS = 0;
     private final int CANCELLING_DIALOG = 1;
@@ -72,7 +73,7 @@ public class SyncProgressActivity extends Activity {
 		mImageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
 		mTextSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
 		mStatusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
-		mCancelButton = (Button) findViewById(R.id.syncCancel);
+		mCancelButton = (ImageButton) findViewById(R.id.syncCancel);
 		mCancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				SyncService service = mSyncService.get();

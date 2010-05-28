@@ -11,7 +11,7 @@
                android:paddingLeft="6dip"
                android:paddingRight="6dip"
                android:src="@drawable/title" 
-               android:background="#00FF00"
+               android:background="#00d400"
                />
 
     <ImageButton android:id="@+id/syncButton" 
@@ -110,7 +110,7 @@
           android:text=""
           android:textSize="12dip"
           android:layout_alignParentBottom="true"
-		  android:background="#00FF00"
+		  android:background="#00d400"
            />
            
 </RelativeLayout>

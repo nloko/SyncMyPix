@@ -12,7 +12,7 @@
                android:paddingLeft="6dip"
                android:paddingRight="6dip"
                android:src="@drawable/title" 
-               android:background="#00FF00"
+               android:background="#00d400"
                />
                
 	<TextSwitcher 
@@ -100,7 +100,7 @@
     	android:minHeight="20dip" 
     	android:maxHeight="20dip" />
     	
-	<Button android:text="Cancel" 
+	<ImageButton  
 		android:layout_marginTop="6dip"
 		android:id="@+id/syncCancel" 
 		android:visibility="invisible"
@@ -108,5 +108,8 @@
 		android:layout_height="36dip" 
 		android:layout_gravity="center_horizontal"
 		android:textColor="#FFFFFF"
-		android:background="#00FF00" />
+		android:src="@drawable/cancel_button_selector"
+		android:scaleType="fitCenter"
+		android:background="#00d400"
+		 />
 </LinearLayout>
