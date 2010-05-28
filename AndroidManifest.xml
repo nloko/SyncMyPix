@@ -59,6 +59,7 @@
                   android:label="Crop Picture">
         </activity>
         <activity android:name=".SyncResultsActivity"
+        		  android:theme="@android:style/Theme.Light.NoTitleBar"
                   android:label="@string/syncresults" 
                   android:screenOrientation="portrait">
         </activity>

@@ -4,11 +4,23 @@
 	android:orientation="vertical"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
+	    <ImageView android:id="@+id/icon"
+               android:layout_width="fill_parent"
+               android:layout_height="68dip"
+               android:scaleType="fitStart"
+               android:paddingBottom="2dip"
+               android:paddingLeft="6dip"
+               android:paddingRight="6dip"
+               android:src="@drawable/title" 
+               android:background="#00FF00"
+               />
+               
 	<TextSwitcher 
 		android:layout_height="wrap_content" 
 		android:id="@+id/NameTextSwitcher" 
 		android:layout_centerHorizontal="true" 
 		android:layout_width="fill_parent" 
+		android:layout_marginTop="4dip"
 		android:outAnimation="@android:anim/fade_out" 
 		android:inAnimation="@android:anim/fade_in">
 		
@@ -90,10 +102,11 @@
     	
 	<Button android:text="Cancel" 
 		android:layout_marginTop="6dip"
-		android:padding="16dip"
 		android:id="@+id/syncCancel" 
 		android:visibility="invisible"
-		android:layout_width="wrap_content" 
-		android:layout_height="wrap_content" 
-		android:layout_gravity="center_horizontal" />
+		android:layout_width="fill_parent" 
+		android:layout_height="36dip" 
+		android:layout_gravity="center_horizontal"
+		android:textColor="#FFFFFF"
+		android:background="#00FF00" />
 </LinearLayout>

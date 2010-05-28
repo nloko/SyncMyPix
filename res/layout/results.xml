@@ -4,13 +4,26 @@
 	android:orientation="vertical"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
-	<TextView android:text="@string/syncresults.updated" 
+	<ImageView android:id="@+id/icon"
+               android:layout_width="fill_parent"
+               android:layout_height="68dip"
+               android:scaleType="fitStart"
+               android:paddingBottom="2dip"
+               android:paddingLeft="6dip"
+               android:paddingRight="6dip"
+               android:src="@drawable/title" 
+               android:background="#00FF00"
+               />
+
+	<TextView 
+		android:text="@string/syncresults.updated" 
 		android:id="@+id/updatedLabel" 
 		android:visibility="invisible"
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:layout_marginTop="4dip"
 		android:layout_marginLeft="4dip"
+		android:layout_below="@id/icon"
 		android:textSize="16dip" 
 		/>
 		
@@ -20,6 +33,7 @@
 		android:layout_height="wrap_content" 
 		android:layout_width="fill_parent"
 		android:layout_toRightOf="@id/updatedLabel"
+		android:layout_below="@id/icon"
 		android:layout_marginLeft="4dip" 
 		android:textColor="#000000" />
 
@@ -64,22 +78,21 @@
 		android:layout_below="@id/skippedLabel"  
 		android:layout_marginLeft="4dip"
 		android:textColor="#000000" />
-
-	<TextView android:text="@string/syncresults.resultsList" 
-		android:id="@+id/resultsListHeader" 
-		android:layout_height="wrap_content" 
-		android:layout_width="fill_parent" 
-		android:layout_below="@id/notfoundLabel"
-		android:textStyle="bold" 
-		android:textColor="#DDDDDD" 
-		android:background="#666666" 
-		android:padding="4dip" 
-		android:layout_marginTop="6dip" />
-		
+	
 	<ListView android:id="@+id/resultList" 
 		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content" 
-		android:layout_below="@id/resultsListHeader"
+		android:layout_height="match_parent"
+		android:layout_below="@id/notfound"
 	 />
 	
+	<TextView android:id="@+id/footer" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="36dip"
+          android:textColor="#FFFFFF" 
+          android:textStyle="bold"
+          android:text=""
+          android:textSize="12dip"
+          android:layout_alignParentBottom="true"
+		  android:background="#00FF00"
+           />
 </RelativeLayout>

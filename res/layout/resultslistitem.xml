@@ -24,7 +24,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginBottom="6dip"
         android:singleLine="true"
-        android:textSize="10dip"
+        android:textSize="11dip"
         android:ellipsize="marquee"
          />
 

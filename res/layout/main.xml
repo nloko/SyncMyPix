@@ -13,19 +13,7 @@
                android:src="@drawable/title" 
                android:background="#00FF00"
                />
-<!--             
-    <TextView android:id="@+id/title" 
-     	  android:layout_width="fill_parent"
-     	  android:layout_height="64dip"
-     	  android:background="#00FF00"
-          android:textColor="#FFFFFF" 
-          android:text="Get In Sync!" 
-          android:textSize="12dip"
-          android:layout_toRightOf="@id/icon"
-          android:layout_alignBottom="@id/icon"
-          android:paddingBottom="6dip"
-    />
-   -->   
+
     <ImageButton android:id="@+id/syncButton" 
     	android:layout_width="wrap_content" 
     	android:layout_height="wrap_content"
@@ -34,7 +22,7 @@
     	android:layout_marginLeft="70dip"
     	android:src="@drawable/sync_button"/> 
     	
-    <TextView android:id="@+id/syncTitle" 
+    <TextView android:id="@+id/syncTitle"
      	  android:layout_width="fill_parent"
      	  android:layout_height="wrap_content"
           android:textColor="#008000" 
