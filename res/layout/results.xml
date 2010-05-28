@@ -2,7 +2,6 @@
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent" 
 	android:orientation="vertical"
-	android:background="@drawable/background"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
 	<TextView android:text="@string/syncresults.updated" 
@@ -22,7 +21,7 @@
 		android:layout_width="fill_parent"
 		android:layout_toRightOf="@id/updatedLabel"
 		android:layout_marginLeft="4dip" 
-		android:textColor="#FFFFFF" />
+		android:textColor="#000000" />
 
 	<TextView android:text="@string/syncresults.skipped" 
 		android:id="@+id/skippedLabel"
@@ -43,7 +42,7 @@
 		android:layout_toRightOf="@id/skippedLabel"
 		android:layout_below="@id/updatedLabel" 
 		android:layout_marginLeft="4dip"
-		android:textColor="#FFFFFF" />
+		android:textColor="#000000" />
 		
 		<TextView android:text="@string/syncresults.notfound" 
 		android:id="@+id/notfoundLabel"
@@ -64,7 +63,7 @@
 		android:layout_toRightOf="@id/notfoundLabel"
 		android:layout_below="@id/skippedLabel"  
 		android:layout_marginLeft="4dip"
-		android:textColor="#FFFFFF" />
+		android:textColor="#000000" />
 
 	<TextView android:text="@string/syncresults.resultsList" 
 		android:id="@+id/resultsListHeader" 
@@ -81,7 +80,6 @@
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content" 
 		android:layout_below="@id/resultsListHeader"
-		android:background="@android:color/transparent"
-		android:cacheColorHint="#00000000" />
+	 />
 	
 </RelativeLayout>

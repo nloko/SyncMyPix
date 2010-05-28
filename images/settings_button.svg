@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -12,7 +13,7 @@
    height="250"
    id="svg2633"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="0.47 r22583"
    version="1.0"
    sodipodi:docname="settings_button.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -39,16 +40,17 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="222.97204"
+     inkscape:zoom="0.90260101"
+     inkscape:cx="54.569835"
      inkscape:cy="115.71956"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1047"
-     inkscape:window-height="719"
-     inkscape:window-x="98"
-     inkscape:window-y="24" />
+     inkscape:window-height="677"
+     inkscape:window-x="71"
+     inkscape:window-y="351"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata2638">
     <rdf:RDF>
@@ -57,6 +59,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -65,14 +68,17 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#1a1a1a;fill-rule:evenodd;stroke:#000000;stroke-width:0.81615101999999984px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#008000;fill-rule:evenodd;stroke:none;stroke-width:0.81615101999999984px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="rect2647"
        width="148.75526"
        height="140.18385"
        x="57.908051"
        y="57.413116"
        rx="13.650644"
-       ry="13.650644" />
+       ry="13.650644"
+       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/settings_button.png"
+       inkscape:export-xdpi="28.879999"
+       inkscape:export-ydpi="28.879999" />
     <path
        style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 158.59375 71.1875 C 145.76885 71.1875 135.375 80.475363 135.375 91.90625 C 135.375 103.33714 145.76885 112.625 158.59375 112.625 C 171.41865 112.625 181.8125 103.33714 181.8125 91.90625 C 181.8125 90.288275 181.61315 88.730228 181.21875 87.21875 L 168.75 99.34375 L 149.59375 82.84375 L 161.40625 71.375 C 160.4825 71.275312 159.54751 71.1875 158.59375 71.1875 z "

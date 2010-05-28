@@ -2,7 +2,6 @@
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent" 
 	android:orientation="vertical"
-	android:background="@drawable/background"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	
 	<TextSwitcher 
@@ -16,14 +15,12 @@
 		<TextView android:id="@+id/TextView01" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
-			android:textColor="#FFFFFF"
 			android:layout_gravity="center_horizontal" 
 			android:textSize="26dip" />
 		<TextView android:id="@+id/TextView02" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
 			android:layout_gravity="center_horizontal" 
-			android:textColor="#FFFFFF"
 			android:textSize="26dip" />
 			
 	</TextSwitcher>
@@ -69,14 +66,12 @@
 		<TextView android:id="@+id/TextView01" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
-			android:textColor="#FFFFFF"
 			android:layout_gravity="center_horizontal" 
 			android:textSize="16dip" />
 		<TextView android:id="@+id/TextView02" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
 			android:layout_gravity="center_horizontal" 
-			android:textColor="#FFFFFF"
 			android:textSize="16dip" />
 			
 	</TextSwitcher>

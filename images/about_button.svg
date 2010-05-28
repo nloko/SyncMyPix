@@ -13,11 +13,11 @@
    height="250"
    id="svg2633"
    sodipodi:version="0.32"
-   inkscape:version="0.47pre4 r22446"
+   inkscape:version="0.47 r22583"
    version="1.0"
    sodipodi:docname="about_button.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/donate.png"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/about_button.png"
    inkscape:export-xdpi="28.879999"
    inkscape:export-ydpi="28.879999">
   <defs
@@ -47,14 +47,14 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.9131779"
-     inkscape:cx="57.067893"
+     inkscape:zoom="0.90483838"
+     inkscape:cx="-110.91791"
      inkscape:cy="115.71956"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1047"
-     inkscape:window-height="681"
+     inkscape:window-height="677"
      inkscape:window-x="134"
      inkscape:window-y="24"
      inkscape:window-maximized="0" />
@@ -75,7 +75,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#1a1a1a;fill-rule:evenodd;stroke:#000000;stroke-width:0.81615101999999984px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#008000;fill-rule:evenodd;stroke:none;stroke-width:0.81615101999999984px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="rect2647"
        width="148.75526"
        height="140.18385"
@@ -95,7 +95,7 @@
        transform="translate(-9.6655381,-3.2852306)" />
     <text
        xml:space="preserve"
-       style="font-size:72px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial Black;-inkscape-font-specification:Arial Black"
+       style="font-size:72px;font-style:normal;font-weight:normal;fill:#008000;fill-opacity:1;stroke:none;font-family:Arial Black;-inkscape-font-specification:Arial Black"
        x="119.36338"
        y="153.63324"
        id="text4250"><tspan

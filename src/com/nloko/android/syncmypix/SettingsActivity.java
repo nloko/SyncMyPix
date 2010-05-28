@@ -65,9 +65,9 @@ public class SettingsActivity extends PreferenceActivity {
 	
     private void setupViews(Bundle savedInstanceState)
     {
-    	getWindow().setBackgroundDrawableResource(R.drawable.background);
-    	getListView().setBackgroundColor(Color.TRANSPARENT);
-    	getListView().setCacheColorHint(Color.TRANSPARENT);
+    	//getWindow().setBackgroundDrawableResource(R.drawable.background);
+    	//getListView().setBackgroundColor(Color.TRANSPARENT);
+    	//getListView().setCacheColorHint(Color.TRANSPARENT);
 
     	addPreferencesFromResource(R.layout.preferences);	
     	//getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.syncmypix_title);
