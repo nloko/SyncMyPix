@@ -154,9 +154,11 @@ public class SyncProgressActivity extends Activity {
 						//removeDialog(FRIENDS_PROGRESS);
 					//}
 					
-					mTitleProgress.setVisibility(View.INVISIBLE);
-					mTextSwitcher.setText("");
-					
+					if (mTitleProgress.getVisibility() == View.VISIBLE) {
+						mTitleProgress.setVisibility(View.INVISIBLE);
+						mTextSwitcher.setText("");
+					}
+				
 					mProgress.setVisibility(View.VISIBLE);
 					mCancelButton.setVisibility(View.VISIBLE);
 					
