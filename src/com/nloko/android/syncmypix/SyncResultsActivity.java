@@ -144,7 +144,7 @@ public class SyncResultsActivity extends Activity {
 		
 		showDialog(LOADING_DIALOG);
 		
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		//requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
 		
 		mContactUtils = new ContactUtils();

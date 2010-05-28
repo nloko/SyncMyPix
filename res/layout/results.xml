@@ -74,6 +74,7 @@
 		android:layout_width="fill_parent" 
 		android:layout_height="match_parent"
 		android:layout_below="@id/notfound"
+		android:layout_above="@id/footer"
 	 />
 	
 	<TextView android:id="@+id/footer" 
