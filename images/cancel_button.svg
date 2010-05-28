@@ -15,7 +15,7 @@
    version="1.1"
    inkscape:version="0.47 r22583"
    sodipodi:docname="cancel_button.svg"
-   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button.png"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button_pressed.png"
    inkscape:export-xdpi="100"
    inkscape:export-ydpi="100">
   <defs
@@ -42,7 +42,7 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.79630379"
+     inkscape:zoom="1.1261436"
      inkscape:cx="652.16165"
      inkscape:cy="526.18109"
      inkscape:document-units="px"
@@ -78,7 +78,7 @@
        y="458.07745"
        rx="9.3634033"
        ry="0"
-       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button_pressed.png"
+       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button_default.png"
        inkscape:export-xdpi="100"
        inkscape:export-ydpi="100" />
     <path
