@@ -142,7 +142,7 @@ public class SyncResultsActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		showDialog(LOADING_DIALOG);
+		//showDialog(LOADING_DIALOG);
 		
 		//requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
@@ -158,6 +158,7 @@ public class SyncResultsActivity extends Activity {
         Cursor cursor = managedQuery(Results.CONTENT_URI, mProjection, null, null, Results.DEFAULT_SORT_ORDER);
         
         mProgress = (ProgressBar) findViewById(R.id.progress);
+        mProgress.setVisibility(View.VISIBLE);
         mListview = (ListView) findViewById(R.id.resultList);
         
 		final SimpleCursorAdapter adapter = new ResultsListAdapter(
@@ -789,11 +790,11 @@ public class SyncResultsActivity extends Activity {
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 			case LOADING_DIALOG:
-				ProgressDialog progress = new ProgressDialog(this);
-				progress.setCancelable(true);
-				progress.setMessage(getString(R.string.syncresults_loadingDialog));
-				progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				return progress;
+				//ProgressDialog progress = new ProgressDialog(this);
+				//progress.setCancelable(true);
+				//progress.setMessage(getString(R.string.syncresults_loadingDialog));
+				//progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				//return progress;
 			case ZOOM_PIC:
 				return showZoomDialog();
 			case UPDATE_CONTACT:
@@ -916,7 +917,8 @@ public class SyncResultsActivity extends Activity {
 			
 			activity.runOnUiThread(new Runnable() {
 				public void run() {
-					activity.removeDialog(activity.LOADING_DIALOG);
+					//activity.removeDialog(activity.LOADING_DIALOG);
+					activity.mProgress.setVisibility(View.INVISIBLE);
 				}
 			});
 		}
@@ -969,7 +971,8 @@ public class SyncResultsActivity extends Activity {
 					label2.setVisibility(View.VISIBLE);
 					label3.setVisibility(View.VISIBLE);
 
-					activity.removeDialog(activity.LOADING_DIALOG);
+					//activity.removeDialog(activity.LOADING_DIALOG);
+					activity.mProgress.setVisibility(View.INVISIBLE);
 				}
 			});
 		}

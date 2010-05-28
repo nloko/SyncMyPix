@@ -50,6 +50,7 @@ import android.widget.TextSwitcher;
 public class SyncProgressActivity extends Activity {
 	private WeakReference<SyncService> mSyncService;
 	//private ProgressDialog mFriendsProgress;
+	private ProgressBar mTitleProgress;
 	private ProgressBar mProgress;
 	private ImageSwitcher mImageSwitcher;
 	private TextSwitcher mTextSwitcher;
@@ -70,6 +71,7 @@ public class SyncProgressActivity extends Activity {
 		setContentView(R.layout.syncprogress);
 		
 		mProgress = (ProgressBar) findViewById(R.id.syncProgress);
+		mTitleProgress = (ProgressBar) findViewById(R.id.progress);
 		mImageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
 		mTextSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
 		mStatusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
@@ -117,11 +119,11 @@ public class SyncProgressActivity extends Activity {
 	protected Dialog onCreateDialog(int id) {
 		switch(id) {
 			case FRIENDS_PROGRESS:
-				ProgressDialog mFriendsProgress = new ProgressDialog(this);
-				mFriendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				mFriendsProgress.setMessage(getString(R.string.main_friendsDialog));
-				mFriendsProgress.setCancelable(false);
-				return mFriendsProgress;
+				//ProgressDialog mFriendsProgress = new ProgressDialog(this);
+				//mFriendsProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				//mFriendsProgress.setMessage(getString(R.string.main_friendsDialog));
+				//mFriendsProgress.setCancelable(false);
+				//return mFriendsProgress;
 			case CANCELLING_DIALOG:
 				ProgressDialog cancelling = new ProgressDialog(this);
 				cancelling.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -141,14 +143,19 @@ public class SyncProgressActivity extends Activity {
         	}
         	
         	if (s.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
-            	showDialog(FRIENDS_PROGRESS);
+            	//showDialog(FRIENDS_PROGRESS);
+        		mTitleProgress.setVisibility(View.VISIBLE);
+        		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
         	}
         	
         	s.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
 					//if (mFriendsProgress != null && mFriendsProgress.isShowing()) {
-						removeDialog(FRIENDS_PROGRESS);
+						//removeDialog(FRIENDS_PROGRESS);
 					//}
+					
+					mTitleProgress.setVisibility(View.INVISIBLE);
+					mTextSwitcher.setText("");
 					
 					mProgress.setVisibility(View.VISIBLE);
 					mCancelButton.setVisibility(View.VISIBLE);
@@ -184,7 +191,9 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					showDialog(FRIENDS_PROGRESS);
+					//showDialog(FRIENDS_PROGRESS);
+					mTitleProgress.setVisibility(View.VISIBLE);
+	        		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
 				}
 
 				public void onSyncCancelled() {

@@ -41,7 +41,7 @@
     <string name="main.logoutButton">Logout</string>
     <string name="main.sendLogButton">Send Log</string>
     <string name="main.aboutButton">About</string>
-    <string name="main.friendsDialog">Getting friends from social network...</string>
+    <string name="main.friendsDialog">Getting friends...</string>
     <string name="main.logMsg">Please insert a description of your problem here</string>
     <string name="main.error.Logerror">Error sending log</string>
     
