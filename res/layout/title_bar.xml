@@ -23,6 +23,6 @@
 				android:indeterminateOnly="true"
 				android:layout_alignParentRight="true"
 				android:visibility="invisible"
-		/>
+				/>
   
 </RelativeLayout>

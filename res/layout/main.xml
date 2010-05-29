@@ -97,7 +97,64 @@
 		android:layout_width="fill_parent" 
 		android:layout_height="42dip" 
 		android:background="#55FF55" 
-		android:layout_alignParentBottom="true"
-		> </RelativeLayout>/>
+		android:layout_alignParentBottom="true" > 
+		
+		<ImageButton  
+			android:id="@+id/syncCancel" 
+			android:visibility="visible"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent" 
+			android:adjustViewBounds="true"
+			android:layout_alignParentRight="true"
+			android:textColor="#FFFFFF"
+			android:src="@drawable/cancel_button_selector"
+			android:scaleType="fitXY"
+			android:background="#FFFFFF"
+			android:paddingLeft="1dip"
+			 />
+			 
+		<ImageButton  
+			android:id="@+id/delete" 
+			android:visibility="visible"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent" 
+			android:adjustViewBounds="true"
+			android:layout_toLeftOf="@id/syncCancel"
+			android:textColor="#FFFFFF"
+			android:src="@drawable/delete_button_selector"
+			android:scaleType="fitXY"
+			android:background="#FFFFFF"
+			android:paddingLeft="1dip"
+			 />
+			 
+		<ImageButton  
+			android:id="@+id/help" 
+			android:visibility="visible"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent" 
+			android:adjustViewBounds="true"
+			android:layout_toLeftOf="@id/delete"
+			android:textColor="#FFFFFF"
+			android:src="@drawable/help_button_selector"
+			android:scaleType="fitXY"
+			android:background="#FFFFFF"
+			android:paddingLeft="1dip"
+			 />
+			 
+		<ImageButton  
+			android:id="@+id/home" 
+			android:visibility="visible"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent" 
+			android:adjustViewBounds="true"
+			android:layout_toLeftOf="@id/help"
+			android:textColor="#FFFFFF"
+			android:src="@drawable/home_button_selector"
+			android:scaleType="fitXY"
+			android:background="#FFFFFF"
+			android:paddingLeft="1dip"
+			 />
+		
+		</RelativeLayout>/>
            
 </RelativeLayout>
