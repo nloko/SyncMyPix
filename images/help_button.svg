@@ -14,8 +14,8 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="trash_button.svg"
-   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/home_button_default.png"
+   sodipodi:docname="help_button.svg"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/help_button_pressed.png"
    inkscape:export-xdpi="100"
    inkscape:export-ydpi="100">
   <defs
@@ -113,7 +113,7 @@
        y="524.8739"
        rx="2.3408508"
        ry="0"
-       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/trash_button_pressed.png"
+       inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/help_button_default.png"
        inkscape:export-xdpi="100"
        inkscape:export-ydpi="100" />
     <path
@@ -128,7 +128,7 @@
        transform="matrix(1.331,0,0,1.331,-148.00351,-181.30303)" />
     <text
        xml:space="preserve"
-       style="font-size:18.63400078px;font-style:normal;font-weight:normal;fill:#00d400;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
+       style="font-size:18.63400078000000093px;font-style:normal;font-weight:normal;fill:#00d400;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
        x="441.37701"
        y="555.38464"
        id="text4655"><tspan
