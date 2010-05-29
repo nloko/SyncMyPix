@@ -84,7 +84,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 
 public class SyncResultsActivity extends Activity {
-
 	private ContactUtils mContactUtils;
 	private SyncMyPixDbHelper mDbHelper;
 	private ListView mListview;
@@ -112,7 +111,6 @@ public class SyncResultsActivity extends Activity {
 	private final int MENU_DELETE = 7;
 
 	// dialogs
-	private final int LOADING_DIALOG = 0;
 	private final int ZOOM_PIC = 1;
 	private final int UPDATE_CONTACT = 3;
 	private final int HELP_DIALOG = 4;
@@ -141,10 +139,6 @@ public class SyncResultsActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		//showDialog(LOADING_DIALOG);
-		
-		//requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.results);	
 		
 		mContactUtils = new ContactUtils();
@@ -280,12 +274,10 @@ public class SyncResultsActivity extends Activity {
 			if (activity != null) {
 				Bitmap bitmap = (Bitmap) msg.obj;
 				if (bitmap != null) {
-					//((SimpleCursorAdapter)activity.mListview.getAdapter()).notifyDataSetChanged();
 					activity.mContactImage = bitmap;
 					activity.showDialog(activity.ZOOM_PIC);
 				}
 				
-				//activity.setProgressBarIndeterminateVisibility(false);
 				activity.mProgress.setVisibility(View.INVISIBLE);
 				handleWhat(msg);
 			}
@@ -376,8 +368,6 @@ public class SyncResultsActivity extends Activity {
 		if (mSdCache != null) {
 			mSdCache.releaseResources();
 		}
-		// allow proper GC
-		//mListview = null;
 	}
 		
 	@Override
@@ -671,7 +661,6 @@ public class SyncResultsActivity extends Activity {
 							
 							runOnUiThread(new Runnable() {
 								public void run() {
-									//((SimpleCursorAdapter)mListview.getAdapter()).notifyDataSetChanged();
 									crop(contactId);
 								}
 							});
@@ -789,12 +778,6 @@ public class SyncResultsActivity extends Activity {
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-			case LOADING_DIALOG:
-				//ProgressDialog progress = new ProgressDialog(this);
-				//progress.setCancelable(true);
-				//progress.setMessage(getString(R.string.syncresults_loadingDialog));
-				//progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-				//return progress;
 			case ZOOM_PIC:
 				return showZoomDialog();
 			case UPDATE_CONTACT:
@@ -917,7 +900,6 @@ public class SyncResultsActivity extends Activity {
 			
 			activity.runOnUiThread(new Runnable() {
 				public void run() {
-					//activity.removeDialog(activity.LOADING_DIALOG);
 					activity.mProgress.setVisibility(View.INVISIBLE);
 				}
 			});

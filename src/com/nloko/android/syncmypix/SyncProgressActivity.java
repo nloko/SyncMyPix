@@ -49,7 +49,6 @@ import android.widget.TextSwitcher;
 
 public class SyncProgressActivity extends Activity {
 	private WeakReference<SyncService> mSyncService;
-	//private ProgressDialog mFriendsProgress;
 	private ProgressBar mTitleProgress;
 	private ProgressBar mProgress;
 	private ImageSwitcher mImageSwitcher;
@@ -67,7 +66,6 @@ public class SyncProgressActivity extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.syncprogress);
 		
@@ -155,17 +153,12 @@ public class SyncProgressActivity extends Activity {
         	}
         	
         	if (s.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
-            	//showDialog(FRIENDS_PROGRESS);
         		mTitleProgress.setVisibility(View.VISIBLE);
         		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
         	}
         	
         	s.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
-					//if (mFriendsProgress != null && mFriendsProgress.isShowing()) {
-						//removeDialog(FRIENDS_PROGRESS);
-					//}
-					
 					if (mTitleProgress.getVisibility() == View.VISIBLE) {
 						mTitleProgress.setVisibility(View.INVISIBLE);
 						mTextSwitcher.setText("");
@@ -206,7 +199,6 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					//showDialog(FRIENDS_PROGRESS);
 					mTitleProgress.setVisibility(View.VISIBLE);
 	        		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
 				}
