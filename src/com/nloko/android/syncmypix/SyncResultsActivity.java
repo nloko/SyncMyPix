@@ -482,7 +482,8 @@ public class SyncResultsActivity extends Activity {
 				cursor = ((SimpleCursorAdapter)mListview.getAdapter()).getCursor();
 				if (cursor.moveToPosition(position)) {
 					id = cursor.getString(cursor.getColumnIndex(Results.CONTACT_ID));
-					crop(id);
+					updateContactWithSelection(Uri.withAppendedPath(mContactUtils.getContentUri(), id));
+					//crop(id);
 				}
 				
 				return true;
