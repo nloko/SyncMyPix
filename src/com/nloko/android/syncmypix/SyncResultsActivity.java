@@ -280,7 +280,7 @@ public class SyncResultsActivity extends Activity {
 			if (activity != null) {
 				Bitmap bitmap = (Bitmap) msg.obj;
 				if (bitmap != null) {
-					((SimpleCursorAdapter)activity.mListview.getAdapter()).notifyDataSetChanged();
+					//((SimpleCursorAdapter)activity.mListview.getAdapter()).notifyDataSetChanged();
 					activity.mContactImage = bitmap;
 					activity.showDialog(activity.ZOOM_PIC);
 				}
@@ -1319,7 +1319,7 @@ public class SyncResultsActivity extends Activity {
 							mainMsg.what = msg.what;
 							handler.sendMessage(mainMsg);
 							if (!activity.mCache.contains(url)) {
-								activity.mCache.add(url, bitmap, true, false);
+								activity.mCache.add(url, bitmap, true);
 							}
 						}
 					}
