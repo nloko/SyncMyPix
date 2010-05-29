@@ -81,7 +81,6 @@ public class MainActivity extends Activity {
 	private WeakReference<SyncService> mSyncService;
 	private boolean mSyncServiceBound = false;
 	
-	private ImageButton mLogoutButton;
 	private ImageButton mDeleteButton;
 	private ImageButton mHelpButton;
 

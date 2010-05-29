@@ -100,7 +100,6 @@ public class SyncResultsActivity extends Activity {
 	private PhotoCache mSdCache;
 
 	private ProgressBar mProgress;
-	private ImageButton mLogoutButton;
 	private ImageButton mDeleteButton;
 	private ImageButton mHelpButton;
 	private ImageButton mHomeButton;
