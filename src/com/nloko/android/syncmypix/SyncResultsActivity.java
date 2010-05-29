@@ -71,8 +71,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View.OnClickListener;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -98,17 +100,19 @@ public class SyncResultsActivity extends Activity {
 	private PhotoCache mSdCache;
 
 	private ProgressBar mProgress;
+	private ImageButton mLogoutButton;
+	private ImageButton mDeleteButton;
+	private ImageButton mHelpButton;
+	private ImageButton mHomeButton;
 	
 	private Uri mUriOfSelected = null;
 	
-	private final int MENU_HELP = 0;
 	private final int MENU_FILTER = 1;
 	private final int MENU_FILTER_ALL = 2;
 	private final int MENU_FILTER_NOTFOUND = 3;
 	private final int MENU_FILTER_UPDATED = 4;
 	private final int MENU_FILTER_SKIPPED = 5;
 	private final int MENU_FILTER_ERROR = 6;
-	private final int MENU_DELETE = 7;
 
 	// dialogs
 	private final int ZOOM_PIC = 1;
@@ -252,7 +256,32 @@ public class SyncResultsActivity extends Activity {
 				}
 			}
         });
-   
+
+		mHomeButton = (ImageButton) findViewById(R.id.home);
+		mHomeButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Intent i = new Intent(getApplicationContext(), MainActivity.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(i);
+				finish();
+			}
+		});
+		
+		mHelpButton = (ImageButton) findViewById(R.id.help);
+		mHelpButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.help_link)));
+				startActivity(i);
+			}
+		});
+		
+		mDeleteButton = (ImageButton) findViewById(R.id.delete);
+		mDeleteButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				showDialog(DELETE_DIALOG);
+			}
+		});
+
         mMainHandler = new MainHandler(this);
 	}
 
@@ -374,9 +403,6 @@ public class SyncResultsActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		 MenuItem item;
 
-		 item = menu.add(0, MENU_HELP, 0, "Help");
-		 item.setIcon(android.R.drawable.ic_menu_help);
-
 		 SubMenu options = menu.addSubMenu(0, MENU_FILTER, 0, R.string.syncresults_filterButton);
 		 options.add(0, MENU_FILTER_ALL, 0, "All");
 		 options.add(0, MENU_FILTER_ERROR, 0, "Errors");
@@ -385,10 +411,6 @@ public class SyncResultsActivity extends Activity {
 		 options.add(0, MENU_FILTER_UPDATED, 0, "Updated");
 		 
 		 options.setIcon(android.R.drawable.ic_menu_sort_alphabetically);
-
-		 item = menu.add(0, MENU_DELETE, 0, R.string.syncresults_deleteButton);
-		 item.setIcon(android.R.drawable.ic_menu_delete);
-		 
 		 return true;
 	 }
 	 
@@ -398,9 +420,6 @@ public class SyncResultsActivity extends Activity {
 		 SimpleCursorAdapter adapter = (SimpleCursorAdapter)mListview.getAdapter();
 		 
 		 switch (item.getItemId()) {
-		 case MENU_HELP:
-			 showDialog(HELP_DIALOG);
-			 return true;
 		 case MENU_FILTER_ALL:
 			 adapter.getFilter().filter(null);
 			 return true;
@@ -420,11 +439,6 @@ public class SyncResultsActivity extends Activity {
 					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription(getApplicationContext()) + "'," +
 					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(getApplicationContext()) + "'");
 			 return true;
-			 
-		 case MENU_DELETE:
-			 showDialog(DELETE_DIALOG);
-			 return true;
-		
 		 }
 
 		 return false;
@@ -786,20 +800,6 @@ public class SyncResultsActivity extends Activity {
 				sync.setMessage(getString(R.string.syncresults_syncDialog));
 				sync.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				return sync;
-			case HELP_DIALOG:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(R.string.syncresults_helpDialog)
-					   .setIcon(android.R.drawable.ic_dialog_info)
-					   .setMessage(R.string.results_help_msg)
-				       .setCancelable(false)
-				       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				           public void onClick(DialogInterface dialog, int id) {
-				               removeDialog(HELP_DIALOG);
-				           }
-				       });
-				AlertDialog help = builder.create();
-				return help;
-				
 			case DELETE_DIALOG:
 				AlertDialog.Builder deleteBuilder = new AlertDialog.Builder(this);
 				deleteBuilder.setTitle(R.string.syncresults_deleteDialog)

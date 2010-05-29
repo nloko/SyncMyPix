@@ -34,7 +34,9 @@ import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.views.ConfirmSyncDialog;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,6 +46,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -68,14 +71,19 @@ public class MainActivity extends Activity {
 	private final static int SOCIAL_NETWORK_LOGIN = 0;
 
 	private final int MENU_LOGOUT = 3;
-    private final int MENU_ABOUT = 4;
     private final int MENU_LOG = 5;
 
+    private final int DELETE_DIALOG = 1;
 	private final int ABOUT_DIALOG = 2;
 	private final int CONFIRM_DIALOG = 3;
+	private final int DELETING = 4;
 
 	private WeakReference<SyncService> mSyncService;
 	private boolean mSyncServiceBound = false;
+	
+	private ImageButton mLogoutButton;
+	private ImageButton mDeleteButton;
+	private ImageButton mHelpButton;
 
 	public static <T extends SyncService> Class<T> getSyncSource(Context context)
 	{
@@ -172,6 +180,20 @@ public class MainActivity extends Activity {
 			}
         });
         
+        mHelpButton = (ImageButton) findViewById(R.id.help);
+		mHelpButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.help_link)));
+				startActivity(i);
+			}
+		});
+		
+		mDeleteButton = (ImageButton) findViewById(R.id.delete);
+		mDeleteButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				showDialog(DELETE_DIALOG);
+			}
+		});
 
     }
     
@@ -339,6 +361,51 @@ public class MainActivity extends Activity {
 				
 				dialog.setCancelButtonListener(null);
 				return dialog;
+				
+			case DELETE_DIALOG:
+				AlertDialog.Builder deleteBuilder = new AlertDialog.Builder(this);
+				deleteBuilder.setTitle(R.string.syncresults_deleteDialog)
+					   .setIcon(android.R.drawable.ic_dialog_alert)
+					   .setMessage(R.string.syncresults_deleteDialog_msg)
+				       .setCancelable(false)
+				       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				               removeDialog(DELETE_DIALOG);
+				               
+				               showDialog(DELETING);
+				               SyncMyPixDbHelper dbHelper = new SyncMyPixDbHelper(getApplicationContext());
+				               dbHelper.deleteAllPictures(new DbHelperNotifier() {
+				            	   public void onUpdateComplete() {
+				            		   runOnUiThread(new Runnable() {
+				            			   public void run() {
+				            				   dismissDialog(DELETING);
+				            				   Toast.makeText(getApplicationContext(),
+													R.string.syncresults_deleted, 
+													Toast.LENGTH_LONG).show();
+											
+				            				   finish();
+				            			   }
+				            		   });
+				            	   }
+				               });
+				           }
+				       })
+				       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+				    	   public void onClick(DialogInterface dialog, int id) {
+				    		   removeDialog(DELETE_DIALOG);
+				    	   }
+				       });
+				
+				AlertDialog delete = deleteBuilder.create();
+				return delete;
+			
+			case DELETING:
+				ProgressDialog deleting = new ProgressDialog(this);
+				deleting.setCancelable(false);
+				deleting.setMessage(getString(R.string.syncresults_deletingDialog));
+				deleting.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				return deleting;
+
 		}
 		
 		return super.onCreateDialog(id);

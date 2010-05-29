@@ -66,14 +66,15 @@ public final class R {
         public static final int footer=0x7f070016;
         public static final int help=0x7f070019;
         public static final int home=0x7f07001a;
-        public static final int icon=0x7f070033;
+        public static final int icon=0x7f070034;
         public static final int image=0x7f070008;
         public static final int info=0x7f070003;
         public static final int logo=0x7f070001;
+        public static final int logout=0x7f070017;
         public static final int notfound=0x7f070021;
         public static final int notfoundLabel=0x7f070020;
         public static final int ok=0x7f070007;
-        public static final int progress=0x7f070034;
+        public static final int progress=0x7f070035;
         public static final int relativeMain=0x7f07000c;
         public static final int resultList=0x7f070022;
         public static final int resultsButton=0x7f070014;
@@ -84,7 +85,7 @@ public final class R {
         public static final int skipped=0x7f07001f;
         public static final int skippedLabel=0x7f07001e;
         public static final int syncButton=0x7f07000e;
-        public static final int syncCancel=0x7f070017;
+        public static final int syncCancel=0x7f070032;
         public static final int syncProgress=0x7f070031;
         public static final int syncStatusSwitcher=0x7f070030;
         public static final int syncTitle=0x7f07000f;
@@ -93,13 +94,13 @@ public final class R {
         public static final int text2=0x7f070024;
         public static final int title=0x7f070028;
         public static final int titleBar=0x7f07000d;
-        public static final int title_bar=0x7f070032;
+        public static final int title_bar=0x7f070033;
         public static final int title_icon=0x7f070027;
         public static final int updated=0x7f07001d;
         public static final int updatedLabel=0x7f07001c;
         public static final int website=0x7f070004;
         public static final int webview=0x7f07000b;
-        public static final int zoomed_layout=0x7f070035;
+        public static final int zoomed_layout=0x7f070036;
     }
     public static final class layout {
         public static final int about=0x7f030000;
@@ -118,11 +119,12 @@ public final class R {
         public static final int diminutives=0x7f040000;
     }
     public static final class string {
-        public static final int about_info=0x7f060059;
+        public static final int about_info=0x7f06005a;
         public static final int app_name=0x7f06002c;
         public static final int donate=0x7f060056;
         public static final int facebooklogin=0x7f060043;
         public static final int facebooklogin_urlError=0x7f060044;
+        public static final int help_link=0x7f060058;
         public static final int login_authorization=0x7f06002b;
         public static final int login_thankyou=0x7f06002a;
         public static final int main_aboutButton=0x7f060024;
@@ -165,7 +167,7 @@ public final class R {
         public static final int preferences_source=0x7f060008;
         public static final int preferences_source_summary=0x7f060009;
         public static final int preferences_sourceHeader=0x7f060007;
-        public static final int results_help_msg=0x7f060058;
+        public static final int results_help_msg=0x7f060059;
         public static final int resultsdescription_downloadfailed=0x7f060053;
         public static final int resultsdescription_error=0x7f060054;
         public static final int resultsdescription_multipleprocessed=0x7f060052;
