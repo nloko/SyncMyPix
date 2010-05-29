@@ -1,0 +1,107 @@
+<RelativeLayout android:id="@+id/relativeMain" 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<include android:id="@+id/titleBar" layout="@layout/title_bar" />
+
+    <ImageButton android:id="@+id/syncButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	android:layout_below="@id/titleBar"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="70dip"
+    	android:src="@drawable/sync_button"/> 
+    	
+    <TextView android:id="@+id/syncTitle"
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#008000" 
+          android:textStyle="bold"
+          android:textSize="20dip"
+          android:text="@string/main.syncButton"
+          android:layout_toRightOf="@id/syncButton"
+          android:layout_alignBottom="@id/syncButton"
+          android:layout_marginLeft="14dip"
+          android:layout_marginBottom="16dip"
+          android:padding="1dip" 
+           />
+           
+    <ImageButton android:id="@+id/settingsButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	android:layout_below="@id/syncButton"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="70dip"
+    	android:src="@drawable/settings_button" />          
+          
+    <TextView android:id="@+id/settingsTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#008000" 
+          android:textStyle="bold"
+          android:text="@string/main.settingsButton" 
+          android:textSize="20dip"
+          android:layout_toRightOf="@id/settingsButton"
+          android:layout_alignBottom="@id/settingsButton"
+          android:layout_marginLeft="14dip"
+          android:layout_marginBottom="16dip"
+          android:padding="1dip" 
+    />
+                
+    <ImageButton android:id="@+id/aboutButton" 
+		android:layout_height="wrap_content"
+		android:layout_width="wrap_content"
+    	android:layout_below="@id/settingsButton"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="70dip"
+    	android:src="@drawable/about_button" /> 
+    	
+     <TextView android:id="@+id/aboutTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#008000" 
+          android:textStyle="bold"
+          android:text="@string/main.aboutButton"
+          android:textSize="20dip"
+          android:layout_toRightOf="@id/aboutButton"
+          android:layout_alignBottom="@id/aboutButton"
+          android:layout_marginLeft="14dip"
+          android:layout_marginBottom="16dip"
+          android:padding="1dip" 
+           />
+           
+     <ImageButton android:id="@+id/resultsButton" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content" 
+    	android:layout_below="@id/aboutButton"
+    	android:layout_marginTop="10dip"
+    	android:layout_marginLeft="70dip"
+    	android:src="@drawable/results_button" /> 
+    	
+    <TextView android:id="@+id/resultsTitle" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="wrap_content"
+          android:textColor="#008000" 
+          android:textStyle="bold"
+          android:text="@string/main.resultsButton"
+          android:textSize="20dip"
+          android:layout_toRightOf="@id/resultsButton"
+          android:layout_alignBottom="@id/resultsButton"
+          android:layout_marginLeft="14dip"
+          android:layout_marginBottom="16dip"
+          android:padding="1dip" 
+           />
+
+	<TextView android:id="@+id/footer" 
+     	  android:layout_width="fill_parent"
+     	  android:layout_height="36dip"
+          android:textColor="#FFFFFF" 
+          android:textStyle="bold"
+          android:text=""
+          android:textSize="12dip"
+          android:layout_alignParentBottom="true"
+		  android:background="#00d400"
+           />
+           
+</RelativeLayout>
