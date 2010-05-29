@@ -24,17 +24,20 @@ public final class R {
         public static final int cancel_button_pressed=0x7f020004;
         public static final int cancel_button_selector=0x7f020005;
         public static final int default_face=0x7f020006;
-        public static final int icon=0x7f020007;
-        public static final int indicator_autocrop=0x7f020008;
-        public static final int logo=0x7f020009;
-        public static final int mini_icon=0x7f02000a;
-        public static final int neutral_face=0x7f02000b;
-        public static final int results_button=0x7f02000c;
-        public static final int sad_face=0x7f02000d;
-        public static final int settings_button=0x7f02000e;
-        public static final int smiley_face=0x7f02000f;
-        public static final int sync_button=0x7f020010;
-        public static final int title=0x7f020011;
+        public static final int home_button_default=0x7f020007;
+        public static final int home_button_pressed=0x7f020008;
+        public static final int home_button_selector=0x7f020009;
+        public static final int icon=0x7f02000a;
+        public static final int indicator_autocrop=0x7f02000b;
+        public static final int logo=0x7f02000c;
+        public static final int mini_icon=0x7f02000d;
+        public static final int neutral_face=0x7f02000e;
+        public static final int results_button=0x7f02000f;
+        public static final int sad_face=0x7f020010;
+        public static final int settings_button=0x7f020011;
+        public static final int smiley_face=0x7f020012;
+        public static final int sync_button=0x7f020013;
+        public static final int title=0x7f020014;
     }
     public static final class id {
         public static final int ImageView01=0x7f07002a;
@@ -54,14 +57,15 @@ public final class R {
         public static final int do_not_show_about=0x7f070005;
         public static final int donate=0x7f070006;
         public static final int footer=0x7f070016;
-        public static final int icon=0x7f070030;
+        public static final int home=0x7f07002f;
+        public static final int icon=0x7f070031;
         public static final int image=0x7f070008;
         public static final int info=0x7f070003;
         public static final int logo=0x7f070001;
         public static final int notfound=0x7f07001d;
         public static final int notfoundLabel=0x7f07001c;
         public static final int ok=0x7f070007;
-        public static final int progress=0x7f070031;
+        public static final int progress=0x7f070032;
         public static final int relativeMain=0x7f07000c;
         public static final int resultList=0x7f07001e;
         public static final int resultsButton=0x7f070014;
@@ -81,13 +85,13 @@ public final class R {
         public static final int text2=0x7f070020;
         public static final int title=0x7f070024;
         public static final int titleBar=0x7f07000d;
-        public static final int title_bar=0x7f07002f;
+        public static final int title_bar=0x7f070030;
         public static final int title_icon=0x7f070023;
         public static final int updated=0x7f070019;
         public static final int updatedLabel=0x7f070018;
         public static final int website=0x7f070004;
         public static final int webview=0x7f07000b;
-        public static final int zoomed_layout=0x7f070032;
+        public static final int zoomed_layout=0x7f070033;
     }
     public static final class layout {
         public static final int about=0x7f030000;

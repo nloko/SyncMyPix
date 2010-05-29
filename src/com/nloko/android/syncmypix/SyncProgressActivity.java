@@ -56,6 +56,7 @@ public class SyncProgressActivity extends Activity {
 	private TextSwitcher mTextSwitcher;
 	private TextSwitcher mStatusSwitcher;
 	private ImageButton mCancelButton;
+	private ImageButton mHomeButton;
 
     private final int FRIENDS_PROGRESS = 0;
     private final int CANCELLING_DIALOG = 1;
@@ -75,6 +76,17 @@ public class SyncProgressActivity extends Activity {
 		mImageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
 		mTextSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
 		mStatusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
+		
+		mHomeButton = (ImageButton) findViewById(R.id.home);
+		mHomeButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				Intent i = new Intent(getApplicationContext(), MainActivity.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(i);
+				finish();
+			}
+		});
+		
 		mCancelButton = (ImageButton) findViewById(R.id.syncCancel);
 		mCancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
@@ -161,6 +173,7 @@ public class SyncProgressActivity extends Activity {
 				
 					mProgress.setVisibility(View.VISIBLE);
 					mCancelButton.setVisibility(View.VISIBLE);
+					mHomeButton.setVisibility(View.VISIBLE);
 					
 					if (mProgress != null) {
 						if (percentage < 100) {
