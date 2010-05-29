@@ -382,7 +382,7 @@ public class MainActivity extends Activity {
 													R.string.syncresults_deleted, 
 													Toast.LENGTH_LONG).show();
 											
-				            				   finish();
+				            				   //finish();
 				            			   }
 				            		   });
 				            	   }
