@@ -93,15 +93,11 @@
           android:padding="1dip" 
            />
 
-	<TextView android:id="@+id/footer" 
-     	  android:layout_width="fill_parent"
-     	  android:layout_height="36dip"
-          android:textColor="#FFFFFF" 
-          android:textStyle="bold"
-          android:text=""
-          android:textSize="12dip"
-          android:layout_alignParentBottom="true"
-		  android:background="#00d400"
-           />
+	<RelativeLayout android:id="@+id/footer" 
+		android:layout_width="fill_parent" 
+		android:layout_height="42dip" 
+		android:background="#55FF55" 
+		android:layout_alignParentBottom="true"
+		> </RelativeLayout>/>
            
 </RelativeLayout>
