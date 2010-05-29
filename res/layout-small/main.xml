@@ -98,20 +98,6 @@
 		android:layout_height="42dip" 
 		android:background="#55FF55" 
 		android:layout_alignParentBottom="true" > 
-		
-		<ImageButton  
-			android:id="@+id/logout" 
-			android:visibility="visible"
-			android:layout_width="wrap_content"
-			android:layout_height="fill_parent" 
-			android:adjustViewBounds="true"
-			android:layout_alignParentRight="true"
-			android:textColor="#FFFFFF"
-			android:src="@drawable/cancel_button_selector"
-			android:scaleType="fitXY"
-			android:background="#FFFFFF"
-			android:paddingLeft="1dip"
-			 />
 			 
 		<ImageButton  
 			android:id="@+id/delete" 
@@ -119,7 +105,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="fill_parent" 
 			android:adjustViewBounds="true"
-			android:layout_toLeftOf="@id/logout"
+			android:layout_alignParentRight="true"
 			android:textColor="#FFFFFF"
 			android:src="@drawable/delete_button_selector"
 			android:scaleType="fitXY"
