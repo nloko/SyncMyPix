@@ -34,6 +34,20 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 0.5 : 1"
        sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3948"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3973"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -42,8 +56,8 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.1261436"
-     inkscape:cx="652.16165"
+     inkscape:zoom="0.68276828"
+     inkscape:cx="479.72646"
      inkscape:cy="526.18109"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -61,7 +75,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -72,29 +86,29 @@
     <rect
        style="fill:#00d400;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect2816"
-       width="191.99825"
-       height="183.45714"
-       x="350.85632"
-       y="458.07745"
-       rx="9.3634033"
+       width="47.999561"
+       height="45.864285"
+       x="422.85568"
+       y="526.8739"
+       rx="2.3408508"
        ry="0"
        inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/cancel_button_default.png"
        inkscape:export-xdpi="100"
        inkscape:export-ydpi="100" />
-    <path
-       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
-       d="m 446.53453,464.17422 c -47.87671,0 -86.70406,38.78955 -86.70406,86.66625 0,47.8767 38.82735,86.70406 86.70406,86.70406 47.87672,0 86.66625,-38.82736 86.66625,-86.70406 0,-47.8767 -38.78953,-86.66625 -86.66625,-86.66625 z m 0.11344,13.42343 c 40.14826,0 72.71343,32.53485 72.71343,72.67563 0,40.14078 -32.56517,72.67562 -72.71343,72.67562 -40.14826,0 -72.67562,-32.53484 -72.67562,-72.67562 0,-40.14078 32.52736,-72.67563 72.67562,-72.67563 z"
-       id="path2818" />
     <text
        xml:space="preserve"
-       style="font-size:151.31777954px;font-style:normal;font-weight:normal;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
-       x="350.71649"
-       y="666.95862"
+       style="font-size:18.5221138px;font-style:normal;font-weight:normal;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
+       x="377.65875"
+       y="646.06342"
        id="text2843"
-       transform="scale(1.112161,0.89915039)"><tspan
+       transform="scale(1.1640173,0.85909376)"><tspan
          sodipodi:role="line"
          id="tspan2845"
-         x="350.71649"
-         y="666.95862">X</tspan></text>
+         x="377.65875"
+         y="646.06342">X</tspan></text>
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 446.86034,535.37014 c -7.93611,0 -14.36719,6.14794 -14.36719,13.72657 0,7.57862 6.43108,13.71875 14.36719,13.71875 7.93611,0 14.375,-6.14013 14.375,-13.71875 0,-7.57863 -6.43889,-13.72657 -14.375,-13.72657 z m 0.125,2.60938 c 6.42825,0 11.64844,4.9785 11.64844,11.11719 0,6.13869 -5.22019,11.11718 -11.64844,11.11718 -6.42825,0 -11.63281,-4.97849 -11.63281,-11.11718 0,-6.13869 5.20456,-11.11719 11.63281,-11.11719 z"
+       id="path3938" />
   </g>
 </svg>

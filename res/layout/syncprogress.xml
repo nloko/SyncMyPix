@@ -91,16 +91,23 @@
     	android:minHeight="20dip" 
     	android:maxHeight="20dip" />
     	
-	<ImageButton  
-		android:layout_marginTop="6dip"
-		android:id="@+id/syncCancel" 
-		android:visibility="invisible"
+    <RelativeLayout android:id="@+id/footer" 
 		android:layout_width="fill_parent" 
 		android:layout_height="36dip" 
-		android:layout_gravity="center_horizontal"
-		android:textColor="#FFFFFF"
-		android:src="@drawable/cancel_button_selector"
-		android:scaleType="fitCenter"
-		android:background="#00d400"
-		 />
+		android:background="#00d400" >
+		
+		<ImageButton  
+			android:id="@+id/syncCancel" 
+			android:visibility="invisible"
+			android:layout_width="wrap_content"
+			android:layout_height="fill_parent" 
+			android:adjustViewBounds="true"
+			android:layout_alignParentRight="true"
+			android:textColor="#FFFFFF"
+			android:src="@drawable/cancel_button_selector"
+			android:scaleType="fitXY"
+			android:background="#FFFFFF"
+			android:paddingLeft="1dip"
+			 />
+	</RelativeLayout>
 </LinearLayout>
