@@ -47,6 +47,7 @@ public class PhotoCache {
 	// this location is important, as it allows automatic removal when the app is
 	// uninstalled
 	public static final String BASE_DIR = "Android/data/%s/cache/";
+	public static final String NO_MEDIA = ".nomedia";
 	public long mMaxBytes = 5000000;
 	
 	private static final String TAG = "PhotoCache";
@@ -141,6 +142,11 @@ public class PhotoCache {
 		msg.what = ADD;
 		msg.obj = new Photo(file, b);
 		mHandler.sendMessage(msg);
+	}
+	
+	private boolean isNoMedia(File f) {
+		if (f == null) return false;
+		return f.getName().equals(NO_MEDIA) && f.length() == 0;
 	}
 	
 	private void startWatchingExternalStorage() {
@@ -258,7 +264,7 @@ public class PhotoCache {
 			}
 			
 			File f = new File(mPath, name);
-			if (f.exists()) {
+			if (!isNoMedia(f) && f.exists()) {
 				mSize -= f.length();
 				f.delete();
 				if (mListener != null) {
@@ -275,7 +281,7 @@ public class PhotoCache {
 			}
 			
 			for(File f : files) {
-				if (mExternalStorageWriteable) {
+				if (mExternalStorageWriteable && !isNoMedia(f)) {
 					if (mSized) {
 						mSize -= f.length();
 					}
