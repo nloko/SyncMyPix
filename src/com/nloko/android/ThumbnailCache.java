@@ -117,7 +117,7 @@ public class ThumbnailCache {
 		}
 		
 		if (resize) {
-			bitmap = Utils.centerCrop(bitmap, 40, 40);
+			bitmap = Utils.centerCrop(bitmap, 44, 44);
 		}
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
