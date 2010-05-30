@@ -14,8 +14,8 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="home_button.svg"
-   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/home_button_default.png"
+   sodipodi:docname="trash_button.svg"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/trash_button_pressed.png"
    inkscape:export-xdpi="100"
    inkscape:export-ydpi="100">
   <defs
@@ -105,7 +105,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#00d400;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       style="fill:#ff6600;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect2816"
        width="47.999561"
        height="45.864285"

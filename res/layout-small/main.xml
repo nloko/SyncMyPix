@@ -93,10 +93,10 @@
           android:padding="1dip" 
            />
 
-		<RelativeLayout android:id="@+id/footer" 
+	<RelativeLayout android:id="@+id/footer" 
 		android:layout_width="fill_parent" 
 		android:layout_height="42dip" 
-		android:background="#55FF55" 
+		android:background="#aaffAA" 
 		android:layout_alignParentBottom="true" > 
 			 
 		<ImageButton  

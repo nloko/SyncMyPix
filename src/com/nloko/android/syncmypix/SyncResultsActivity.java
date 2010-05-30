@@ -148,7 +148,8 @@ public class SyncResultsActivity extends Activity {
 		
 		mSdCache = new PhotoCache(getApplicationContext());
 		Bitmap defaultImage = BitmapFactory.decodeResource(getResources(), R.drawable.default_face);
-		mCache.setDefaultImage(Bitmap.createScaledBitmap(defaultImage, 40, 40, false));
+		//mCache.setDefaultImage(Bitmap.createScaledBitmap(defaultImage, 40, 40, false));
+		mCache.setDefaultImage(defaultImage);
 		
 		mDbHelper = new SyncMyPixDbHelper(getApplicationContext());
 		
@@ -1335,9 +1336,9 @@ public class SyncResultsActivity extends Activity {
 			
 			// pre-scale images
 			mNeutralFace = BitmapFactory.decodeResource(context.getResources(), R.drawable.neutral_face);
-			mNeutralFace = Bitmap.createScaledBitmap(mNeutralFace, 40, 40, false);
+			//mNeutralFace = Bitmap.createScaledBitmap(mNeutralFace, 40, 40, false);
 			mSadFace = BitmapFactory.decodeResource(context.getResources(), R.drawable.sad_face);
-			mSadFace = Bitmap.createScaledBitmap(mSadFace, 40, 40, false);
+			//mSadFace = Bitmap.createScaledBitmap(mSadFace, 40, 40, false);
 		}
 
 		@Override

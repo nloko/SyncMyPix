@@ -15,7 +15,7 @@
    version="1.1"
    inkscape:version="0.47 r22583"
    sodipodi:docname="help_button.svg"
-   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/help_button_pressed.png"
+   inkscape:export-filename="/home/neil/workspace/SyncMyPix/images/help_button_default.png"
    inkscape:export-xdpi="100"
    inkscape:export-ydpi="100">
   <defs
@@ -96,7 +96,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -105,7 +105,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#00d400;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       style="fill:#87de87;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect2816"
        width="47.999561"
        height="45.864285"
@@ -128,7 +128,7 @@
        transform="matrix(1.331,0,0,1.331,-148.00351,-181.30303)" />
     <text
        xml:space="preserve"
-       style="font-size:18.63400078000000093px;font-style:normal;font-weight:normal;fill:#00d400;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
+       style="font-size:18.63400078000000093px;font-style:normal;font-weight:normal;fill:#87de87;fill-opacity:1;stroke:none;font-family:Ouhod;-inkscape-font-specification:Ouhod"
        x="441.37701"
        y="555.38464"
        id="text4655"><tspan
