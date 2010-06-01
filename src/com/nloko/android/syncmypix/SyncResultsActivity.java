@@ -794,7 +794,10 @@ public class SyncResultsActivity extends Activity {
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 			case ZOOM_PIC:
-				return showZoomDialog();
+				if (mContactImage != null) {
+					return showZoomDialog();
+				}
+				break;
 			case UPDATE_CONTACT:
 				ProgressDialog sync = new ProgressDialog(this);
 				sync.setCancelable(false);
