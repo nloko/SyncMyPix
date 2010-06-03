@@ -39,12 +39,13 @@ public final class R {
         public static final int results_button=0x7f020013;
         public static final int sad_face=0x7f020014;
         public static final int settings_button=0x7f020015;
-        public static final int smiley_face=0x7f020016;
-        public static final int sync_button=0x7f020017;
-        public static final int title=0x7f020018;
-        public static final int title_gradient=0x7f020019;
-        public static final int trash_button_default=0x7f02001a;
-        public static final int trash_button_pressed=0x7f02001b;
+        public static final int slider_tab=0x7f020016;
+        public static final int smiley_face=0x7f020017;
+        public static final int sync_button=0x7f020018;
+        public static final int title=0x7f020019;
+        public static final int title_gradient=0x7f02001a;
+        public static final int trash_button_default=0x7f02001b;
+        public static final int trash_button_pressed=0x7f02001c;
     }
     public static final class id {
         public static final int ImageView01=0x7f07002d;

@@ -23,12 +23,14 @@
 package com.nloko.android.syncmypix.contactutils;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 import com.nloko.android.syncmypix.PhoneContact;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.SyncAdapterType;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
@@ -41,6 +43,8 @@ public class ContactProxy2 implements IContactProxy {
 	
 	private final static String TAG = "ContactProxy2";
 
+	private HashMap<String, Boolean> mUpdatable;
+	
 	public InputStream getPhoto(ContentResolver cr, String id) {
 		if (cr == null || id == null) {
 			return null;
@@ -133,6 +137,17 @@ public class ContactProxy2 implements IContactProxy {
 		return queryForRawContactId(cr, Long.parseLong(id)) > -1;
 	}
 	
+	private void ensureUpdatableLoaded() {
+		if (mUpdatable == null) {
+			mUpdatable = new HashMap<String, Boolean>();
+			SyncAdapterType[] types = ContentResolver.getSyncAdapterTypes();
+			for(SyncAdapterType type : types) {
+				Log.d(TAG, type.accountType + " " + type.supportsUploading());
+				mUpdatable.put(type.accountType, type.supportsUploading());
+			}
+		}
+	}
+	
 	private long queryForRawContactId(ContentResolver cr, long contactId) {
         Cursor rawContactIdCursor = null;
         long rawContactId = -1;
@@ -151,12 +166,18 @@ public class ContactProxy2 implements IContactProxy {
 		            	Log.d(TAG, accountType != null ? accountType : "empty");
 		            	
 		            	// a HACK to exclude read only accounts
+		            	/*
 		            	if (accountType == null || 
 		            			accountType.toLowerCase().contains("google") ||
 		            			accountType.toLowerCase().contains("exchange") ||
 		            			accountType.toLowerCase().contains("htc.android.mail") ||
 		            			accountType.toLowerCase().contains("htc.android.pcsc") ||
 		            			accountType.length() == 0) {
+		            		rawContactId = rawContactIdCursor.getLong(0);
+		            	} */
+		            	
+		            	ensureUpdatableLoaded();
+		            	if (accountType == null || (mUpdatable.containsKey(accountType) && mUpdatable.get(accountType))) {
 		            		rawContactId = rawContactIdCursor.getLong(0);
 		            	}
 	            	}
