@@ -46,6 +46,7 @@ import android.widget.ImageButton;
 import android.widget.ImageSwitcher;
 import android.widget.ProgressBar;
 import android.widget.TextSwitcher;
+import android.widget.TextView;
 
 public class SyncProgressActivity extends Activity {
 	private WeakReference<SyncService> mSyncService;
@@ -56,6 +57,7 @@ public class SyncProgressActivity extends Activity {
 	private TextSwitcher mStatusSwitcher;
 	private ImageButton mCancelButton;
 	private ImageButton mHomeButton;
+	private TextView mStatus;
 
     private final int FRIENDS_PROGRESS = 0;
     private final int CANCELLING_DIALOG = 1;
@@ -74,6 +76,7 @@ public class SyncProgressActivity extends Activity {
 		mImageSwitcher = (ImageSwitcher) findViewById(R.id.PhotoImageSwitcher);
 		mTextSwitcher = (TextSwitcher) findViewById(R.id.NameTextSwitcher);
 		mStatusSwitcher = (TextSwitcher) findViewById(R.id.syncStatusSwitcher);
+		mStatus = (TextView) findViewById(R.id.status);
 		
 		mHomeButton = (ImageButton) findViewById(R.id.home);
 		mHomeButton.setOnClickListener(new OnClickListener() {
@@ -154,16 +157,12 @@ public class SyncProgressActivity extends Activity {
         	
         	if (s.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
         		mTitleProgress.setVisibility(View.VISIBLE);
-        		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
+        		mStatus.setVisibility(View.VISIBLE);
         	}
         	
         	s.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
-					if (mTitleProgress.getVisibility() == View.VISIBLE) {
-						mTitleProgress.setVisibility(View.INVISIBLE);
-						mTextSwitcher.setText("");
-					}
-				
+					mStatus.setVisibility(View.GONE);
 					mProgress.setVisibility(View.VISIBLE);
 					mCancelButton.setVisibility(View.VISIBLE);
 					mHomeButton.setVisibility(View.VISIBLE);
@@ -200,7 +199,7 @@ public class SyncProgressActivity extends Activity {
 
 				public void onFriendsDownloadStarted() {
 					mTitleProgress.setVisibility(View.VISIBLE);
-	        		mTextSwitcher.setText(getString(R.string.main_friendsDialog));
+	        		mStatus.setVisibility(View.VISIBLE);
 				}
 
 				public void onSyncCancelled() {
