@@ -11,7 +11,7 @@
     	android:layout_height="wrap_content"
     	android:text="@string/main.friendsDialog" 
     	android:layout_gravity="center"
-    	android:textSize="26dip" />
+    	android:textSize="26dip"
     	android:visibility="gone"
     	/>
     	
