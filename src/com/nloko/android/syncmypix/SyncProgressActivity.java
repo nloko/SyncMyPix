@@ -47,6 +47,7 @@ import android.widget.ImageSwitcher;
 import android.widget.ProgressBar;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SyncProgressActivity extends Activity {
 	private WeakReference<SyncService> mSyncService;
@@ -155,9 +156,19 @@ public class SyncProgressActivity extends Activity {
         		return;
         	}
         	
-        	if (s.getStatus() == SyncServiceStatus.GETTING_FRIENDS) {
+        	SyncServiceStatus status = s.getStatus();
+        	if (status == SyncServiceStatus.GETTING_FRIENDS) {
         		mTitleProgress.setVisibility(View.VISIBLE);
-        		mStatus.setVisibility(View.VISIBLE);
+        		mStatus.setText(R.string.main_friendsDialog);
+        	} else if (status == SyncServiceStatus.IDLE) {
+        		Toast.makeText(getApplicationContext(), 
+        				R.string.syncprogress_nosync, 
+        				Toast.LENGTH_SHORT).show();
+        		finish();
+        		return;
+        	} else {
+        		mCancelButton.setVisibility(View.VISIBLE);
+				mHomeButton.setVisibility(View.VISIBLE);
         	}
         	
         	s.setListener(new SyncServiceListener() {
@@ -199,7 +210,7 @@ public class SyncProgressActivity extends Activity {
 
 				public void onFriendsDownloadStarted() {
 					mTitleProgress.setVisibility(View.VISIBLE);
-	        		mStatus.setVisibility(View.VISIBLE);
+					mStatus.setText(R.string.main_friendsDialog);
 				}
 
 				public void onSyncCancelled() {

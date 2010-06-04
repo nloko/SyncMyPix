@@ -47,6 +47,7 @@
     
     <string name="syncprogress">Syncing contacts...</string>
     <string name="syncprogress.cancel">Cancelling sync...</string>
+    <string name="syncprogress.nosync">No sync is in progress</string>
     
     <string name="login.thankyou">Thank you for logging in</string>
     <string name="login.authorization">Please wait while verifying application authorization...</string>

@@ -9,10 +9,9 @@
     <TextView android:id="@+id/status"
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
-    	android:text="@string/main.friendsDialog" 
+    	android:text="@string/syncprogress" 
     	android:layout_gravity="center"
     	android:textSize="26dip"
-    	android:visibility="gone"
     	/>
     	
 	<TextSwitcher 

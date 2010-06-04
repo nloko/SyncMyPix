@@ -701,9 +701,9 @@ public abstract class SyncService extends Service {
     private void showNotification(int msg, int icon, boolean autoCancel) 
     {
         // The PendingIntent to launch our activity if the user selects this notification
-        Intent i = new Intent(this, SyncProgressActivity.class);
-        //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        Intent i = new Intent(getApplicationContext(), SyncProgressActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        //i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         
         showNotification(msg, icon, i, autoCancel);
     }
