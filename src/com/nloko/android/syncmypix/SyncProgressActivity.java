@@ -109,6 +109,13 @@ public class SyncProgressActivity extends Activity {
 		}
 	}
 
+    
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mTitleProgress.setVisibility(View.VISIBLE);
+	}
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -158,7 +165,6 @@ public class SyncProgressActivity extends Activity {
         	
         	SyncServiceStatus status = s.getStatus();
         	if (status == SyncServiceStatus.GETTING_FRIENDS) {
-        		mTitleProgress.setVisibility(View.VISIBLE);
         		mStatus.setText(R.string.main_friendsDialog);
         	} else if (status == SyncServiceStatus.IDLE) {
         		Toast.makeText(getApplicationContext(), 
@@ -174,6 +180,7 @@ public class SyncProgressActivity extends Activity {
         	s.setListener(new SyncServiceListener() {
 				public void onSyncProgressUpdated(int percentage, int index, int total) {
 					mStatus.setVisibility(View.GONE);
+					mTitleProgress.setVisibility(View.INVISIBLE);
 					mProgress.setVisibility(View.VISIBLE);
 					mCancelButton.setVisibility(View.VISIBLE);
 					mHomeButton.setVisibility(View.VISIBLE);
@@ -209,7 +216,6 @@ public class SyncProgressActivity extends Activity {
 				}
 
 				public void onFriendsDownloadStarted() {
-					mTitleProgress.setVisibility(View.VISIBLE);
 					mStatus.setText(R.string.main_friendsDialog);
 				}
 
