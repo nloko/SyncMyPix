@@ -185,6 +185,7 @@ public class SyncResultsActivity extends Activity {
         
         mCache.setImageListener(new ImageListener() {
 			public void onImageReady(final String url) {
+				if (mListview == null) return;
 				final ImageView image = (ImageView) mListview.findViewWithTag(url);
 
 //				Log.d(TAG, "onImageReady updating image");
