@@ -45,6 +45,7 @@ import com.nloko.android.syncmypix.graphics.CropImage;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -383,6 +384,9 @@ public class SyncResultsActivity extends Activity {
         }
         
         mCache.togglePauseOnDownloader(false);
+        
+        NotificationManager notifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		notifyManager.cancel(R.string.syncservice_stopped);
 	}
 
 	@Override
