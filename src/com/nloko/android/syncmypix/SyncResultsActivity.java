@@ -1076,7 +1076,9 @@ public class SyncResultsActivity extends Activity {
 				}
 				
 				try {
-					Bitmap bitmap = BitmapFactory.decodeStream(utils.getPhoto(resolver, contactId));
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inSampleSize = 2;
+					Bitmap bitmap = BitmapFactory.decodeStream(utils.getPhoto(resolver, contactId), null, options);
 					if (bitmap != null) {
 						//Log.d(TAG, "ThumbnailHandler updated cache " + url);
 						activity.mCache.add(url, bitmap);
