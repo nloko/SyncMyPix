@@ -760,11 +760,7 @@ public abstract class SyncService extends Service {
     	}
     	
     	public SyncService getService() {
-    		final SyncService service = mService.get(); 
-    		if (service != null) {
-    			return service;
-    		}
-    		return null;
+    		return mService.get(); 
         }
     }
 
