@@ -32,7 +32,6 @@ import com.nloko.android.Log;
 import com.nloko.android.PhotoCache;
 import com.nloko.android.Utils;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
-import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.SyncMyPixDbHelper.DBHashes;
 import com.nloko.android.syncmypix.contactutils.ContactUtils;
@@ -63,8 +62,12 @@ public abstract class SyncService extends Service {
 	private final static String TAG = "SyncService";
 	public final static Object mSyncLock = new Object();
 	
+	public final static int IDLE = 0;
+	public final static int GETTING_FRIENDS = 1;
+	public final static int SYNCING = 2;
+	//private SyncServiceStatus mStatus = SyncServiceStatus.IDLE;
+	private int mStatus = IDLE;
 	
-	private SyncServiceStatus mStatus = SyncServiceStatus.IDLE;
 	private SyncTask mSyncOperation;
 	private NotificationManager mNotifyManager;
 	    
@@ -94,12 +97,12 @@ public abstract class SyncService extends Service {
 		SYNCING
 	}
 	
-	public SyncServiceStatus getStatus()
+	public int getStatus()
 	{
 		return mStatus;
 	}
 	
-	protected void updateStatus(SyncServiceStatus status)
+	protected void updateStatus(int status)
 	{
 		mStatus = status;
 	}
@@ -120,7 +123,7 @@ public abstract class SyncService extends Service {
 				final SyncService service = mSyncService.get();
 				if (service != null) {
 					service.mExecuting = false;
-					service.updateStatus(SyncServiceStatus.IDLE);
+					service.updateStatus(IDLE);
 				}
 			}
 		};
@@ -160,7 +163,7 @@ public abstract class SyncService extends Service {
 		{
 			final SyncService service = mSyncService.get();
 			if (service != null) {
-				service.updateStatus(SyncServiceStatus.SYNCING);
+				service.updateStatus(SYNCING);
 				service.mSyncOperation = new SyncTask(service);
 				service.mSyncOperation.execute(users);
 			}
@@ -316,7 +319,7 @@ public abstract class SyncService extends Service {
     		
     		if (user.picUrl == null) {
     			mNotFound++;
-    			values.put(Results.DESCRIPTION, ResultsDescription.PICNOTFOUND.getDescription(service));
+    			values.put(Results.DESCRIPTION, service.getString(R.string.resultsdescription_picnotfound));
     			addResult(values);
     			return;
     		}
@@ -335,15 +338,13 @@ public abstract class SyncService extends Service {
 				if (contact != null) {
 					aggregatedId = contact.id;
 					lookup = contact.lookup;
-				} else {
-					//dbHelper.deleteData(contactId);
 				}
 			}
 			
     		if (contact == null || !mContactUtils.isContactUpdatable(resolver, aggregatedId)) {
     			Log.d(TAG, "Contact not found in database.");
     			mNotFound++;
-    			values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(service));
+    			values.put(Results.DESCRIPTION, service.getString(R.string.resultsdescription_notfound));
     			addResult(values);
     			return;
     		}
@@ -352,7 +353,6 @@ public abstract class SyncService extends Service {
     		
     		InputStream is = null;
     		InputStream friend = null;
-    		Bitmap bitmap = null, originalBitmap = null;
     		byte[] image = null;
 
     		String contactHash = null;
@@ -381,12 +381,10 @@ public abstract class SyncService extends Service {
    						
    						image = Utils.getByteArrayFromInputStream(friend);
    						friend.close();
-   						bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
    						
    						if (service.mCacheOn) {
    							mCache.add(filename, image);
    						}
-   						originalBitmap = bitmap;
    						
    						hash = Utils.getMd5Hash(image);
    					} catch (Exception e) {
@@ -394,12 +392,13 @@ public abstract class SyncService extends Service {
    					}
 
     				if (image != null) {
+    					final Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
     					// picture is a new one and we should sync it
     					if ((hash != null && !hash.equals(hashes.networkHash)) || is == null) {
     						String updatedHash = hash;
+    						
     						if (service.mCropSquare) {
-    							bitmap = Utils.centerCrop(bitmap, 96, 96);
-    							image = Utils.bitmapToPNG(bitmap);
+    							image = Utils.bitmapToPNG(Utils.centerCrop(bitmap, 96, 96));
     							updatedHash = Utils.getMd5Hash(image);
     						}
     						mContactUtils.updatePhoto(resolver, image, aggregatedId, service.mAllowGoogleSync);
@@ -409,17 +408,17 @@ public abstract class SyncService extends Service {
     					} else {
     						mSkipped++;
     						valuesCopy.put(Results.DESCRIPTION, 
-    								ResultsDescription.SKIPPED_UNCHANGED.getDescription(service));
+    								service.getString(R.string.resultsdescription_skippedunchanged));
     					}
     					// send picture to listener for progress display
-						final Bitmap tmp = originalBitmap;
+						
 						MainHandler handler = service.mMainHandler;
 						if (handler != null) {
 							handler.post(new Runnable() {
 								public void run() {
 									SyncServiceListener listener = service.mListener;
 									if (listener != null) {
-		    							listener.onContactSynced(user.name, tmp, valuesCopy.getAsString(Results.DESCRIPTION));
+		    							listener.onContactSynced(user.name, bitmap, valuesCopy.getAsString(Results.DESCRIPTION));
 		    						}
 								}
 							});
@@ -429,16 +428,16 @@ public abstract class SyncService extends Service {
     					valuesCopy.put(Results.LOOKUP_KEY, lookup);
     				} else {
     					valuesCopy.put(Results.DESCRIPTION, 
-    							ResultsDescription.DOWNLOAD_FAILED.getDescription(service));
+    							service.getString(R.string.resultsdescription_downloadfailed));
     					//break;
     				}
     			} else {
     				mSkipped++;
     				valuesCopy.put(Results.DESCRIPTION, 
-    						ResultsDescription.SKIPPED_EXISTS.getDescription(service));
+    						service.getString(R.string.resultsdescription_skippedexists));
     			}
     		} catch (Exception e) {
-    			valuesCopy.put(Results.DESCRIPTION, ResultsDescription.ERROR.getDescription(service));
+    			valuesCopy.put(Results.DESCRIPTION, service.getString(R.string.resultsdescription_error));
     		} finally {
     			addResult(valuesCopy);
     			try {
@@ -461,12 +460,14 @@ public abstract class SyncService extends Service {
         
         private ContentValues createResult(String id, SocialNetworkUser user)
         {
+        	SyncService service = mService.get();
+        	
         	ContentValues values = new ContentValues();
     		values.put(Results.SYNC_ID, id);
     		values.put(Results.NAME, user.name);
     		values.put(Results.PIC_URL, user.picUrl);
     		values.put(Results.FRIEND_ID, user.uid);
-    		values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(mService.get()));
+    		values.put(Results.DESCRIPTION, service == null ? "" : service.getString(R.string.resultsdescription_updated));
     		
     		return values;
         }
@@ -667,7 +668,7 @@ public abstract class SyncService extends Service {
 		mStarted = true;
 		mCancel = false;
 
-		updateStatus(SyncServiceStatus.GETTING_FRIENDS);
+		updateStatus(GETTING_FRIENDS);
 		getPreferences();
 		
 		mNotifyManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);

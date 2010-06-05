@@ -37,7 +37,6 @@ import com.nloko.android.Utils;
 import com.nloko.android.ThumbnailCache.ImageListener;
 import com.nloko.android.ThumbnailCache.ImageProvider;
 import com.nloko.android.syncmypix.SyncMyPix.Results;
-import com.nloko.android.syncmypix.SyncMyPix.ResultsDescription;
 import com.nloko.android.syncmypix.SyncMyPix.Sync;
 import com.nloko.android.syncmypix.contactutils.ContactUtils;
 import com.nloko.android.syncmypix.graphics.CropImage;
@@ -429,20 +428,20 @@ public class SyncResultsActivity extends Activity {
 			 adapter.getFilter().filter(null);
 			 return true;
 		 case MENU_FILTER_ERROR:
-			 adapter.getFilter().filter("'" + ResultsDescription.ERROR.getDescription(getApplicationContext()) + "'," +
-					 "'" + ResultsDescription.DOWNLOAD_FAILED.getDescription(getApplicationContext()) + "'");
+			 adapter.getFilter().filter("'" + getString(R.string.resultsdescription_error) + "'," +
+					 "'" + getString(R.string.resultsdescription_downloadfailed) + "'");
 			 return true;
 		 case MENU_FILTER_NOTFOUND:
-			 adapter.getFilter().filter("'" + ResultsDescription.NOTFOUND.getDescription(getApplicationContext()) + "'");
+			 adapter.getFilter().filter("'" + getString(R.string.resultsdescription_notfound) + "'");
 			 return true;
 		 case MENU_FILTER_UPDATED:
-			 adapter.getFilter().filter("'" + ResultsDescription.UPDATED.getDescription(getApplicationContext()) + "'," +
-					 "'" + ResultsDescription.MULTIPLEPROCESSED.getDescription(getApplicationContext()) + "'");
+			 adapter.getFilter().filter("'" + getString(R.string.resultsdescription_updated) + "'," +
+					 "'" + getString(R.string.resultsdescription_multipleprocessed) + "'");
 			 return true;
 		 case MENU_FILTER_SKIPPED:
-			 adapter.getFilter().filter("'" + ResultsDescription.SKIPPED_EXISTS.getDescription(getApplicationContext()) + "'," +
-					 "'" + ResultsDescription.SKIPPED_UNCHANGED.getDescription(getApplicationContext()) + "'," +
-					 "'" + ResultsDescription.SKIPPED_MULTIPLEFOUND.getDescription(getApplicationContext()) + "'");
+			 adapter.getFilter().filter("'" + getString(R.string.resultsdescription_skippedexists) + "'," +
+					 "'" + getString(R.string.resultsdescription_skippedunchanged) + "'," +
+					 "'" + getString(R.string.resultsdescription_skippedmultiplefound) + "'");
 			 return true;
 		 }
 
@@ -649,18 +648,22 @@ public class SyncResultsActivity extends Activity {
 						if (friend != null) {
 							byte[] bytes = Utils.getByteArrayFromInputStream(friend);
 							friend.close();
-							Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 							sdCache.add(filename, bytes);
+							
+							Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+							mCache.add(url, bitmap);
+							String origHash = Utils.getMd5Hash(bytes);
+							bytes = Utils.bitmapToPNG(bitmap);
+							String dbHash = Utils.getMd5Hash(bytes);
+							
+							// free memory
+							bitmap.recycle();
 							
 							Log.d(TAG, contactUri.toString());
 							unlink(contactId);
 							if (oldContactId != null) {
 								unlink(oldContactId, true);
 							}
-							
-							String origHash = Utils.getMd5Hash(bytes);
-							bytes = Utils.bitmapToPNG(bitmap);
-							String dbHash = Utils.getMd5Hash(bytes);
 							
 							mContactUtils.updatePhoto(resolver, bytes, contactId);
 							mDbHelper.updateHashes(contactId, lookup, origHash, dbHash);
@@ -669,10 +672,8 @@ public class SyncResultsActivity extends Activity {
 								mDbHelper.updateLink(contactId, lookup, friendId, source);
 							}
 							
-							mCache.add(url, bitmap);
-							
 							ContentValues values = new ContentValues();
-							values.put(Results.DESCRIPTION, ResultsDescription.UPDATED.getDescription(getApplicationContext()));
+							values.put(Results.DESCRIPTION, getString(R.string.resultsdescription_updated));
 							values.put(Results.CONTACT_ID, Long.parseLong(contactId));
 							resolver.update(Uri.withAppendedPath(Results.CONTENT_URI, Long.toString(id)), 
 									values, 
@@ -724,7 +725,7 @@ public class SyncResultsActivity extends Activity {
 		
 		final ContentResolver resolver = getContentResolver();
 		ContentValues values = new ContentValues();
-		values.put(Results.DESCRIPTION, ResultsDescription.NOTFOUND.getDescription(getApplicationContext()));
+		values.put(Results.DESCRIPTION, getString(R.string.resultsdescription_notfound));
 		values.putNull(Results.CONTACT_ID);
 		resolver.update(Results.CONTENT_URI, 
 				values, 
@@ -1411,7 +1412,7 @@ public class SyncResultsActivity extends Activity {
 			} else if (activity.mCache.contains(url)) {
 				//Log.d(TAG, id + " bindView attempting to get from cache " + url);
 				image.setImageBitmap(activity.mCache.get(url));
-			} else if (description.equals(ResultsDescription.NOTFOUND.getDescription(context.getApplicationContext()))) {
+			} else if (description.equals(context.getString(R.string.resultsdescription_notfound))) {
 				image.setImageBitmap(mNeutralFace);
 			} else {
 				image.setImageBitmap(mSadFace);

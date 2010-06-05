@@ -33,34 +33,6 @@ public final class SyncMyPix {
     
 	private SyncMyPix() {}
 	
-	public static enum ResultsDescription {
-		NOTFOUND (0, R.string.resultsdescription_notfound),
-		UPDATED (1, R.string.resultsdescription_updated),
-		SKIPPED_EXISTS (2, R.string.resultsdescription_skippedexists),
-		SKIPPED_MULTIPLEFOUND (3, R.string.resultsdescription_skippedmultiplefound),
-		SKIPPED_UNCHANGED (4, R.string.resultsdescription_skippedunchanged),
-		MULTIPLEPROCESSED (5, R.string.resultsdescription_multipleprocessed),
-		DOWNLOAD_FAILED (6, R.string.resultsdescription_downloadfailed),
-		ERROR (7, R.string.resultsdescription_error),
-		PICNOTFOUND (8, R.string.resultsdescription_picnotfound);
-		
-		private final int index;
-		private final int msg;
-		
-		ResultsDescription(int index, int msg) {
-			this.index = index;
-			this.msg = msg;
-		}
-		
-		public String getDescription(Context context) {
-			return context != null ? context.getString(msg) : null;
-		}
-		
-		public int getIndex() {
-			return index;
-		}
-	}
-	
 	public static final class Contacts implements BaseColumns {
 		public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/contacts");
         public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.nloko.contact";

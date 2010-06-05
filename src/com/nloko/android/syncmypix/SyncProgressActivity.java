@@ -163,10 +163,10 @@ public class SyncProgressActivity extends Activity {
         		return;
         	}
         	
-        	SyncServiceStatus status = s.getStatus();
-        	if (status == SyncServiceStatus.GETTING_FRIENDS) {
+        	int status = s.getStatus();
+        	if (status == SyncService.GETTING_FRIENDS) {
         		mStatus.setText(R.string.main_friendsDialog);
-        	} else if (status == SyncServiceStatus.IDLE) {
+        	} else if (status == SyncService.IDLE) {
         		Toast.makeText(getApplicationContext(), 
         				R.string.syncprogress_nosync, 
         				Toast.LENGTH_SHORT).show();
