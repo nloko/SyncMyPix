@@ -327,6 +327,8 @@ public class SyncMyPixDbHelper {
 		if (cursor != null) {
 			cursor.close();
 		}
+		
+		Log.d(TAG, String.format("Updated link with contact id %s and lookup %s", id, lookup));
 	}
 	
 	public boolean hasLink(String id, String source)
