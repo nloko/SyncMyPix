@@ -180,7 +180,14 @@ public class ContactProxy2 implements IContactProxy {
 		            	} */
 		            	
 		            	ensureUpdatableLoaded();
-		            	if (accountType == null || (mUpdatable.containsKey(accountType) && mUpdatable.get(accountType))) {
+		            	
+		            	// apparently HTC sticks random account types into raw contacts
+		            	// must account for them
+		            	if (accountType == null ||
+		            		accountType.length() == 0 ||
+		            		accountType.toLowerCase().contains("htc.android.mail") ||
+	            			accountType.toLowerCase().contains("htc.android.pcsc") ||
+		            		(mUpdatable.containsKey(accountType) && mUpdatable.get(accountType))) {
 		            		rawContactId = rawContactIdCursor.getLong(0);
 		            	}
 	            	}
