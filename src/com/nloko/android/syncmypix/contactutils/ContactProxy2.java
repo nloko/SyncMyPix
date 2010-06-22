@@ -65,6 +65,8 @@ public class ContactProxy2 implements IContactProxy {
 				//Log.d(TAG, "confirmContact() lookup success");
 				id = c.getString(c.getColumnIndex(Contacts._ID));
 				lookup = c.getString(c.getColumnIndex(Contacts.LOOKUP_KEY));
+			} else {
+				Log.v(TAG, String.format("Could not confirm contact %s with lookup %s", id, lookup));
 			}
 		} finally {
 			c.close();
@@ -118,7 +120,8 @@ public class ContactProxy2 implements IContactProxy {
 				//cr.delete(builder.build(), ContactsContract.Data._ID 
 				//	+ " = " + photoRow, null);
 				//Log.d(TAG, "deleting");
-				cr.delete(uri, null, null);
+				//cr.delete(uri, null, null);
+				cr.update(uri, values, null, null);
 			} else {
 				//cr.update 
 				//	(builder.build(), values, ContactsContract.Data._ID 
