@@ -185,7 +185,7 @@ public class ContactProxy2 implements IContactProxy {
 		            	// must account for them
 		            	if (accountType == null ||
 		            		accountType.length() == 0 ||
-		            		accountType.toLowerCase().contains("htc.android.mail") ||
+		            		//accountType.toLowerCase().contains("htc.android.mail") ||
 	            			accountType.toLowerCase().contains("htc.android.pcsc") ||
 		            		(mUpdatable.containsKey(accountType) && mUpdatable.get(accountType))) {
 		            		rawContactId = rawContactIdCursor.getLong(0);
