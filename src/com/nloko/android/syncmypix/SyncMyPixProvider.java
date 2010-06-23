@@ -198,7 +198,7 @@ public class SyncMyPixProvider extends ContentProvider {
                     + Contacts.SOURCE + " TEXT"
                     + ");");
             
-            if (oldVersion < 4) {
+            if (oldVersion <= 4) {
 	            db.execSQL("INSERT INTO contacts_new (" 
 	            		+ Contacts._ID + ","
 	            		+ Contacts.PHOTO_HASH + ")"
