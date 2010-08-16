@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -50,7 +51,7 @@ public class ThumbnailCache {
 	private Bitmap mDefaultImage = null;
 	private ImageListener mListener = null;
 	private ImageProvider mProvider = null;
-	private ImageDownloader mDownloader = new ImageDownloader();
+	private final ImageDownloader mDownloader = new ImageDownloader(this);
 	
 	public void setDefaultImage(Bitmap defaultImage)
 	{
@@ -72,7 +73,6 @@ public class ThumbnailCache {
 	public void destroy()
 	{
 		mDownloader.setPause(true);
-		mDownloader = null;
 		mListener = null;
 		mProvider = null;
 		mImages.clear();
@@ -211,19 +211,22 @@ public class ThumbnailCache {
 		boolean onImageRequired(String url);
 	}
 	
-	private class ImageDownloader {
-		
+	private static class ImageDownloader {
+		private final static String TAG = "ImageDownloader";
 		private final BlockingQueue<String> urlQueue = new LinkedBlockingQueue<String>();
+		private WeakReference<ThumbnailCache> mCache;
 		private Thread downloadThread;
 		private boolean paused = false;
 		
-		public ImageDownloader()
+		public ImageDownloader(ThumbnailCache cache)
 		{
+			mCache = new WeakReference<ThumbnailCache>(cache);
 			setupThread();
 		}
 
 		private void setupThread()
 		{
+			final ThumbnailCache cache = mCache.get();
 			downloadThread = new Thread(new Runnable() {
 				public void run() {
 					String url;
@@ -233,7 +236,9 @@ public class ThumbnailCache {
 							InputStream friend = Utils.downloadPictureAsStream(url);
 							if (friend != null) {
 								Bitmap image = BitmapFactory.decodeStream(friend);
-								add(url, image, true, true);	
+								if (cache != null) {
+									cache.add(url, image, true, true);	
+								}
 							}
 							
 						} catch (InterruptedException e) {
