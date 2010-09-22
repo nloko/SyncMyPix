@@ -420,8 +420,14 @@ public abstract class SyncService extends Service {
 									if (listener != null) {
 		    							listener.onContactSynced(user.name, bitmap, valuesCopy.getAsString(Results.DESCRIPTION));
 		    						}
+									
+									// try to force GC
+									bitmap.recycle();
 								}
 							});
+						} else {
+							// try to force GC
+							bitmap.recycle();
 						}
 						
     					valuesCopy.put(Results.CONTACT_ID, aggregatedId);
