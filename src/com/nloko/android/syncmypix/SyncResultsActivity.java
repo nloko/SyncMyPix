@@ -699,7 +699,11 @@ public class SyncResultsActivity extends Activity {
 					finally {
 						runOnUiThread(new Runnable() {
 							public void run() {
-								dismissDialog(UPDATE_CONTACT);
+								try {
+									dismissDialog(UPDATE_CONTACT);
+								} catch (IllegalArgumentException e) { 
+									// ignore 
+								}
 							}
 						});
 					}
