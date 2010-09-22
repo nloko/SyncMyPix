@@ -133,7 +133,7 @@ public class FacebookLoginWebView extends Activity {
 				return;
 			}
 			
-			if (!url.equals(login.getFullLoginUrl())) {
+			if (!activity.isFinishing() && !url.equals(login.getFullLoginUrl())) {
 					activity.showDialog(activity.AUTH_DIALOG);
 			}
 			
