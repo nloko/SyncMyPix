@@ -78,6 +78,7 @@
     	 />
     	 
     <supports-screens>
+    	android:smallScreens="true"
     	android:resizable="true"
     </supports-screens>
 	<uses-permission android:name="android.permission.INTERNET" />
