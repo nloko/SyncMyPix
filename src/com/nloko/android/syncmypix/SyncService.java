@@ -420,9 +420,6 @@ public abstract class SyncService extends Service {
 									if (listener != null) {
 		    							listener.onContactSynced(user.name, bitmap, valuesCopy.getAsString(Results.DESCRIPTION));
 		    						}
-									
-									// try to force GC
-									bitmap.recycle();
 								}
 							});
 						} else {
