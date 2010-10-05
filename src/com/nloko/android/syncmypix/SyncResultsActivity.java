@@ -620,7 +620,10 @@ public class SyncResultsActivity extends Activity {
 				null);
 		
 		if (cursor.moveToFirst()) {
-			if (!mContactUtils.isContactUpdatable(resolver, contactId)) {
+			final SyncMyPixPreferences prefs = new SyncMyPixPreferences(getApplicationContext());
+
+			
+			if (!mContactUtils.isContactUpdatable(resolver, contactId) && !prefs.overrideReadOnlyCheck()) {
 				Toast.makeText(getApplicationContext(),
 						R.string.syncresults_contactunlinkableerror, 
 						Toast.LENGTH_LONG).show();

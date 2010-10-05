@@ -29,6 +29,8 @@
     <string name="preferences.firstNames.summary">Match on first name only, if unambiguous</string>
     <string name="preferences.phoneOnly">Phone numbers only</string>
     <string name="preferences.phoneOnly.summary">Match only if contact has a phone number</string>
+    <string name="preferences.overrideReadOnlyCheck">Override read only check</string>
+    <string name="preferences.overrideReadOnlyCheck.summary">Do not check if contacts are editable before syncing</string>
     
     <string name="preferences.loginstatus">Login Status</string>
     <string name="preferences.notloggedin">Not logged in</string>

@@ -78,6 +78,7 @@ public abstract class SyncService extends Service {
     protected boolean mAllowGoogleSync;
     protected boolean mSkipIfExists;
     protected boolean mSkipIfConflict;
+    protected boolean mOverrideReadOnlyCheck;
     protected boolean mMaxQuality;
     protected boolean mCropSquare;
     protected boolean mIntelliMatch;
@@ -341,7 +342,7 @@ public abstract class SyncService extends Service {
 				}
 			}
 			
-    		if (contact == null || !mContactUtils.isContactUpdatable(resolver, aggregatedId)) {
+    		if (contact == null || (!mContactUtils.isContactUpdatable(resolver, aggregatedId) && !service.mOverrideReadOnlyCheck)) {
     			Log.d(TAG, "Contact not found in database.");
     			mNotFound++;
     			values.put(Results.DESCRIPTION, service.getString(R.string.resultsdescription_notfound));
@@ -636,6 +637,7 @@ public abstract class SyncService extends Service {
 		mMaxQuality = prefs.getMaxQuality();
 		mCropSquare = prefs.getCropSquare();
     	mSkipIfExists = prefs.getSkipIfExists();
+    	mOverrideReadOnlyCheck = prefs.overrideReadOnlyCheck();
     	mIntelliMatch = prefs.getIntelliMatch();
     	mPhoneOnly = prefs.getPhoneOnly();
     	mCacheOn = prefs.getCache();

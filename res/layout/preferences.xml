@@ -49,6 +49,12 @@
             android:defaultValue="false"
             android:summary="@string/preferences.phoneOnly.summary"
             android:key="phoneOnly" />
+            
+        <CheckBoxPreference
+            android:title="@string/preferences.overrideReadOnlyCheck"
+            android:defaultValue="false"
+            android:summary="@string/preferences.overrideReadOnlyCheck.summary"
+            android:key="overrideReadOnlyCheck" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences.picturesHeader">
     	<CheckBoxPreference

@@ -65,6 +65,12 @@ public final class SyncMyPixPreferences {
 		return skipIfConflict;
 	}
     
+    private boolean overrideReadOnlyCheck;
+    public boolean overrideReadOnlyCheck()
+    {
+    	return overrideReadOnlyCheck;
+    }
+    
     private boolean maxQuality;
     public boolean getMaxQuality()
 	{
@@ -132,6 +138,7 @@ public final class SyncMyPixPreferences {
 		skipIfExists = prefs.getBoolean("skipIfExists", 
     			Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR ? false : true);
     	
+		overrideReadOnlyCheck = prefs.getBoolean("overrideReadOnlyCheck", false);
     	cropSquare = prefs.getBoolean("cropSquare", true);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);
     	phoneOnly = prefs.getBoolean("phoneOnly", false);
