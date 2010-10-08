@@ -136,7 +136,7 @@ public final class SyncMyPixPreferences {
 		allowGoogleSync = prefs.getBoolean("allowGoogleSync", false);
     	
 		skipIfExists = prefs.getBoolean("skipIfExists", 
-    			Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR ? false : true);
+    			Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.ECLAIR ? false : true);
     	
 		overrideReadOnlyCheck = prefs.getBoolean("overrideReadOnlyCheck", false);
     	cropSquare = prefs.getBoolean("cropSquare", true);
