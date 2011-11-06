@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.nloko.android.syncmypix"
-      android:versionCode="54"
-      android:versionName="0.14.6"
+      android:versionCode="55"
+      android:versionName="0.15"
       android:installLocation="auto" >
     <application 
     	android:theme="@android:style/Theme.Light"
@@ -74,7 +74,7 @@
         
     </application>
     <uses-sdk 
-    	android:minSdkVersion="3" 
+    	android:minSdkVersion="8" 
     	 />
     	 
     <supports-screens>
