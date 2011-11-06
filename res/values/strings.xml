@@ -24,9 +24,9 @@
     <string name="preferences.reverseNames">Reverse names</string>
     <string name="preferences.reverseNames.summary">Reverse first and last name of social networking friend</string>
     <string name="preferences.intelliMatch">Smart name matching</string>
-    <string name="preferences.intelliMatch.summary">Use heuristics ie. common names, last initial, reverse names, etc.</string>
+    <string name="preferences.intelliMatch.summary">Try to account for names not formatted as first name last name</string>
     <string name="preferences.firstNames">First name only</string>
-    <string name="preferences.firstNames.summary">Match on first name only, if unambiguous</string>
+    <string name="preferences.firstNames.summary">Match on first name only, if unique</string>
     <string name="preferences.phoneOnly">Phone numbers only</string>
     <string name="preferences.phoneOnly.summary">Match only if contact has a phone number</string>
     <string name="preferences.overrideReadOnlyCheck">Override read only check</string>
@@ -65,7 +65,7 @@
     <string name="syncresults.menu.addpicture">Link picture to contact</string>
     <string name="syncresults.menu.unlink">Unlink contact</string>
     <string name="syncresults.networkerror">Unable to resolve host. Do you have network connectivity?</string>
-    <string name="syncresults.manuallinkerror">Unable manually link. Possibly due to inability to download picture. Please try switching between 3G / WiFi</string>
+    <string name="syncresults.manuallinkerror">Unable to manually link. Please try switching between 3G / WiFi</string>
     <string name="syncresults.contactunlinkableerror">This contact is read-only and can not be linked</string>
     <string name="syncresults.filterButton">Filter Results</string>
     <string name="syncresults.deleteButton">Delete</string>
@@ -83,7 +83,7 @@
     
     <string name="syncservice.started">SyncMyPix syncing started</string>
     <string name="syncservice.stopped">SyncMyPix finished syncing</string>
-    <string name="syncservice.downloaderror">Error downloading from social network. API may be unavailable. Please try later.</string>
+    <string name="syncservice.downloaderror">Error downloading from social network. Please try again later.</string>
     <string name="syncservice.canceled">Sync cancelled by user</string>
     <string name="syncservice.sessionerror">Session invalid. Please login</string>
     <string name="syncservice.networkerror">No Internet connection available</string>
