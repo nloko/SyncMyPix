@@ -52,8 +52,8 @@ import android.provider.Contacts.People;
 
 public class NameMatcher {
     protected final String TAG = "NameMatcher";
-    protected final String mBadChars  = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ";
-    protected final String mGoodChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy ";
+    protected final String mBadChars  = "ŠŚŞŹŽŻşšśžźżŸĄÀÁÂÃÄÅÇĆÈÉÊËĘÌÍÎÏİÐĞŁŃÑÖÒÓÔÕÖÙÚÛÜÝąàáâãäåçćèéêëęìíîïðğłñńòóôõöùúûüýÿ";
+    protected final String mGoodChars = "SSSZZZssszzzYAAAAAAACCEEEEEIIIIIDGLNNOOOOOOUUUUYaaaaaaacceeeeeiiiidglnnooooouuuuyy ";
     
     private final TreeMap<String, ArrayList<PhoneContact>> mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();; 
     private final TreeMap<String, ArrayList<PhoneContact>> mLastNames = new TreeMap<String, ArrayList<PhoneContact>>();
