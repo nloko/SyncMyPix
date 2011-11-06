@@ -88,12 +88,13 @@ public class SettingsActivity extends PreferenceActivity {
     		
     	});*/
     	
+    	/*
     	final CheckBoxPreference skip = (CheckBoxPreference) findPreference("skipIfExists");
     	final CheckBoxPreference sync = (CheckBoxPreference) findPreference("allowGoogleSync");
     	
     	if (Utils.determineOsVersion() >= 5) {
-   			skip.setChecked(false);
-   			skip.setEnabled(false);
+   			//skip.setChecked(false);
+   			//skip.setEnabled(false);
    			sync.setChecked(true);
    			sync.setEnabled(false);
     	} else {
@@ -118,7 +119,7 @@ public class SettingsActivity extends PreferenceActivity {
 				}
     		});
     	}
-    	
+    	*/
     	int freq = getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getInt("sched_freq", 0);
     	ListPreference schedule = (ListPreference) findPreference("sched_freq");
     	

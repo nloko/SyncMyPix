@@ -133,10 +133,12 @@ public final class SyncMyPixPreferences {
 		googleSyncToggledOff = prefs.getBoolean("googleSyncToggledOff", false); 
 		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
 		maxQuality = prefs.getBoolean("maxQuality", false);
-		allowGoogleSync = prefs.getBoolean("allowGoogleSync", false);
+		//allowGoogleSync = prefs.getBoolean("allowGoogleSync", false);
+		allowGoogleSync = true;
     	
-		skipIfExists = prefs.getBoolean("skipIfExists", 
-    			Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.ECLAIR ? false : true);
+		//skipIfExists = prefs.getBoolean("skipIfExists", 
+    	//		Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.ECLAIR ? false : true);
+		skipIfExists = false;
     	
 		overrideReadOnlyCheck = prefs.getBoolean("overrideReadOnlyCheck", false);
     	cropSquare = prefs.getBoolean("cropSquare", true);
