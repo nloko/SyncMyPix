@@ -324,8 +324,10 @@ public class MainActivity extends Activity {
     	item = menu.add(0, MENU_LOGOUT, 0, R.string.main_logoutButton);
     	item.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	
+    	/*
     	item = menu.add(0, MENU_LOG, 0, R.string.main_sendLogButton);
     	item.setIcon(android.R.drawable.ic_menu_send);
+    	*/
     	
     	return true;
 	}
