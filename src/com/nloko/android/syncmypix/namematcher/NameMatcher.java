@@ -50,6 +50,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.Contacts.People;
 
+import gr.spinellis.greek.GreekTranscribe;
+
 public class NameMatcher {
     protected final String TAG = "NameMatcher";
     protected final String mBadChars  = "ŠŚŞŹŽŻşšśžźżŸĄÀÁÂÃÄÅÇĆÈÉÊËĘÌÍÎÏİÐĞŁŃÑÖÒÓÔÕÖÙÚÛÜÝąàáâãäåçćèéêëęìíîïðğłñńòóôõöùúûüýÿ";
@@ -265,6 +267,10 @@ public class NameMatcher {
         // Lower case the name, and replace non-English characters with their
         // English equivalents, as some people won't bother to type accents in
         // their friends names. Also strip stuff in brackets and delete commas.
+
+	// First transcribe any Greek characters to Latin according to ISO 843:1997
+	name = GreekTranscribe.string(name);
+
     	if (name == null) {
     		return null;
     	}
