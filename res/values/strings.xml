@@ -99,6 +99,8 @@
     <string name="donate">Make a donation</string>
     <string name="website">http://code.google.com/p/syncmypix/</string>
     <string name="help_link">http://code.google.com/p/syncmypix/wiki/Instructions</string>
+    <string name="privacy">Privacy Policy</string>
+    <string name="privacy_link">http://code.google.com/p/syncmypix/wiki/PrivacyPolicy</string>
 	<string name="results_help_msg"><b>Select</b> a friend to view their profile picture, or <b>long press</b> for more options</string>
 	<string name="about_info">SyncMyPix is a free, open-source Android application. For more information, including contributors, bug tracking, FAQ, and help, click the following link:</string>
 </resources>

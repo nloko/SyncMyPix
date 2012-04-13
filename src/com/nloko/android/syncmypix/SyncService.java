@@ -313,7 +313,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		Log.i(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
+    		Log.d(TAG, String.format("%s %s %s", user.name, user.email, user.picUrl));
     		
     		final String syncId = sync.getPathSegments().get(1);
     		ContentValues values = createResult(syncId, user);
@@ -350,7 +350,7 @@ public abstract class SyncService extends Service {
     			return;
     		}
     		
-    		Log.i(TAG, String.format("Matched to %s with aggregated id %s and lookup %s", name, aggregatedId, lookup));
+    		Log.d(TAG, String.format("Matched to %s with aggregated id %s and lookup %s", name, aggregatedId, lookup));
     		
     		InputStream is = null;
     		InputStream friend = null;
