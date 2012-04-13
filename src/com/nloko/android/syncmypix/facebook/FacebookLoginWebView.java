@@ -179,7 +179,7 @@ public class FacebookLoginWebView extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.facebookloginwebview);	
         
-        login.setAPIKey(FacebookApi.API_KEY);
+        login.setAPIKey(getResources().getString(R.string.facebook_api_key));
         
         webview = (WebView) findViewById(R.id.webview);
         webview.setWebChromeClient(new ChromeClient(this));
