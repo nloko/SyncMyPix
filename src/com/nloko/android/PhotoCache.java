@@ -46,7 +46,6 @@ import android.os.Process;
 public class PhotoCache {
 	// this location is important, as it allows automatic removal when the app is
 	// uninstalled
-	public static final String BASE_DIR = "Android/data/%s/cache/";
 	public static final String NO_MEDIA = ".nomedia";
 	public long mMaxBytes = 5000000;
 	
@@ -84,8 +83,7 @@ public class PhotoCache {
 		}
 		
 		mContext = new WeakReference<Context>(context);
-		File path = Environment.getExternalStorageDirectory();
-		mPath = new File(path, String.format(BASE_DIR, context.getPackageName()));
+		mPath = context.getExternalCacheDir();
 		startWatchingExternalStorage();
 		
 		HandlerThread thread = new HandlerThread("PhotoCacheThread", 
