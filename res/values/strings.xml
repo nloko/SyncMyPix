@@ -76,6 +76,7 @@
     
     <string name="facebooklogin">Login to Facebook</string>
     <string name="facebooklogin.urlError">Error parsing URL</string>
+    <string name="facebook_api_key"></string>
     
     <string name="syncservice.started">SyncMyPix syncing started</string>
     <string name="syncservice.stopped">SyncMyPix finished syncing</string>

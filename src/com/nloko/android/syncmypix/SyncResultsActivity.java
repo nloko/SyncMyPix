@@ -548,7 +548,7 @@ public class SyncResultsActivity extends Activity {
 					if (bitmap != null) {
 						byte[] bytes = Utils.bitmapToPNG(bitmap);
 					
-						mContactUtils.updatePhoto(getContentResolver(), bytes, id);
+						mContactUtils.updatePhoto(getContentResolver(), bytes, id, true);
 						mDbHelper.updateHashes(id, lookup, null, bytes);
 					
 						mCache.add(url, bitmap);
@@ -573,18 +573,19 @@ public class SyncResultsActivity extends Activity {
 		return null;
 	}
 	
-	private void crop(String id)
+	private void crop(String id, byte[] photo, int width, int height)
 	{
 		// launch cropping activity
 		Intent intent = new Intent("com.android.camera.action.CROP");
 
 		intent.setClass(getApplicationContext(), CropImage.class);
-		intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
+		//intent.setData(Uri.withAppendedPath(People.CONTENT_URI, id));
+		MainActivity.GetInstance().cropPhoto = photo;
 		intent.putExtra("crop", "true");
 		intent.putExtra("aspectX", 1);
 		intent.putExtra("aspectY", 1);
-		intent.putExtra("outputX", 96);
-		intent.putExtra("outputY", 96);
+		intent.putExtra("outputX", width);
+		intent.putExtra("outputY", height);
 		intent.putExtra("return-data", true);
 		startActivityForResult(intent, REQUEST_CROP_PHOTO);
 	}
@@ -653,7 +654,7 @@ public class SyncResultsActivity extends Activity {
 							friend.close();
 							sdCache.add(filename, bytes);
 							
-							Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+							final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 							mCache.add(url, bitmap);
 							String origHash = Utils.getMd5Hash(bytes);
 							bytes = Utils.bitmapToPNG(bitmap);
@@ -668,7 +669,7 @@ public class SyncResultsActivity extends Activity {
 								unlink(oldContactId, true);
 							}
 							
-							mContactUtils.updatePhoto(resolver, bytes, contactId);
+							mContactUtils.updatePhoto(resolver, bytes, contactId, false);
 							mDbHelper.updateHashes(contactId, lookup, origHash, dbHash);
 							
 							if (friendId != null && !friendId.equals("")) {
@@ -683,9 +684,10 @@ public class SyncResultsActivity extends Activity {
 									null, 
 									null);
 							
+							final byte[] bbytes = bytes;
 							runOnUiThread(new Runnable() {
 								public void run() {
-									crop(contactId);
+									crop(contactId, bbytes, bitmap.getWidth(), bitmap.getHeight());
 								}
 							});
 

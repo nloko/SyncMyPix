@@ -22,7 +22,14 @@
                android:textSize="10dip"
                android:layout_marginLeft="4dip"
                />
-          
+	<TextView android:id="@+id/copyright"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:text="Facebook Modifications by Deadknight 2012"
+               android:textSize="10dip"
+               android:layout_marginLeft="4dip"
+               />    
+    
     <TextView android:id="@+id/info"
     		   android:layout_marginTop="8dip"
                android:layout_width="fill_parent"
@@ -33,7 +40,26 @@
                android:textColor="@android:color/white"
                android:textSize="12dip"
                />
-               
+    
+    <TextView android:id="@+id/website"
+    		   android:layout_marginTop="8dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:gravity="center_horizontal"
+               android:text="http://forum.xda-developers.com"
+     		   android:autoLink="web"
+               android:textSize="12dip"
+               />   
+                  
+    <TextView android:id="@+id/website"
+    		   android:layout_marginTop="8dip"
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:gravity="center_horizontal"
+               android:text="https://github.com/nloko/SyncMyPix"
+     		   android:autoLink="web"
+               android:textSize="12dip"
+               />          
     <TextView android:id="@+id/website"
     		   android:layout_marginTop="8dip"
                android:layout_width="fill_parent"

@@ -22,16 +22,25 @@
 
 package com.nloko.android.syncmypix.contactutils;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 
+import com.android.providers.contacts.PhotoStore;
+import com.nloko.android.syncmypix.MainActivity;
 import com.nloko.android.syncmypix.PhoneContact;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.SyncAdapterType;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
@@ -75,7 +84,7 @@ public class ContactProxy2 implements IContactProxy {
 		return new PhoneContact(id, null, lookup);
 	}
 	
-	public void updatePhoto(ContentResolver cr, byte[] photo, String id, boolean markDirty) { 
+	public void updatePhoto(ContentResolver cr, byte[] photo, String id, boolean markDirty, boolean fromthumb) { 
 		if (cr == null || id == null) {
 			return;
 		}
@@ -84,57 +93,84 @@ public class ContactProxy2 implements IContactProxy {
 		if (rawId < 0) {
 			return;
 		}
+		//if(!fromthumb)
+			writeDisplayPhoto(cr, rawId, photo);
 		
-		id = String.valueOf(rawId);
-		ContentValues values = new ContentValues(); 
-		int photoRow = -1; 
-		
-		// query for existing photo
-		String where = ContactsContract.Data.RAW_CONTACT_ID + " == " + 
-			id + " AND " + Data.MIMETYPE + "=='" + 
-			ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'"; 
-		
-		Cursor cursor = cr.query(ContactsContract.Data.CONTENT_URI, null, where, null, null); 
-		int idIdx = cursor.getColumnIndexOrThrow(ContactsContract.Data._ID); 
-		if(cursor.moveToFirst()){ 
-			photoRow = cursor.getInt(idIdx); 
-		} 
-		cursor.close();
-		if (photoRow < 0 && photo == null) {
-			return;
-		}
-		
-		values.put(ContactsContract.Data.RAW_CONTACT_ID, 
-				id); 
-		values.put(ContactsContract.Data.IS_SUPER_PRIMARY, 1); 
-		values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, photo); 
-		values.put(ContactsContract.Data.MIMETYPE, 
-				ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE);
-		// append CALLER_IS_SYNCADAPTER to prevent sync
-		Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photoRow);
-		//Uri.Builder builder = ContactsContract.Data.CONTENT_URI.buildUpon();
-		//builder.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true");
-		Uri updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-		if(photoRow >= 0){ 
-			if (photo == null) {
-				//cr.delete(builder.build(), ContactsContract.Data._ID 
-				//	+ " = " + photoRow, null);
-				//Log.d(TAG, "deleting");
-				//cr.delete(uri, null, null);
-				cr.update(uri, values, null, null);
-			} else {
-				//cr.update 
-				//	(builder.build(), values, ContactsContract.Data._ID 
-				//	+ " = " + photoRow, null);
-				cr.update(uri, values, null, null);
+		if(photo == null)
+		{
+			id = String.valueOf(rawId);
+			ContentValues values = new ContentValues(); 
+			int photoRow = -1; 
+			
+			// query for existing photo
+			String where = ContactsContract.Data.RAW_CONTACT_ID + " == " + 
+				id + " AND " + Data.MIMETYPE + "=='" + 
+				ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE + "'"; 
+			Cursor cursor = cr.query(ContactsContract.Data.CONTENT_URI, null, where, null, null); 
+			int idIdx = cursor.getColumnIndexOrThrow(ContactsContract.Data._ID);
+			int idphotoid = cursor.getColumnIndexOrThrow(ContactsContract.Data.PHOTO_FILE_ID);
+			long photo_file_id = 0;
+			if(cursor.moveToFirst()){ 
+				photoRow = cursor.getInt(idIdx); 
+				photo_file_id = cursor.getLong(idphotoid);
+			} 
+			cursor.close();
+			if (photoRow < 0 && photo == null) {
+				return;
 			}
-		} else { 
-			//cr.insert(builder.build(), values);
-			uri = ContactsContract.Data.CONTENT_URI;
-			//updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
-			cr.insert(uri, values);
-		} 
-	} 
+			
+			//long photo_file_id = MainActivity.GetInstance().GetPhotoStore().insert(displayPhoto, photo, true);
+			values.put(ContactsContract.Data.RAW_CONTACT_ID, 
+					id); 
+			values.put(ContactsContract.Data.IS_SUPER_PRIMARY, 1); 
+			values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, photo);
+			values.put(ContactsContract.CommonDataKinds.Photo.PHOTO_FILE_ID, photo_file_id);
+			values.put(ContactsContract.Data.MIMETYPE, 
+					ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE);
+			// append CALLER_IS_SYNCADAPTER to prevent sync
+			Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, photoRow);
+			//Uri.Builder builder = ContactsContract.Data.CONTENT_URI.buildUpon();
+			//builder.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true");
+			Uri updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+			if(photoRow >= 0){ 
+				if (photo == null) {
+					//cr.delete(builder.build(), ContactsContract.Data._ID 
+					//	+ " = " + photoRow, null);
+					//Log.d(TAG, "deleting");
+					//cr.delete(uri, null, null);
+					cr.update(uri, values, null, null);
+				} else {
+					//cr.update 
+					//	(builder.build(), values, ContactsContract.Data._ID 
+					//	+ " = " + photoRow, null);
+					cr.update(uri, values, null, null);
+				}
+			} else { 
+				//cr.insert(builder.build(), values);
+				uri = ContactsContract.Data.CONTENT_URI;
+				//updateUri = uri.buildUpon().appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build();
+				cr.insert(uri, values);
+			}
+		}
+	}
+	
+	public Uri writeDisplayPhoto(ContentResolver cr, long rawContactId, byte[] photo) {
+	     Uri rawContactPhotoUri = Uri.withAppendedPath(
+	             ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId),
+	             RawContacts.DisplayPhoto.CONTENT_DIRECTORY);
+	     try {
+	         AssetFileDescriptor fd = cr.openAssetFileDescriptor(rawContactPhotoUri, "rw");
+	         OutputStream os = fd.createOutputStream();
+	         if(photo == null)
+	        	 photo = new byte[1];
+	         os.write(photo);
+	         os.close();
+	         fd.close();
+	     } catch (IOException e) {
+	         // Handle error cases.
+	     }
+	     return rawContactPhotoUri;
+	 }
 	
 	public boolean isContactUpdatable(ContentResolver cr, String id) {
 		return queryForRawContactId(cr, Long.parseLong(id)) > -1;

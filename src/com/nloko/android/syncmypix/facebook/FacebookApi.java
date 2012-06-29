@@ -23,6 +23,8 @@
 package com.nloko.android.syncmypix.facebook;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.Bundle;
+
+import com.facebook.android.Facebook;
+import com.facebook.android.Util;
 import com.nloko.android.Log;
 import com.nloko.android.syncmypix.SocialNetworkUser;
 
@@ -45,8 +51,8 @@ public class FacebookApi {
 	{
 	}
 	
-	private FacebookRestClient client;
-	public FacebookApi(FacebookRestClient client)
+	private Facebook client;
+	public FacebookApi(Facebook client)
 	{
 		if (client == null) {
 			throw new IllegalArgumentException ("client");
@@ -57,9 +63,11 @@ public class FacebookApi {
 	
 	public String getFriends() throws ClientProtocolException, IOException, JSONException
 	{
-		FacebookJSONResponse response = (FacebookJSONResponse)client.getData("Friends.get");
+		FacebookJSONResponse response = new FacebookJSONResponse(0, client.request("me/friends"));
+		//FacebookJSONResponse response = (FacebookJSONResponse)client.getData("Friends.get");
 		if (response != null && !response.isError()) {
-			JSONArray friends = new JSONArray(response.data);
+			JSONObject friendsObject = new JSONObject(response.data);
+			JSONArray friends = friendsObject.getJSONArray("data");
 			StringBuilder sb = new StringBuilder();
 			sb.append(friends.get(0));
 			
@@ -87,10 +95,58 @@ public class FacebookApi {
 			throw new IllegalArgumentException ("uids");
 		}
 		
+		/*String[] arr = uids.split(",");
+		JSONArray batch_array = new JSONArray();
+		for(String uid : arr)
+		{
+			JSONObject me_friendInfo = new JSONObject();
+			try {
+				me_friendInfo.put("method", "GET");
+				me_friendInfo.put("relative_url", uid);
+			} catch (JSONException e) {
+			    e.printStackTrace();
+			    Log.e("Error", e.getMessage());
+			    continue;
+			}
+			
+			JSONObject me_friendPicture = new JSONObject();
+			try {
+				me_friendPicture.put("method", "GET");
+				me_friendPicture.put("relative_url", uid + "/picture?type=large");
+			} catch (JSONException e) {
+			    e.printStackTrace();
+			    Log.e("Error", e.getMessage());
+			    continue;
+			}
+
+
+			batch_array.put(me_friendInfo);
+			batch_array.put(me_friendPicture);
+		}
+		
+		Bundle args = new Bundle();
+		args.putString("access_token", client.getAccessToken());
+		args.putString("batch", batch_array.toString());
+
+		String ret = "";
+
+		try {
+		    ret = Util.openUrl("https://graph.facebook.com", "POST", args);
+		} catch (MalformedURLException e) {
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}*/
+
 		Map <String, String> params = new HashMap <String, String> ();
 		params.put ("uids", uids);
 		params.put ("fields", "uid,first_name,last_name,name,email,pic_big");
-		FacebookJSONResponse response = (FacebookJSONResponse) client.getData ("Users.getInfo", params);
+		Bundle bparams = new Bundle();
+		bparams.putString("method", "fql.query");
+		bparams.putString("query", "SELECT uid,first_name,last_name,name,pic_big,email FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me())");
+	    String fqlResponse = client.request(bparams);
+
+		FacebookJSONResponse response = new FacebookJSONResponse(0, fqlResponse);//(FacebookJSONResponse) client.getData ("Users.getInfo", params);
 		//Log.d(null, response.data);
 		if (response == null || response.isError()) {
 			return null;
@@ -134,33 +190,38 @@ public class FacebookApi {
 		}
 		
 		Map <String, String> params = new HashMap <String, String> ();
+		
+		Bundle bparams = new Bundle();
+		bparams.putString("method", "fql.query");
+		bparams.putString("query", "select src_big,owner from photo where pid in (select cover_pid from album where name=\"Profile Pictures\" and  owner IN (SELECT uid2 FROM friend WHERE uid1 = me()))");
+	    String fqlResponse = client.request(bparams);
 				
-		String pid_query = "SELECT owner, cover_pid, aid, name FROM album " +
+		/*String pid_query = "SELECT owner, cover_pid, aid, name FROM album " +
 			"WHERE owner IN (%s) AND " +
 			"name IN (\"Profile Pictures\")";
 	
 		pid_query = String.format(pid_query, uids);
 		
 		String photo = "SELECT owner, src_big FROM photo " + 
-			"WHERE pid IN (SELECT cover_pid FROM #query1) ";
+			"WHERE pid IN (SELECT cover_pid FROM #query1) ";*/
 		
 		SocialNetworkUser user = null;
 		String url = null;
 		String uid = null;
 		
 		try {
-			JSONObject queries = new JSONObject();
+			/*JSONObject queries = new JSONObject();
 			queries.put("query1", pid_query);
 			queries.put("query2", photo);
 			
-			params.put("queries", queries.toString());
+			params.put("queries", queries.toString());*/
 			
-			FacebookJSONResponse jr = (FacebookJSONResponse) client.getData("Fql.multiquery", params);
+			FacebookJSONResponse jr = new FacebookJSONResponse(0, fqlResponse);//(FacebookJSONResponse) client.getData("Fql.multiquery", params);
 						
 			JSONArray array = new JSONArray(jr.data);
 			if (array.length() > 1) {
-				JSONObject obj = array.getJSONObject(1);
-				array = obj.getJSONArray("fql_result_set");
+				JSONObject obj;// = array.getJSONObject(1);
+				//array = obj.getJSONArray("fql_result_set");
 				
 				for (int i = 0; i < array.length(); i++) {
 					obj = array.getJSONObject(i);

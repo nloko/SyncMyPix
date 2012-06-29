@@ -43,14 +43,14 @@ public final class ContactUtils {
 		return mInstance.isContactUpdatable(cr, id);
 	}
 	
-	public void updatePhoto (ContentResolver cr, byte[] image, String id)
+	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean fromthumb)
 	{
-		updatePhoto(cr, image, id, false);
+		updatePhoto(cr, image, id, false, fromthumb);
 	}
 	
-	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty)
+	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty, boolean fromthumb)
 	{
-		mInstance.updatePhoto(cr, image, id, markDirty);
+		mInstance.updatePhoto(cr, image, id, markDirty, fromthumb);
 	}
 	
 	public PhoneContact confirmContact(ContentResolver cr, String id, String lookup) {
