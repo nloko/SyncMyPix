@@ -22,10 +22,16 @@
 
 package com.nloko.android.syncmypix.facebook;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
+
+import com.facebook.android.Facebook;
 import com.nloko.android.Log;
+import com.nloko.android.syncmypix.MainActivity;
 import com.nloko.android.syncmypix.SyncService;
 import com.nloko.android.syncmypix.SettingsActivity;
 import com.nloko.android.syncmypix.SocialNetworkUser;
@@ -76,7 +82,35 @@ public class FacebookSyncService extends SyncService {
 				return;
 			}
 			
-			FacebookRestClient client = null;
+			Facebook client = MainActivity.GetInstance().GetFacebookClient();
+			FacebookApi api = new FacebookApi(client);
+			List<SocialNetworkUser> userList = null;
+			try
+			{
+				userList = api.getUserInfo(api.getFriends(), service.mMaxQuality);
+			}
+			catch(ClientProtocolException e)
+			{
+				e.printStackTrace();
+			}
+			catch(JSONException e)
+			{
+				e.printStackTrace();
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
+			synchronized(this) {
+				if (running) {
+					// start sync from main thread
+					Message msg = handler.obtainMessage();
+					msg.what = MainHandler.START_SYNC;
+					msg.obj = userList;
+					handler.sendMessage(msg);
+				}
+			}
+			/*FacebookRestClient client = null;
 			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("uid", null));
 			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("session_key", null));
 			Log.d(TAG, service.getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getString("secret", null));
@@ -114,7 +148,7 @@ public class FacebookSyncService extends SyncService {
 					
 					handler.post(service.mMainHandler.resetExecuting);
 				}
-			}
+			}*/
 		}
 	}
 	

@@ -33,7 +33,7 @@ public interface IContactProxy {
 	InputStream getPhoto(ContentResolver cr, String id);
 	boolean isContactUpdatable(ContentResolver cr, String id);
 	PhoneContact confirmContact(ContentResolver cr, String id, String lookup);
-	void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty);
+	void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty, boolean fromThumb);
 	Uri getContentUri();
 	String getLookup(ContentResolver cr, Uri contact);
 }

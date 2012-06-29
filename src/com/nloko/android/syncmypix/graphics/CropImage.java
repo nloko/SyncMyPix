@@ -33,6 +33,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.FaceDetector;
 import android.net.Uri;
 import android.os.Bundle;
@@ -44,7 +45,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.RadioGroup.LayoutParams;
+import android.widget.RelativeLayout;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.nloko.android.Utils;
+import com.nloko.android.syncmypix.MainActivity;
 import com.nloko.android.syncmypix.R;
 import com.nloko.android.syncmypix.contactutils.ContactUtils;
 
@@ -361,7 +366,6 @@ public class CropImage extends Activity {
         setContentView(R.layout.cropimage);
 
         mImageView = (CropImageView) findViewById(R.id.image);
-
         //MenuHelper.showStorageToast(this);
 
         try {
@@ -393,6 +397,12 @@ public class CropImage extends Activity {
                 mScale = extras.getBoolean("scale", true);
                 mScaleUp = extras.getBoolean("scaleUpIfNeeded", true);
                 mDoFaceDetection = extras.containsKey("noFaceDetection") ? !extras.getBoolean("noFaceDetection") : true;
+            }
+            
+            if(mBitmap == null)
+            {
+            	byte[] arr = MainActivity.GetInstance().cropPhoto;
+            	mBitmap = BitmapFactory.decodeByteArray(arr, 0, arr.length);
             }
 
             if (mBitmap == null) {

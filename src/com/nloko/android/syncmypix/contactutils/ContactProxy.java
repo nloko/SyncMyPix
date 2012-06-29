@@ -50,7 +50,7 @@ public class ContactProxy implements IContactProxy {
 		return new PhoneContact(id, null, lookup);
 	}
 	
-	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty) {
+	public void updatePhoto (ContentResolver cr, byte[] image, String id, boolean markDirty, boolean fromthumb) {
 		if (cr == null || id == null) {
 			return;
 		}

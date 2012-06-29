@@ -402,7 +402,7 @@ public abstract class SyncService extends Service {
     							image = Utils.bitmapToPNG(Utils.centerCrop(bitmap, 96, 96));
     							updatedHash = Utils.getMd5Hash(image);
     						}
-    						mContactUtils.updatePhoto(resolver, image, aggregatedId, service.mAllowGoogleSync);
+    						mContactUtils.updatePhoto(resolver, image, aggregatedId, service.mAllowGoogleSync, false);
     						dbHelper.updateHashes(aggregatedId, lookup, hash, updatedHash);
     						dbHelper.updateLink(aggregatedId, lookup, user, service.getSocialNetworkName());
     						mUpdated++;

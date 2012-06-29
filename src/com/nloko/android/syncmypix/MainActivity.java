@@ -22,9 +22,16 @@
 
 package com.nloko.android.syncmypix;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 
+import com.android.providers.contacts.PhotoStore;
+import com.facebook.android.DialogError;
+import com.facebook.android.Facebook;
+import com.facebook.android.Facebook.DialogListener;
+import com.facebook.android.FacebookError;
 import com.nloko.android.Log;
 import com.nloko.android.LogCollector;
 import com.nloko.android.LogCollectorNotifier;
@@ -48,6 +55,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -83,7 +91,19 @@ public class MainActivity extends Activity {
 	
 	private ImageButton mDeleteButton;
 	private ImageButton mHelpButton;
-
+	
+	PhotoStore ps = null;
+	public byte[] cropPhoto = null;
+	
+	Facebook fbClient = null;
+	static MainActivity sMainActivity;
+	public static MainActivity GetInstance()
+	{
+		return sMainActivity;
+	}
+	
+	public PhotoStore GetPhotoStore() { return ps; }
+	
 	public static <T extends SyncService> Class<T> getSyncSource(Context context)
 	{
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -135,25 +155,86 @@ public class MainActivity extends Activity {
 		// default to Facebook
 		return FacebookLoginWebView.class;
 	}
+	
+	boolean loggedIn = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        sMainActivity = this;
+        
+        //ps = new PhotoStore(Environment.getExternalStorageDirectory());
         
         if (!getSharedPreferences(SettingsActivity.PREFS_NAME, 0).getBoolean("do_not_show_about", false)) {
         	showDialog(ABOUT_DIALOG);
         }
         
+        final MainActivity self = this;
         ImageButton sync = (ImageButton) findViewById(R.id.syncButton);
         sync.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (isLoggedInFromSyncSource(getApplicationContext(), getSyncSource(getApplicationContext()))) {
-					sync();
+				/*if (isLoggedInFromSyncSource(getApplicationContext(), getSyncSource(getApplicationContext()))) {
+					
 					//showDialog(CONFIRM_DIALOG);
 				} else {
-					login();
-				}
+					login();*/
+					SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+					String key = SP.getString("appId", null);
+					if(key == null || key.length() == 0)
+						key = getResources().getString(R.string.facebook_api_key);
+					if(key == null || key.length() == 0)
+					{
+						Toast.makeText(self, "You have to enter facebook application id", Toast.LENGTH_LONG).show();
+						return;
+					}
+					fbClient = new Facebook(key);
+					if(!loggedIn || fbClient.getAccessToken() == null)
+					{
+						loggedIn = true;
+						fbClient.authorize(self, new DialogListener() {
+				            @Override
+				            public void onComplete(Bundle values) {sync();}
+				            	
+				            @Override
+				            public void onFacebookError(FacebookError error) {try
+							{
+				            	loggedIn = false;
+				            	Toast.makeText(self, "Error on facebook sync again!", Toast.LENGTH_SHORT).show();
+								fbClient.logout(self);
+							}
+							catch(MalformedURLException e)
+							{
+								e.printStackTrace();
+							}
+							catch(IOException e)
+							{
+								e.printStackTrace();
+							}}
+	
+				            @Override
+				            public void onError(DialogError e) {try
+							{
+				            	loggedIn = false;
+				            	Toast.makeText(self, "Error on facebook sync again!", Toast.LENGTH_SHORT).show();
+								fbClient.logout(self);
+							}
+							catch(MalformedURLException e1)
+							{
+								e1.printStackTrace();
+							}
+							catch(IOException e1)
+							{
+								e1.printStackTrace();
+							}}
+	
+				            @Override
+				            public void onCancel() {loggedIn = false;}
+				        });
+					}
+					else
+						sync();
+				//}
 			}
         });
         
@@ -191,6 +272,20 @@ public class MainActivity extends Activity {
 		mDeleteButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				showDialog(DELETE_DIALOG);
+				loggedIn = false;
+				if(fbClient != null)
+					try
+					{
+						fbClient.logout(self);
+					}
+					catch(MalformedURLException e)
+					{
+						e.printStackTrace();
+					}
+					catch(IOException e)
+					{
+						e.printStackTrace();
+					}
 			}
 		});
 
@@ -446,13 +541,24 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		final MainActivity self = this;
         Button donate = (Button) about.findViewById(R.id.donate);
         donate.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				removeDialog(ABOUT_DIALOG);
+				AlertDialog.Builder builder = new AlertDialog.Builder(self);
+			builder.setSingleChoiceItems(new CharSequence[] { "Deadknight", "Neil Loknath"}, -1, new DialogInterface.OnClickListener()
+			{
+				@Override
+				public void onClick(DialogInterface dialog, int which)
+				{
+					Intent i = new Intent(getApplicationContext(), DonateActivity.class);
+					i.putExtra("choice", which);
+					startActivity(i);
+				}
+			});
+			builder.show();
 				
-				Intent i = new Intent(getApplicationContext(), DonateActivity.class);
-				startActivity(i);
 			}
         });
         
@@ -487,4 +593,9 @@ public class MainActivity extends Activity {
         	mSyncService = null;
         }
     };
+    
+	public Facebook GetFacebookClient()
+	{
+		return fbClient;
+	}
 }

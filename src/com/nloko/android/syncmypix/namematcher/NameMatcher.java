@@ -52,7 +52,7 @@ import android.provider.Contacts.People;
 
 public class NameMatcher {
     protected final String TAG = "NameMatcher";
-    protected final String mBadChars  = "ŠŚŞŹŽŻşšśžźżŸĄÀÁÂÃÄÅÇĆÈÉÊËĘÌÍÎÏİÐĞŁŃÑÖÒÓÔÕÖÙÚÛÜÝąàáâãäåçćèéêëęìíîïðğłñńòóôõöùúûüýÿ";
+    protected final String mBadChars = "ŠŚŞŹŽŻşšśžźżŸĄÀÁÂÃÄÅÇĆÈÉÊËĘÌÍÎÏİÐĞŁŃÑÖÒÓÔÕÖÙÚÛÜÝąàáâãäåçćèéêëęìíîïðğłñńòóôõöùúûüýÿ";
     protected final String mGoodChars = "SSSZZZssszzzYAAAAAAACCEEEEEIIIIIDGLNNOOOOOOUUUUYaaaaaaacceeeeeiiiidglnnooooouuuuyy ";
     
     private final TreeMap<String, ArrayList<PhoneContact>> mFirstNames = new TreeMap<String, ArrayList<PhoneContact>>();; 
@@ -506,7 +506,7 @@ public class NameMatcher {
         PhoneContact alejandro = new PhoneContact("2", "Alejandro Cuervo", "", "");
         PhoneContact tala = new PhoneContact("3", "Tala von Daniken", "", "");
         PhoneContact paul = new PhoneContact("4", "Paul Dunlop", "", "");
-        PhoneContact andre = new PhoneContact("5", "Andrea BeltrÔøΩn", "", "");
+        PhoneContact andre = new PhoneContact("5", "Andrea BeltrÃ”Ã¸Î©n", "", "");
         PhoneContact joanna1 = new PhoneContact("6", "Joanna Frisch", "", "");
         PhoneContact joanna2 = new PhoneContact("7", "Joanna Something", "", "");
         PhoneContact stribb = new PhoneContact("8", "Andrew Stribblehill", "", "");
