@@ -36,9 +36,8 @@ import com.nloko.android.Log;
 import com.nloko.android.LogCollector;
 import com.nloko.android.LogCollectorNotifier;
 import com.nloko.android.Utils;
-import com.nloko.android.syncmypix.facebook.FacebookLoginWebView;
-import com.nloko.android.syncmypix.facebook.FacebookSyncService;
 import com.nloko.android.syncmypix.views.ConfirmSyncDialog;
+import com.nloko.android.syncmypix.facebook.*;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -49,15 +48,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -104,21 +100,9 @@ public class MainActivity extends Activity {
 	
 	public PhotoStore GetPhotoStore() { return ps; }
 	
-	public static <T extends SyncService> Class<T> getSyncSource(Context context)
-	{
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		String source = prefs.getString("source", null);
-		
-		try {
-			Class<?> cls = Class.forName(source);
-			return (Class<T>) cls;
-		} catch(ClassNotFoundException classException) {
-			Log.e(TAG, "Could not get class from XML. Defaulting to FacebookSyncService.class");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return (Class<T>) FacebookSyncService.class;
+	public static Class<FacebookSyncService> getSyncSource(Context context)
+	{		
+		return FacebookSyncService.class;
 	}
 	
 	public static <T extends SyncService> boolean isLoggedInFromSyncSource(Context context, Class<T> source)
@@ -136,24 +120,6 @@ public class MainActivity extends Activity {
 		}
 
 		return false;
-	}
-
-	public <T extends SyncService> Class<?> getLoginClassFromSyncSource(Class<T> source)
-	{
-		try {
-			Method m = source.getMethod("getLoginClass");
-			return (Class<?>) m.invoke(null);
-
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		// default to Facebook
-		return FacebookLoginWebView.class;
 	}
 	
 	boolean loggedIn = false;
@@ -179,24 +145,15 @@ public class MainActivity extends Activity {
 					//showDialog(CONFIRM_DIALOG);
 				} else {
 					login();*/
-					SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-					String key = SP.getString("appId", null);
-					if(key == null || key.length() == 0)
-						key = getResources().getString(R.string.facebook_api_key);
-					if(key == null || key.length() == 0)
-					{
-						Toast.makeText(self, "You have to enter facebook application id", Toast.LENGTH_LONG).show();
-						return;
-					}
+					//SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+					String key = getResources().getString(R.string.facebook_api_key);
 					fbClient = new Facebook(key);
 					if(!loggedIn || fbClient.getAccessToken() == null)
 					{
 						loggedIn = true;
 						fbClient.authorize(self, new DialogListener() {
-				            @Override
 				            public void onComplete(Bundle values) {sync();}
 				            	
-				            @Override
 				            public void onFacebookError(FacebookError error) {try
 							{
 				            	loggedIn = false;
@@ -212,7 +169,6 @@ public class MainActivity extends Activity {
 								e.printStackTrace();
 							}}
 	
-				            @Override
 				            public void onError(DialogError e) {try
 							{
 				            	loggedIn = false;
@@ -228,7 +184,6 @@ public class MainActivity extends Activity {
 								e1.printStackTrace();
 							}}
 	
-				            @Override
 				            public void onCancel() {loggedIn = false;}
 				        });
 					}
@@ -304,13 +259,6 @@ public class MainActivity extends Activity {
 				sync();
 				break;
 		}
-	}
-
-	private void login()
-    {
-		startActivityForResult(new Intent(getApplicationContext(), 
-				getLoginClassFromSyncSource(getSyncSource(getApplicationContext()))), 
-				SOCIAL_NETWORK_LOGIN);
     }
     
     // TODO This is needless filler, REMOVE
@@ -546,19 +494,8 @@ public class MainActivity extends Activity {
         donate.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				removeDialog(ABOUT_DIALOG);
-				AlertDialog.Builder builder = new AlertDialog.Builder(self);
-			builder.setSingleChoiceItems(new CharSequence[] { "Deadknight", "Neil Loknath"}, -1, new DialogInterface.OnClickListener()
-			{
-				@Override
-				public void onClick(DialogInterface dialog, int which)
-				{
-					Intent i = new Intent(getApplicationContext(), DonateActivity.class);
-					i.putExtra("choice", which);
-					startActivity(i);
-				}
-			});
-			builder.show();
-				
+				Intent i = new Intent(getApplicationContext(), DonateActivity.class);
+				startActivity(i);
 			}
         });
         

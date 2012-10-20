@@ -187,11 +187,6 @@ public class FacebookSyncService extends SyncService {
 	
 		return session_key != null && secret != null && uid != null;
     }
-	
-    public static Class<?> getLoginClass()
-    {
-    	return FacebookLoginWebView.class;
-    }
     
     public String getSocialNetworkName()
     {

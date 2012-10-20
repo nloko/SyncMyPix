@@ -1,13 +1,4 @@
-<resources>
-
-    <string-array name="sources">
-        <item>Facebook</item>
-    </string-array>
-    
-    <string-array name="sourceValues">
-        <item>com.nloko.android.syncmypix.facebook.FacebookSyncService</item>
-    </string-array>
-    
+<resources>    
     <string-array name="scheduleFreq">
     	<item>Never</item>
         <item>Daily</item>
