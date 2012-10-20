@@ -36,7 +36,7 @@ called 'facebook_api_key'.
 Contributors
 ------------
 
-Neil Loknath <neil.loknath@gmail.com>
-Mike Hearn <mike@plan99.net>
-Diomidis Spinellis <dds@aueb.gr>
+Neil Loknath <neil.loknath@gmail.com>  
+Mike Hearn <mike@plan99.net>  
+Diomidis Spinellis <dds@aueb.gr>  
 Deadknight <olligan@gmail.com>
