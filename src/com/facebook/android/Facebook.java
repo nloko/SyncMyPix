@@ -571,13 +571,11 @@ public class Facebook {
             this.serviceListener = serviceListener;
         }
 
-        @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             messageSender = new Messenger(service);
             refreshToken();
         }
 
-        @Override
         public void onServiceDisconnected(ComponentName arg) {
             serviceListener.onError(new Error("Service disconnected"));
             // We returned an error so there's no point in

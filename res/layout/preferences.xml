@@ -8,21 +8,8 @@
          android:summary="@string/preferences.notloggedin"
          android:enabled="false"  
          /> 
-    <EditTextPreference  
-         android:key="appId" 
-         android:title="Application Id"
-         android:summary="Application Id to use on facebook"
-         android:enabled="true"  
-         /> 
-    <PreferenceCategory android:title="@string/preferences.sourceHeader" >
-        <ListPreference
-            android:title="@string/preferences.source"
-            android:summary="@string/preferences.source.summary"
-            android:key="source"
-            android:defaultValue="com.nloko.android.syncmypix.facebook.FacebookSyncService"
-            android:entries="@array/sources"
-            android:entryValues="@array/sourceValues" />
-            
+
+    <PreferenceCategory android:title="@string/preferences.sourceHeader" >            
         <ListPreference
             android:title="@string/preferences.schedule"
             android:summary="@string/preferences.schedule.summary"
@@ -44,19 +31,8 @@
             android:defaultValue="false"
             android:summary="@string/preferences.phoneOnly.summary"
             android:key="phoneOnly" />
-            
-        <CheckBoxPreference
-            android:title="@string/preferences.overrideReadOnlyCheck"
-            android:defaultValue="false"
-            android:summary="@string/preferences.overrideReadOnlyCheck.summary"
-            android:key="overrideReadOnlyCheck" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences.picturesHeader">
-    	<CheckBoxPreference
-            android:title="@string/preferences.maxquality"
-            android:defaultValue="false"
-            android:summary="@string/preferences.maxquality.summary"
-            android:key="maxQuality" />
         <CheckBoxPreference
             android:title="@string/preferences.cropsquare"
             android:defaultValue="true"

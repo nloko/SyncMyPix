@@ -9,10 +9,8 @@ package com.nloko.android.syncmypix;
 
 public final class R {
     public static final class array {
-        public static final int scheduleFreq=0x7f060002;
-        public static final int scheduleFreqValues=0x7f060003;
-        public static final int sourceValues=0x7f060001;
-        public static final int sources=0x7f060000;
+        public static final int scheduleFreq=0x7f060000;
+        public static final int scheduleFreqValues=0x7f060001;
     }
     public static final class attr {
     }
@@ -23,28 +21,29 @@ public final class R {
         public static final int cancel_button_default=0x7f020003;
         public static final int cancel_button_pressed=0x7f020004;
         public static final int cancel_button_selector=0x7f020005;
-        public static final int default_face=0x7f020006;
-        public static final int delete_button_selector=0x7f020007;
-        public static final int help_button_default=0x7f020008;
-        public static final int help_button_pressed=0x7f020009;
-        public static final int help_button_selector=0x7f02000a;
-        public static final int home_button_default=0x7f02000b;
-        public static final int home_button_pressed=0x7f02000c;
-        public static final int home_button_selector=0x7f02000d;
-        public static final int icon=0x7f02000e;
-        public static final int indicator_autocrop=0x7f02000f;
-        public static final int logo=0x7f020010;
-        public static final int mini_icon=0x7f020011;
-        public static final int neutral_face=0x7f020012;
-        public static final int results_button=0x7f020013;
-        public static final int sad_face=0x7f020014;
-        public static final int settings_button=0x7f020015;
-        public static final int smiley_face=0x7f020016;
-        public static final int sync_button=0x7f020017;
-        public static final int title=0x7f020018;
-        public static final int title_gradient=0x7f020019;
-        public static final int trash_button_default=0x7f02001a;
-        public static final int trash_button_pressed=0x7f02001b;
+        public static final int close=0x7f020006;
+        public static final int default_face=0x7f020007;
+        public static final int delete_button_selector=0x7f020008;
+        public static final int help_button_default=0x7f020009;
+        public static final int help_button_pressed=0x7f02000a;
+        public static final int help_button_selector=0x7f02000b;
+        public static final int home_button_default=0x7f02000c;
+        public static final int home_button_pressed=0x7f02000d;
+        public static final int home_button_selector=0x7f02000e;
+        public static final int icon=0x7f02000f;
+        public static final int indicator_autocrop=0x7f020010;
+        public static final int logo=0x7f020011;
+        public static final int mini_icon=0x7f020012;
+        public static final int neutral_face=0x7f020013;
+        public static final int results_button=0x7f020014;
+        public static final int sad_face=0x7f020015;
+        public static final int settings_button=0x7f020016;
+        public static final int smiley_face=0x7f020017;
+        public static final int sync_button=0x7f020018;
+        public static final int title=0x7f020019;
+        public static final int title_gradient=0x7f02001a;
+        public static final int trash_button_default=0x7f02001b;
+        public static final int trash_button_pressed=0x7f02001c;
     }
     public static final class id {
         public static final int ImageView01=0x7f07002f;

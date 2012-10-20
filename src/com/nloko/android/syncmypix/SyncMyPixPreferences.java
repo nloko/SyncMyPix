@@ -24,7 +24,6 @@ package com.nloko.android.syncmypix;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.preference.PreferenceManager;
 
 public final class SyncMyPixPreferences {
@@ -132,16 +131,16 @@ public final class SyncMyPixPreferences {
 		
 		googleSyncToggledOff = prefs.getBoolean("googleSyncToggledOff", false); 
 		skipIfConflict = prefs.getBoolean("skipIfConflict", false);
-		maxQuality = prefs.getBoolean("maxQuality", false);
-		//allowGoogleSync = prefs.getBoolean("allowGoogleSync", false);
+
+		maxQuality = true;
 		allowGoogleSync = true;
     	
 		//skipIfExists = prefs.getBoolean("skipIfExists", 
     	//		Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.ECLAIR ? false : true);
 		skipIfExists = false;
     	
-		overrideReadOnlyCheck = prefs.getBoolean("overrideReadOnlyCheck", false);
-    	cropSquare = prefs.getBoolean("cropSquare", true);
+		overrideReadOnlyCheck = prefs.getBoolean("overrideReadOnlyCheck", true);
+    	cropSquare = prefs.getBoolean("cropSquare", false);
     	intelliMatch = prefs.getBoolean("intelliMatch", true);
     	phoneOnly = prefs.getBoolean("phoneOnly", false);
     	cache = prefs.getBoolean("cache", true);

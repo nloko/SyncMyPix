@@ -43,7 +43,6 @@ import com.nloko.android.Log;
 import com.nloko.android.syncmypix.SocialNetworkUser;
 
 import com.nloko.simplyfacebook.net.FacebookJSONResponse;
-import com.nloko.simplyfacebook.net.FacebookRestClient;
 
 public class FacebookApi {
 	

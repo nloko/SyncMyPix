@@ -40,7 +40,7 @@ import com.nloko.android.syncmypix.R;
 public class DonateActivity extends Activity {
 
 	private static final String TAG = "DonateActivity";
-	private static String DONATE_URL = "file:///android_asset/donate.html";
+	private static final String DONATE_URL = "file:///android_asset/donate.html";
 	
 	private WebView webview;
 	
@@ -113,10 +113,6 @@ public class DonateActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        Bundle extras = getIntent().getExtras();
-		int choice = extras.getInt("choice");
-		if(choice == 0)
-			DONATE_URL = "file:///android_asset/donatedk.html";
         requestWindowFeature(Window.FEATURE_PROGRESS);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.facebookloginwebview);	
